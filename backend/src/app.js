@@ -1,5 +1,6 @@
 // src/app.js
 import express from 'express';
+import cors from 'cors';
 import dotenv from 'dotenv';
 import apiRoutes from './routes/index.js';
 import { notFoundHandler, globalErrorHandler } from './utils/response.js';
@@ -7,6 +8,14 @@ import { notFoundHandler, globalErrorHandler } from './utils/response.js';
 dotenv.config();
 
 const app = express();
+
+// Configuration CORS
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || '*',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // Middleware JSON + URL encoded
 app.use(express.json());

@@ -11,19 +11,35 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 const env = process.env.NODE_ENV || 'development';
 
 // ✅ Base de configuration commune
-const baseConfig = {
-  username: process.env.DB_USERNAME || 'postgres',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'cameroontravail_dev',
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  dialect: 'postgres',
-  logging: false,
-  define: {
-    timestamps: true,
-    underscored: true,
-  },
-};
+let baseConfig;
+
+if (process.env.DB_DIALECT === 'sqlite') {
+  // Configuration SQLite pour Manus
+  baseConfig = {
+    dialect: 'sqlite',
+    storage: process.env.DB_STORAGE || './database.sqlite',
+    logging: false,
+    define: {
+      timestamps: true,
+      underscored: true,
+    },
+  };
+} else {
+  // Configuration PostgreSQL pour production
+  baseConfig = {
+    username: process.env.DB_USERNAME || 'postgres',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'cameroontravail_dev',
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || 5432,
+    dialect: 'postgres',
+    logging: false,
+    define: {
+      timestamps: true,
+      underscored: true,
+    },
+  };
+}
 
 // ✅ Une seule configuration, appliquée partout
 const configs = {

@@ -3,15 +3,15 @@ import { DataTypes, Model } from 'sequelize';
 export default (sequelize) => {
   class User extends Model {
     static associate(models) {
-      // 🔗 Relations
-      User.hasOne(models.CvProfile, {
-        foreignKey: 'user_id',
-        onDelete: 'CASCADE',
-      });
-      User.hasMany(models.JobOffer, {
-        foreignKey: 'recruiter_id',
-        onDelete: 'CASCADE',
-      });
+      // 🔗 Relations (désactivées temporairement pour SQLite)
+      // User.hasOne(models.CvProfile, {
+      //   foreignKey: 'user_id',
+      //   onDelete: 'CASCADE',
+      // });
+      // User.hasMany(models.JobOffer, {
+      //   foreignKey: 'recruiter_id',
+      //   onDelete: 'CASCADE',
+      // });
     }
   }
 

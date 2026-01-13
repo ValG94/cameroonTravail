@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test CameroonTravail</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test CameroonTravail - Diagnostic</h1>
+    
+    <h2>Backend API</h2>
+    <div id="backend-status">Vérification en cours...</div>
+    
+    <h2>Frontend</h2>
+    <div class="success">✅ Page HTML chargée</div>
+    <div class="success">✅ JavaScript actif</div>
+    
+    <h2>Informations</h2>
+    <p><strong>URL Frontend:</strong> http://localhost:5173</p>
+    <p><strong>URL Backend:</strong> http://localhost:3001</p>
+    
+    <script>
+        // Test du backend
+        fetch('http://localhost:3001/health')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('backend-status').innerHTML = 
+                    '<div class="success">✅ Backend accessible: ' + data.message + '</div>';
+            })
+            .catch(err => {
+                document.getElementById('backend-status').innerHTML = 
+                    '<div class="error">❌ Backend inaccessible: ' + err.message + '</div>';
+            });
+    </script>
+</body>
+</html>
