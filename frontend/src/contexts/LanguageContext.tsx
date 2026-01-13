@@ -147,6 +147,16 @@ const translations = {
     'auth.continue.with': 'Ou continuez avec',
     'auth.continue.google': 'Continuer avec Google',
     'auth.optional': '(optionnel)',
+    'auth.login.title': 'Se connecter',
+    'auth.register.title': 'S\'inscrire',
+    'auth.or': 'Ou',
+    'auth.accept': 'J\'accepte les',
+    'auth.logging.in': 'Connexion...',
+    'auth.registering': 'Inscription...',
+    'auth.login.error': 'Email ou mot de passe incorrect',
+    'auth.register.error': 'Une erreur est survenue lors de l\'inscription',
+    'auth.password.mismatch': 'Les mots de passe ne correspondent pas',
+    'auth.accept.terms.required': 'Vous devez accepter les conditions d\'utilisation',
     
     // Footer
     'footer.about': 'À propos',
@@ -296,6 +306,16 @@ const translations = {
     'auth.continue.with': 'Or continue with',
     'auth.continue.google': 'Continue with Google',
     'auth.optional': '(optional)',
+    'auth.login.title': 'Sign in',
+    'auth.register.title': 'Sign up',
+    'auth.or': 'Or',
+    'auth.accept': 'I accept the',
+    'auth.logging.in': 'Signing in...',
+    'auth.registering': 'Signing up...',
+    'auth.login.error': 'Incorrect email or password',
+    'auth.register.error': 'An error occurred during registration',
+    'auth.password.mismatch': 'Passwords do not match',
+    'auth.accept.terms.required': 'You must accept the terms of use',
     
     // Professional section
     'pro.title': 'Professional Space',
