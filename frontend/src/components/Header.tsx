@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { GlobeIcon, MenuIcon, XIcon } from './Icons';
+import { GlobeIcon, MenuIcon, XIcon, ChevronDownIcon, UserIcon, FileTextIcon, BellIcon } from './Icons';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -8,6 +8,7 @@ const Header: React.FC = () => {
   const { language, setLanguage, t } = useLanguage();
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const toggleLanguage = () => {
     setLanguage(language === 'fr' ? 'en' : 'fr');
@@ -15,6 +16,10 @@ const Header: React.FC = () => {
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const toggleUserMenu = () => {
+    setUserMenuOpen(!userMenuOpen);
   };
 
   return (
@@ -47,16 +52,54 @@ const Header: React.FC = () => {
 
             {/* Auth Section */}
             {user ? (
-              <div className="flex items-center space-x-3">
-                <span className="text-sm font-medium text-gray-700">
-                  {user.firstName}
-                </span>
+              <div className="relative">
                 <button 
-                  onClick={logout}
-                  className="text-gray-700 hover:text-green-600 font-medium transition-colors"
+                  onClick={toggleUserMenu}
+                  className="flex items-center space-x-2 text-gray-700 hover:text-green-600 font-medium transition-colors"
                 >
-                  {t('nav.logout')}
+                  <span className="text-sm">{user.firstName}</span>
+                  <ChevronDownIcon size={16} />
                 </button>
+                
+                {/* User Dropdown Menu */}
+                {userMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                    <Link 
+                      to="/profil" 
+                      className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      <UserIcon size={16} />
+                      <span>{t('nav.profile')}</span>
+                    </Link>
+                    <Link 
+                      to="/cv" 
+                      className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      <FileTextIcon size={16} />
+                      <span>{t('nav.cv')}</span>
+                    </Link>
+                    <Link 
+                      to="/alertes" 
+                      className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      <BellIcon size={16} />
+                      <span>{t('nav.alerts')}</span>
+                    </Link>
+                    <div className="border-t border-gray-200 my-2"></div>
+                    <button 
+                      onClick={() => {
+                        logout();
+                        setUserMenuOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 transition-colors"
+                    >
+                      {t('nav.logout')}
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex items-center space-x-3">
@@ -117,18 +160,44 @@ const Header: React.FC = () => {
               {/* Auth Section Mobile */}
               {user ? (
                 <>
-                  <span className="text-sm font-medium text-gray-700">
-                    {user.firstName}
-                  </span>
-                  <button 
-                    onClick={() => {
-                      logout();
-                      setMobileMenuOpen(false);
-                    }}
-                    className="text-gray-700 hover:text-green-600 font-medium transition-colors w-fit"
-                  >
-                    {t('nav.logout')}
-                  </button>
+                  <div className="border-t border-gray-200 pt-4">
+                    <p className="text-sm font-medium text-gray-700 mb-3">{user.firstName}</p>
+                    <div className="flex flex-col space-y-2">
+                      <Link 
+                        to="/profil" 
+                        className="flex items-center space-x-2 text-gray-700 hover:text-green-600 transition-colors"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <UserIcon size={16} />
+                        <span className="text-sm">{t('nav.profile')}</span>
+                      </Link>
+                      <Link 
+                        to="/cv" 
+                        className="flex items-center space-x-2 text-gray-700 hover:text-green-600 transition-colors"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <FileTextIcon size={16} />
+                        <span className="text-sm">{t('nav.cv')}</span>
+                      </Link>
+                      <Link 
+                        to="/alertes" 
+                        className="flex items-center space-x-2 text-gray-700 hover:text-green-600 transition-colors"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <BellIcon size={16} />
+                        <span className="text-sm">{t('nav.alerts')}</span>
+                      </Link>
+                      <button 
+                        onClick={() => {
+                          logout();
+                          setMobileMenuOpen(false);
+                        }}
+                        className="flex items-center text-red-600 hover:text-red-700 font-medium transition-colors w-fit"
+                      >
+                        <span className="text-sm">{t('nav.logout')}</span>
+                      </button>
+                    </div>
+                  </div>
                 </>
               ) : (
                 <>
