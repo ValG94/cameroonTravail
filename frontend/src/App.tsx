@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { AuthProvider } from './contexts/AuthContext';
-import Layout from './components/Layout/Layout';
+import Layout from './components/Layout';
 import Home from './pages/Home';
 import JobSearch from './pages/JobSearch';
 import JobDetails from './pages/JobDetails';
