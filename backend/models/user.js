@@ -3,15 +3,31 @@ import { DataTypes, Model } from 'sequelize';
 export default (sequelize) => {
   class User extends Model {
     static associate(models) {
-      // 🔗 Relations (désactivées temporairement pour SQLite)
-      // User.hasOne(models.CvProfile, {
-      //   foreignKey: 'user_id',
-      //   onDelete: 'CASCADE',
-      // });
-      // User.hasMany(models.JobOffer, {
-      //   foreignKey: 'recruiter_id',
-      //   onDelete: 'CASCADE',
-      // });
+      // Relations avec les autres modèles
+      if (models.Experience) {
+        User.hasMany(models.Experience, {
+          foreignKey: 'user_id',
+          onDelete: 'CASCADE',
+        });
+      }
+      if (models.Education) {
+        User.hasMany(models.Education, {
+          foreignKey: 'user_id',
+          onDelete: 'CASCADE',
+        });
+      }
+      if (models.Skill) {
+        User.hasMany(models.Skill, {
+          foreignKey: 'user_id',
+          onDelete: 'CASCADE',
+        });
+      }
+      if (models.Language) {
+        User.hasMany(models.Language, {
+          foreignKey: 'user_id',
+          onDelete: 'CASCADE',
+        });
+      }
     }
   }
 
@@ -46,7 +62,6 @@ export default (sequelize) => {
         type: DataTypes.ENUM('candidate', 'recruiter', 'admin'),
         allowNull: false,
       },
-      // 🔽 Champs supplémentaires optionnels (non présents dans ta BDD)
       status: {
         type: DataTypes.STRING,
         allowNull: true,
@@ -56,13 +71,46 @@ export default (sequelize) => {
         type: DataTypes.DATE,
         allowNull: true,
       },
+      profile_picture: {
+        type: DataTypes.STRING(500),
+        allowNull: true,
+      },
+      job_title: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+      },
+      city: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+      },
+      country: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        defaultValue: 'Cameroun',
+      },
+      birth_date: {
+        type: DataTypes.DATEONLY,
+        allowNull: true,
+      },
+      bio: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      profile_completion: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+        validate: {
+          min: 0,
+          max: 100,
+        },
+      },
     },
     {
       sequelize,
       modelName: 'User',
-      tableName: 'users', // ✅ correspond exactement à ta table
-      timestamps: true, // createdAt / updatedAt gérés automatiquement
-      underscored: false, // ✅ car tes colonnes sont en camelCase (createdAt, updatedAt)
+      tableName: 'users',
+      timestamps: true,
+      underscored: false,
     }
   );
 

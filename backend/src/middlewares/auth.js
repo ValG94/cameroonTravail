@@ -288,6 +288,41 @@ export const rateLimit = (maxRequests = 5, windowMs = 15 * 60 * 1000) => {
 /**
  * Middleware pour vérifier l'authentification via JWT
  */
+export const authenticate = (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      return res.status(401).json({
+        success: false,
+        message: 'Token d\'authentification manquant',
+      });
+    }
+
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: 'Format du token invalide',
+      });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message:
+        error.name === 'TokenExpiredError'
+          ? 'Token expiré'
+          : 'Token invalide',
+    });
+  }
+};
+
+// Alias pour compatibilité
 export const isAuthenticated = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
