@@ -1,5 +1,6 @@
 import express from 'express';
 import authRoutes from './authRoutes.js';
+import profileRoutes from './profile.js';
 
 const router = express.Router();
 
@@ -9,6 +10,9 @@ const router = express.Router();
 
 // Routes d'authentification
 router.use('/auth', authRoutes);
+
+// Routes de profil
+router.use('/profile', profileRoutes);
 
 // ✅ Endpoint de "health check"
 router.get('/health', (req, res) => {
@@ -30,6 +34,7 @@ router.get('/', (req, res) => {
     version: process.env.API_VERSION || '1.0.0',
     endpoints: {
       auth: '/api/auth',
+      profile: '/api/profile',
       health: '/api/health'
     }
   });

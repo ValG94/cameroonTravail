@@ -32,7 +32,7 @@ class AuthService {
       // Vérifier si le numéro de téléphone existe déjà (s'il est fourni)
       if (userData.phoneNumber) {
         const existingPhone = await User.findOne({
-          where: { phoneNumber: userData.phoneNumber }
+          where: { phone_number: userData.phoneNumber }
         });
 
         if (existingPhone) {
