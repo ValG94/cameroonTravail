@@ -24,7 +24,14 @@ export default defineConfig({
   },
 
   server: {
+    host: '0.0.0.0', // Permet l'accès depuis l'extérieur
     port: 5173,
-    open: true,
+    open: false, // Désactivé pour Manus
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
   },
 });

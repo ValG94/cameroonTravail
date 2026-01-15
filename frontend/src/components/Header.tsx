@@ -1,19 +1,25 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User, Bell, Search, Globe } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { GlobeIcon, MenuIcon, XIcon, ChevronDownIcon, UserIcon, FileTextIcon, BellIcon } from './Icons';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 
 const Header: React.FC = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { language, setLanguage, t } = useLanguage();
   const { user, logout } = useAuth();
-  const location = useLocation();
-
-  const isActive = (path: string) => location.pathname === path;
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const toggleLanguage = () => {
     setLanguage(language === 'fr' ? 'en' : 'fr');
+  };
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const toggleUserMenu = () => {
+    setUserMenuOpen(!userMenuOpen);
   };
 
   return (
@@ -22,94 +28,81 @@ const Header: React.FC = () => {
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 py-2">
-            <img
-              src="/logo cameroonTravail.png"
-              alt="Cameroon Travail"
-             className="h-16 w-auto"
-            />
+            <span className="text-2xl font-bold text-green-600">CameroonTravail</span>
           </Link>
-
+          
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link 
-              to="/" 
-              className={`font-medium transition-colors hover:text-green-600 ${
-                isActive('/') ? 'text-green-600' : 'text-gray-700'
-              }`}
-            >
+            <Link to="/" className="font-medium text-gray-700 hover:text-green-600 transition-colors">
               {t('nav.home')}
             </Link>
-            <Link 
-              to="/recherche" 
-              className={`font-medium transition-colors hover:text-green-600 ${
-                isActive('/recherche') || isActive('/search') ? 'text-green-600' : 'text-gray-700'
-              }`}
-            >
+            <Link to="/recherche" className="font-medium text-gray-700 hover:text-green-600 transition-colors">
               {t('nav.jobs')}
             </Link>
-            <Link 
-              to="/blog" 
-              className={`font-medium transition-colors hover:text-green-600 ${
-                isActive('/blog') ? 'text-green-600' : 'text-gray-700'
-              }`}
-            >
-              {t('nav.blog')}
-            </Link>
-          </nav>
-
-          {/* Right side */}
-          <div className="flex items-center space-x-4">
+            
             {/* Language Toggle */}
             <button
               onClick={toggleLanguage}
-              className="flex items-center space-x-1 text-gray-700 hover:text-green-600 transition-colors"
+              className="flex items-center space-x-1 text-gray-700 hover:text-green-600 transition-colors border border-gray-300 px-3 py-1 rounded"
               title="Change language"
             >
-              <Globe className="w-5 h-5" />
+              <GlobeIcon size={16} />
               <span className="text-sm font-medium uppercase">{language}</span>
             </button>
 
             {/* Auth Section */}
             {user ? (
-              <div className="flex items-center space-x-3">
-                <Link 
-                  to="/alertes" 
-                  className="p-2 text-gray-700 hover:text-green-600 transition-colors relative"
+              <div className="relative">
+                <button 
+                  onClick={toggleUserMenu}
+                  className="flex items-center space-x-2 text-gray-700 hover:text-green-600 font-medium transition-colors"
                 >
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-                </Link>
+                  <span className="text-sm">{user.full_name}</span>
+                  <ChevronDownIcon size={16} />
+                </button>
                 
-                <div className="relative group">
-                  <button className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                    <User className="w-5 h-5 text-gray-700" />
-                    <span className="hidden sm:block text-sm font-medium text-gray-700">
-                      {user.firstName}
-                    </span>
-                  </button>
-                  
-                  {/* Dropdown */}
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                    <Link to="/profil" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                      {t('nav.profile')}
+                {/* User Dropdown Menu */}
+                {userMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                    <Link 
+                      to="/profil" 
+                      className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      <UserIcon size={16} />
+                      <span>{t('nav.profile')}</span>
                     </Link>
-                    <Link to="/cv" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                      {t('nav.cv')}
+                    <Link 
+                      to="/cv" 
+                      className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      <FileTextIcon size={16} />
+                      <span>{t('nav.cv')}</span>
                     </Link>
-                    <Link to="/alertes" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                      {t('nav.alerts')}
+                    <Link 
+                      to="/alertes" 
+                      className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      <BellIcon size={16} />
+                      <span>{t('nav.alerts')}</span>
                     </Link>
+                    <div className="border-t border-gray-200 my-2"></div>
                     <button 
-                      onClick={logout}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => {
+                        logout();
+                        setUserMenuOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 transition-colors"
                     >
                       {t('nav.logout')}
                     </button>
                   </div>
-                </div>
+                )}
               </div>
             ) : (
-              <div className="hidden sm:flex items-center space-x-3">
+              <div className="flex items-center space-x-3">
                 <Link 
                   to="/connexion" 
                   className="text-gray-700 hover:text-green-600 font-medium transition-colors"
@@ -124,65 +117,110 @@ const Header: React.FC = () => {
                 </Link>
               </div>
             )}
+          </nav>
 
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 text-gray-700 hover:text-green-600 transition-colors"
-            >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
+          {/* Mobile Menu Button */}
+          <button
+            onClick={toggleMobileMenu}
+            className="md:hidden text-gray-700 hover:text-green-600 transition-colors"
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <XIcon size={24} /> : <MenuIcon size={24} />}
+          </button>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden py-4 border-t border-gray-200">
+            <div className="flex flex-col space-y-4">
+              <Link 
+                to="/" 
+                className="font-medium text-gray-700 hover:text-green-600 transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {t('nav.home')}
+              </Link>
+              <Link 
+                to="/recherche" 
+                className="font-medium text-gray-700 hover:text-green-600 transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {t('nav.jobs')}
+              </Link>
+              
+              {/* Language Toggle Mobile */}
+              <button
+                onClick={toggleLanguage}
+                className="flex items-center space-x-2 text-gray-700 hover:text-green-600 transition-colors w-fit"
+              >
+                <GlobeIcon size={16} />
+                <span className="text-sm font-medium uppercase">{language}</span>
+              </button>
+
+              {/* Auth Section Mobile */}
+              {user ? (
+                <>
+                  <div className="border-t border-gray-200 pt-4">
+                    <p className="text-sm font-medium text-gray-700 mb-3">{user.full_name}</p>
+                    <div className="flex flex-col space-y-2">
+                      <Link 
+                        to="/profil" 
+                        className="flex items-center space-x-2 text-gray-700 hover:text-green-600 transition-colors"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <UserIcon size={16} />
+                        <span className="text-sm">{t('nav.profile')}</span>
+                      </Link>
+                      <Link 
+                        to="/cv" 
+                        className="flex items-center space-x-2 text-gray-700 hover:text-green-600 transition-colors"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <FileTextIcon size={16} />
+                        <span className="text-sm">{t('nav.cv')}</span>
+                      </Link>
+                      <Link 
+                        to="/alertes" 
+                        className="flex items-center space-x-2 text-gray-700 hover:text-green-600 transition-colors"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <BellIcon size={16} />
+                        <span className="text-sm">{t('nav.alerts')}</span>
+                      </Link>
+                      <button 
+                        onClick={() => {
+                          logout();
+                          setMobileMenuOpen(false);
+                        }}
+                        className="flex items-center text-red-600 hover:text-red-700 font-medium transition-colors w-fit"
+                      >
+                        <span className="text-sm">{t('nav.logout')}</span>
+                      </button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Link 
+                    to="/connexion" 
+                    className="text-gray-700 hover:text-green-600 font-medium transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {t('nav.login')}
+                  </Link>
+                  <Link 
+                    to="/inscription" 
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-center"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {t('nav.register')}
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-200">
-          <div className="px-4 pt-2 pb-3 space-y-1">
-            <Link 
-              to="/" 
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-green-600 hover:bg-gray-50"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              {t('nav.home')}
-            </Link>
-            <Link 
-              to="/recherche" 
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-green-600 hover:bg-gray-50"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              {t('nav.jobs')}
-            </Link>
-            <Link 
-              to="/blog" 
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-green-600 hover:bg-gray-50"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              {t('nav.blog')}
-            </Link>
-            
-            {!user && (
-              <>
-                <Link 
-                  to="/connexion" 
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-green-600 hover:bg-gray-50"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {t('nav.login')}
-                </Link>
-                <Link 
-                  to="/inscription" 
-                  className="block px-3 py-2 rounded-md text-base font-medium bg-green-600 text-white hover:bg-green-700"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {t('nav.register')}
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </header>
   );
 };
