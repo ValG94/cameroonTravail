@@ -1,21 +1,16 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import axios from 'axios';
-
-const API_URL = 'http://localhost:3001/api/auth';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
   id: string;
   email: string;
-  full_name: string;
-  phone_number?: string;
-  role: 'candidate' | 'recruiter' | 'admin';
-  profile_picture?: string;
-  profile_completion?: number;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  avatar?: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
   login: (email: string, password: string) => Promise<boolean>;
   register: (userData: RegisterData) => Promise<boolean>;
   logout: () => void;
@@ -25,67 +20,45 @@ interface AuthContextType {
 interface RegisterData {
   email: string;
   password: string;
-  confirmPassword: string;
-  fullName: string;
-  phoneNumber?: string;
-  role?: 'candidate' | 'recruiter';
+  firstName: string;
+  lastName: string;
+  phone?: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Vérifier si un utilisateur est déjà connecté
-    const savedToken = localStorage.getItem('token');
+    // Check for existing session
     const savedUser = localStorage.getItem('user');
-    
-    if (savedToken && savedUser) {
-      setToken(savedToken);
+    if (savedUser) {
       setUser(JSON.parse(savedUser));
-      // Configurer axios avec le token
-      axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`;
     }
-    
     setIsLoading(false);
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const response = await axios.post(`${API_URL}/login`, {
+      // Mock user data
+      const mockUser: User = {
+        id: '1',
         email,
-        password,
-      });
-
-      if (response.data.success) {
-        const { user: userData, tokens } = response.data.data;
-        const accessToken = tokens.accessToken;
-
-        // Sauvegarder dans le state
-        setUser(userData);
-        setToken(accessToken);
-
-        // Sauvegarder dans localStorage
-        localStorage.setItem('token', accessToken);
-        localStorage.setItem('user', JSON.stringify(userData));
-
-        // Configurer axios avec le token
-        axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-
-        return true;
-      }
+        firstName: 'Jean',
+        lastName: 'Dupont',
+        phone: '+237 6XX XX XX XX',
+      };
       
-      return false;
-    } catch (error: any) {
-      console.error('Erreur lors de la connexion:', error);
-      if (error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
+      setUser(mockUser);
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      return true;
+    } catch (error) {
       return false;
     } finally {
       setIsLoading(false);
@@ -95,40 +68,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (userData: RegisterData): Promise<boolean> => {
     try {
       setIsLoading(true);
-
-      const response = await axios.post(`${API_URL}/register`, {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const newUser: User = {
+        id: Date.now().toString(),
         email: userData.email,
-        password: userData.password,
-        confirmPassword: userData.confirmPassword,
-        fullName: userData.fullName,
-        phoneNumber: userData.phoneNumber,
-        role: userData.role || 'candidate',
-      });
-
-      if (response.data.success) {
-        const { user: newUser, tokens } = response.data.data;
-        const accessToken = tokens.accessToken;
-
-        // Sauvegarder dans le state
-        setUser(newUser);
-        setToken(accessToken);
-
-        // Sauvegarder dans localStorage
-        localStorage.setItem('token', accessToken);
-        localStorage.setItem('user', JSON.stringify(newUser));
-
-        // Configurer axios avec le token
-        axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-
-        return true;
-      }
-
-      return false;
-    } catch (error: any) {
-      console.error('Erreur lors de l\'inscription:', error);
-      if (error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        phone: userData.phone,
+      };
+      
+      setUser(newUser);
+      localStorage.setItem('user', JSON.stringify(newUser));
+      return true;
+    } catch (error) {
       return false;
     } finally {
       setIsLoading(false);
@@ -136,25 +90,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
-    // Nettoyer le state
     setUser(null);
-    setToken(null);
-
-    // Nettoyer localStorage
-    localStorage.removeItem('token');
     localStorage.removeItem('user');
-
-    // Nettoyer axios
-    delete axios.defaults.headers.common['Authorization'];
-
-    // Optionnel : appeler l'endpoint de logout du backend
-    axios.post(`${API_URL}/logout`).catch(() => {
-      // Ignorer les erreurs de logout
-    });
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

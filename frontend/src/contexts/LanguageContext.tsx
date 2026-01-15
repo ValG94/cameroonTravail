@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type Language = 'fr' | 'en';
 
@@ -42,45 +42,6 @@ const translations = {
     'home.all.advice': 'Tous nos conseils',
     'home.discover.latest': 'Découvrez les dernières opportunités d\'emploi',
     'home.experts.accompany': 'Nos experts vous accompagnent dans votre recherche d\'emploi',
-    
-    // Home Hero
-    'home.hero.title': 'Trouvez votre emploi au Cameroun',
-    'home.hero.subtitle': 'Plus de 10 000 offres d\'emploi dans tous les secteurs',
-    
-    // Job Seeker
-    'home.jobseeker.title': 'Je cherche un emploi',
-    'home.jobseeker.subtitle': 'Trouvez votre prochain emploi parmi des milliers d\'offres',
-    'home.jobseeker.search.placeholder': 'Métier, compétence, entreprise...',
-    'home.jobseeker.location.placeholder': 'Ville, région...',
-    'home.jobseeker.search.button': 'Rechercher',
-    'home.jobseeker.create.account': 'Créer mon compte candidat',
-    'home.jobseeker.upload.cv': 'Déposer mon CV',
-    
-    // Recruiter
-    'home.recruiter.title': 'Je recrute',
-    'home.recruiter.subtitle': 'Trouvez les meilleurs talents pour votre entreprise',
-    'home.recruiter.benefit1': 'Accès à notre CVthèque',
-    'home.recruiter.benefit2': 'Publication d\'offres illimitée',
-    'home.recruiter.benefit3': 'Outils de gestion des candidatures',
-    'home.recruiter.benefit4': 'Support dédié',
-    'home.recruiter.create.account': 'Créer mon compte recruteur',
-    'home.recruiter.discover.pro': 'Découvrir l\'espace pro',
-    'home.recruiter.contact.advisor': 'Être rappelé par un conseiller',
-    
-    // Latest Jobs
-    'home.jobs.title': 'Dernières offres',
-    'home.jobs.subtitle': 'Découvrez les dernières opportunités d\'emploi',
-    'home.jobs.view': 'Voir',
-    'home.jobs.viewall': 'Voir toutes les offres',
-    
-    // Advice
-    'home.advice.subtitle': 'Nos experts vous accompagnent dans votre recherche d\'emploi',
-    'home.advice.article1.title': 'Comment rédiger un entretien d\'embauche',
-    'home.advice.article1.excerpt': 'Les clés pour faire bonne impression et décrocher le poste',
-    'home.advice.article2.title': 'Rédiger un CV qui se démarque',
-    'home.advice.article2.excerpt': 'Les astuces pour créer un CV professionnel',
-    'home.advice.readmore': 'Lire la suite',
-    'home.advice.viewall': 'Tous nos conseils',
     
     // Common
     'common.loading': 'Chargement...',
@@ -147,16 +108,6 @@ const translations = {
     'auth.continue.with': 'Ou continuez avec',
     'auth.continue.google': 'Continuer avec Google',
     'auth.optional': '(optionnel)',
-    'auth.login.title': 'Se connecter',
-    'auth.register.title': 'S\'inscrire',
-    'auth.or': 'Ou',
-    'auth.accept': 'J\'accepte les',
-    'auth.logging.in': 'Connexion...',
-    'auth.registering': 'Inscription...',
-    'auth.login.error': 'Email ou mot de passe incorrect',
-    'auth.register.error': 'Une erreur est survenue lors de l\'inscription',
-    'auth.password.mismatch': 'Les mots de passe ne correspondent pas',
-    'auth.accept.terms.required': 'Vous devez accepter les conditions d\'utilisation',
     
     // Footer
     'footer.about': 'À propos',
@@ -201,45 +152,6 @@ const translations = {
     'home.all.advice': 'All our advice',
     'home.discover.latest': 'Discover the latest job opportunities',
     'home.experts.accompany': 'Our experts support you in your job search',
-    
-    // Home Hero
-    'home.hero.title': 'Find your job in Cameroon',
-    'home.hero.subtitle': 'More than 10,000 job offers in all sectors',
-    
-    // Job Seeker
-    'home.jobseeker.title': 'I\'m looking for a job',
-    'home.jobseeker.subtitle': 'Find your next job among thousands of offers',
-    'home.jobseeker.search.placeholder': 'Job, skill, company...',
-    'home.jobseeker.location.placeholder': 'City, region...',
-    'home.jobseeker.search.button': 'Search',
-    'home.jobseeker.create.account': 'Create candidate account',
-    'home.jobseeker.upload.cv': 'Upload my CV',
-    
-    // Recruiter
-    'home.recruiter.title': 'I\'m recruiting',
-    'home.recruiter.subtitle': 'Find the best talents for your company',
-    'home.recruiter.benefit1': 'Access to our CV database',
-    'home.recruiter.benefit2': 'Unlimited job posting',
-    'home.recruiter.benefit3': 'Application management tools',
-    'home.recruiter.benefit4': 'Dedicated support',
-    'home.recruiter.create.account': 'Create recruiter account',
-    'home.recruiter.discover.pro': 'Discover pro space',
-    'home.recruiter.contact.advisor': 'Be called back by an advisor',
-    
-    // Latest Jobs
-    'home.jobs.title': 'Latest jobs',
-    'home.jobs.subtitle': 'Discover the latest job opportunities',
-    'home.jobs.view': 'View',
-    'home.jobs.viewall': 'View all jobs',
-    
-    // Advice
-    'home.advice.subtitle': 'Our experts support you in your job search',
-    'home.advice.article1.title': 'How to prepare for a job interview',
-    'home.advice.article1.excerpt': 'The keys to making a good impression and landing the job',
-    'home.advice.article2.title': 'Write a CV that stands out',
-    'home.advice.article2.excerpt': 'Tips for creating a professional CV',
-    'home.advice.readmore': 'Read more',
-    'home.advice.viewall': 'All our advice',
     
     // Common
     'common.loading': 'Loading...',
@@ -306,16 +218,6 @@ const translations = {
     'auth.continue.with': 'Or continue with',
     'auth.continue.google': 'Continue with Google',
     'auth.optional': '(optional)',
-    'auth.login.title': 'Sign in',
-    'auth.register.title': 'Sign up',
-    'auth.or': 'Or',
-    'auth.accept': 'I accept the',
-    'auth.logging.in': 'Signing in...',
-    'auth.registering': 'Signing up...',
-    'auth.login.error': 'Incorrect email or password',
-    'auth.register.error': 'An error occurred during registration',
-    'auth.password.mismatch': 'Passwords do not match',
-    'auth.accept.terms.required': 'You must accept the terms of use',
     
     // Professional section
     'pro.title': 'Professional Space',

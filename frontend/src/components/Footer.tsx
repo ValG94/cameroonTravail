@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FacebookIcon, TwitterIcon, LinkedinIcon, InstagramIcon, MailIcon, PhoneIcon, MapPinIcon } from './Icons';
+import { Facebook, Twitter, Linkedin, Instagram, Mail, Phone, MapPin } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const Footer: React.FC = () => {
@@ -13,24 +13,27 @@ const Footer: React.FC = () => {
           {/* Company Info */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-              <span className="text-2xl font-bold text-green-400">CameroonTravail</span>
+              <img 
+                src="/logo cameroonTravail.png" 
+                alt="Cameroon Travail" 
+                className="h-8 w-auto"
+              />
             </div>
             <p className="text-gray-300 text-sm">
               {t('footer.platform.description')}
             </p>
-            {/* Social Media Icons */}
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-white transition-colors" aria-label="Facebook">
-                <FacebookIcon size={20} />
+              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                <Facebook className="w-5 h-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors" aria-label="Twitter">
-                <TwitterIcon size={20} />
+              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                <Twitter className="w-5 h-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors" aria-label="LinkedIn">
-                <LinkedinIcon size={20} />
+              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                <Linkedin className="w-5 h-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors" aria-label="Instagram">
-                <InstagramIcon size={20} />
+              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                <Instagram className="w-5 h-5" />
               </a>
             </div>
           </div>
@@ -94,18 +97,18 @@ const Footer: React.FC = () => {
             <h3 className="text-lg font-semibold mb-4">{t('footer.contact.info')}</h3>
             <div className="space-y-3">
               <div className="flex items-start space-x-3">
-                <MapPinIcon size={16} className="text-green-400 mt-0.5 flex-shrink-0" />
+                <MapPin className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
                 <span className="text-gray-300 text-sm">
                   123 Rue du Commerce<br />
                   Douala, Cameroun
                 </span>
               </div>
               <div className="flex items-center space-x-3">
-                <PhoneIcon size={16} className="text-green-400 flex-shrink-0" />
+                <Phone className="w-4 h-4 text-green-400 flex-shrink-0" />
                 <span className="text-gray-300 text-sm">+237 6XX XX XX XX</span>
               </div>
               <div className="flex items-center space-x-3">
-                <MailIcon size={16} className="text-green-400 flex-shrink-0" />
+                <Mail className="w-4 h-4 text-green-400 flex-shrink-0" />
                 <span className="text-gray-300 text-sm">contact@cameroontravail.cm</span>
               </div>
             </div>
