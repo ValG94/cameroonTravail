@@ -25,14 +25,14 @@ if (process.env.DB_DIALECT === 'sqlite') {
     },
   };
 } else {
-  // Configuration PostgreSQL pour production
+  // Configuration MySQL pour production
   baseConfig = {
-    username: process.env.DB_USERNAME || 'postgres',
+    username: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'cameroontravail_dev',
+    database: process.env.DB_NAME || 'cameroon_travail',
     host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 5432,
-    dialect: 'postgres',
+    port: process.env.DB_PORT || 3306,
+    dialect: 'mysql',
     logging: false,
     define: {
       timestamps: true,
