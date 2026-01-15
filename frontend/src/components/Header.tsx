@@ -57,7 +57,7 @@ const Header: React.FC = () => {
                   onClick={toggleUserMenu}
                   className="flex items-center space-x-2 text-gray-700 hover:text-green-600 font-medium transition-colors"
                 >
-                  <span className="text-sm">{user.firstName}</span>
+                  <span className="text-sm">{user.full_name}</span>
                   <ChevronDownIcon size={16} />
                 </button>
                 
@@ -161,7 +161,7 @@ const Header: React.FC = () => {
               {user ? (
                 <>
                   <div className="border-t border-gray-200 pt-4">
-                    <p className="text-sm font-medium text-gray-700 mb-3">{user.firstName}</p>
+                    <p className="text-sm font-medium text-gray-700 mb-3">{user.full_name}</p>
                     <div className="flex flex-col space-y-2">
                       <Link 
                         to="/profil" 
