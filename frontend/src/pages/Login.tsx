@@ -19,11 +19,25 @@ const Login: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    const success = await login(formData.email, formData.password);
-    if (success) {
-      navigate('/');
-    } else {
-      setError('Email ou mot de passe incorrect');
+    try {
+      const success = await login(formData.email, formData.password);
+      if (success) {
+        navigate('/');
+      } else {
+        setError('Email ou mot de passe incorrect');
+      }
+    } catch (err: any) {
+      console.error('Erreur de connexion:', err);
+      // Afficher un message d'erreur plus détaillé
+      if (err.response?.status === 500) {
+        setError('Erreur serveur. Veuillez vérifier que le backend est démarré et que la base de données est accessible.');
+      } else if (err.response?.status === 401) {
+        setError('Email ou mot de passe incorrect');
+      } else if (err.message) {
+        setError(err.message);
+      } else {
+        setError('Une erreur est survenue lors de la connexion. Veuillez réessayer.');
+      }
     }
   };
 
@@ -65,7 +79,9 @@ const Login: React.FC = () => {
                 {t('auth.email')}
               </label>
               <div className="mt-1 relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                  <Mail />
+                </div>
                 <input
                   id="email"
                   name="email"
@@ -85,7 +101,9 @@ const Login: React.FC = () => {
                 {t('auth.password')}
               </label>
               <div className="mt-1 relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                  <Lock />
+                </div>
                 <input
                   id="password"
                   name="password"
@@ -102,7 +120,7 @@ const Login: React.FC = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? <EyeOff /> : <Eye />}
                 </button>
               </div>
             </div>

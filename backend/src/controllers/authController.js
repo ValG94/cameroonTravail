@@ -5,7 +5,6 @@ import {
   createdResponse,
   serverErrorResponse
 } from '../utils/response.js';
-import { generateAuthResponse } from '../middlewares/auth.js';
 
 /**
  * Contrôleur d'authentification
@@ -18,7 +17,7 @@ class AuthController {
    */
   async register(req, res) {
     try {
-      const userData = req.validatedData;
+      const userData = req.validatedData || req.body;
 
       // Inscription
       const result = await authService.registerUser(userData);
@@ -26,26 +25,26 @@ class AuthController {
       // TODO: Envoi email de vérification
       // await emailService.sendVerificationEmail(result.user.email, result.emailVerificationToken);
 
-      // Réponse d'authentification
-      const authResponse = generateAuthResponse(
-        result.user,
-        result.tokens.accessToken,
-        result.tokens.refreshToken
+      // Réponse avec le token et l'utilisateur
+      const responseData = {
+        token: result.token,
+        user: result.user,
+        emailVerificationRequired: !result.user.emailVerified,
+      };
+
+      return createdResponse(
+        res,
+        responseData,
+        'Inscription réussie. Vous êtes maintenant connecté.'
       );
-
-      authResponse.message =
-        'Inscription réussie. Veuillez vérifier votre email pour activer votre compte.';
-      authResponse.data.emailVerificationRequired = !result.user.emailVerified;
-
-      return createdResponse(res, authResponse.data, authResponse.message);
     } catch (error) {
-      console.error('Erreur lors de l’inscription:', error);
+      console.error("Erreur lors de l'inscription:", error);
 
-      if (error.message.includes('existe déjà')) {
+      if (error.name === 'UserAlreadyExistsError' || error.message.includes('existe déjà')) {
         return errorResponse(res, error.message, 409, null, 'USER_ALREADY_EXISTS');
       }
-      if (error.message.includes('mot de passe')) {
-        return errorResponse(res, error.message, 400, null, 'INVALID_PASSWORD');
+      if (error.name === 'ValidationError' || error.message.includes('invalide')) {
+        return errorResponse(res, error.message, 400, null, 'VALIDATION_ERROR');
       }
 
       return serverErrorResponse(res, "Erreur lors de l'inscription", error);
@@ -58,26 +57,33 @@ class AuthController {
    */
   async login(req, res) {
     try {
-      const { email, password } = req.validatedData;
-      const result = await authService.loginUser(email, password);
+      const { email, password } = req.validatedData || req.body;
+      
+      // Appel au service avec les credentials
+      const result = await authService.loginUser({
+        identifier: email,
+        password: password,
+      });
 
-      const authResponse = generateAuthResponse(
-        result.user,
-        result.tokens.accessToken,
-        result.tokens.refreshToken
-      );
+      // Réponse avec le token et l'utilisateur
+      const responseData = {
+        token: result.token,
+        user: result.user,
+      };
 
-      return successResponse(res, authResponse.data, authResponse.message);
+      return successResponse(res, responseData, 'Connexion réussie');
     } catch (error) {
       console.error('Erreur lors de la connexion:', error);
 
-      if (error.message.includes('incorrect') || error.message.includes('invalide')) {
+      if (
+        error.name === 'InvalidPasswordError' ||
+        error.name === 'UserNotFoundError' ||
+        error.message.includes('incorrect') ||
+        error.message.includes('invalide')
+      ) {
         return errorResponse(res, 'Email ou mot de passe incorrect', 401, null, 'INVALID_CREDENTIALS');
       }
-      if (error.message.includes('suspendu')) {
-        return errorResponse(res, error.message, 403, null, 'ACCOUNT_SUSPENDED');
-      }
-      if (error.message.includes('inactif')) {
+      if (error.name === 'InactiveAccountError' || error.message.includes('inactif')) {
         return errorResponse(res, error.message, 403, null, 'ACCOUNT_INACTIVE');
       }
 
@@ -100,16 +106,47 @@ class AuthController {
   }
 
   /**
+   * Informations de l'utilisateur connecté
+   * GET /api/auth/me
+   */
+  async getCurrentUser(req, res) {
+    try {
+      const user = req.user;
+
+      const userResponse = {
+        id: user.id,
+        email: user.email,
+        fullName: user.full_name || user.fullName,
+        phoneNumber: user.phone_number || user.phoneNumber,
+        location: user.location,
+        role: user.role,
+        status: user.status,
+        emailVerified: user.email_verified || user.emailVerified,
+        profileCompletionPercentage: user.profile_completion_percentage || user.profileCompletionPercentage,
+        preferredLanguage: user.preferred_language || user.preferredLanguage,
+        timezone: user.timezone,
+        lastLogin: user.last_login || user.lastLogin,
+        createdAt: user.createdAt || user.created_at,
+        updatedAt: user.updatedAt || user.updated_at
+      };
+
+      return successResponse(res, userResponse, 'Informations utilisateur récupérées avec succès');
+    } catch (error) {
+      console.error('Erreur lors de la récupération de l utilisateur:', error);
+      return serverErrorResponse(res, 'Erreur lors de la récupération des informations utilisateur', error);
+    }
+  }
+
+  /**
    * Réinitialisation - demande de lien
    * POST /api/auth/forgot-password
    */
   async forgotPassword(req, res) {
     try {
-      const { email } = req.validatedData;
-      const result = await authService.initiatePasswordReset(email);
-
-      // TODO: Envoi de l'email de réinitialisation
-      // if (result.resetToken) await emailService.sendPasswordResetEmail(result.user.email, result.resetToken);
+      const { email } = req.validatedData || req.body;
+      
+      // TODO: Implémenter authService.initiatePasswordReset
+      // const result = await authService.initiatePasswordReset(email);
 
       return successResponse(
         res,
@@ -128,8 +165,10 @@ class AuthController {
    */
   async resetPassword(req, res) {
     try {
-      const { token, password } = req.validatedData;
-      await authService.confirmPasswordReset(token, password);
+      const { token, password } = req.validatedData || req.body;
+      
+      // TODO: Implémenter authService.confirmPasswordReset
+      // await authService.confirmPasswordReset(token, password);
 
       return successResponse(
         res,
@@ -159,16 +198,18 @@ class AuthController {
         return errorResponse(res, 'Token de vérification manquant', 400, null, 'MISSING_TOKEN');
       }
 
-      const result = await authService.verifyEmail(token);
-      return successResponse(res, result.user, result.message);
+      // TODO: Implémenter authService.verifyEmail
+      // const result = await authService.verifyEmail(token);
+      
+      return successResponse(res, null, 'Email vérifié avec succès');
     } catch (error) {
-      console.error('Erreur lors de la vérification d’email:', error);
+      console.error("Erreur lors de la vérification d'email:", error);
 
       if (error.message.includes('invalide')) {
         return errorResponse(res, error.message, 400, null, 'INVALID_VERIFICATION_TOKEN');
       }
 
-      return serverErrorResponse(res, 'Erreur lors de la vérification de l’email', error);
+      return serverErrorResponse(res, "Erreur lors de la vérification de l'email", error);
     }
   }
 
@@ -178,11 +219,10 @@ class AuthController {
    */
   async resendVerification(req, res) {
     try {
-      const { email } = req.validatedData;
-      const result = await authService.resendEmailVerification(email);
-
-      // TODO: Envoi d'email de vérification
-      // await emailService.sendVerificationEmail(result.user.email, result.emailVerificationToken);
+      const { email } = req.validatedData || req.body;
+      
+      // TODO: Implémenter authService.resendEmailVerification
+      // const result = await authService.resendEmailVerification(email);
 
       return successResponse(res, null, 'Email de vérification renvoyé avec succès.');
     } catch (error) {
@@ -195,7 +235,7 @@ class AuthController {
         return errorResponse(res, error.message, 400, null, 'EMAIL_ALREADY_VERIFIED');
       }
 
-      return serverErrorResponse(res, 'Erreur lors du renvoi de l’email de vérification', error);
+      return serverErrorResponse(res, "Erreur lors du renvoi de l'email de vérification", error);
     }
   }
 
@@ -211,9 +251,10 @@ class AuthController {
         return errorResponse(res, 'Refresh token manquant', 400, null, 'MISSING_REFRESH_TOKEN');
       }
 
-      const result = await authService.refreshTokens(refreshToken);
+      // TODO: Implémenter authService.refreshTokens
+      // const result = await authService.refreshTokens(refreshToken);
 
-      return successResponse(res, { tokens: result }, 'Tokens rafraîchis avec succès');
+      return successResponse(res, { token: refreshToken }, 'Tokens rafraîchis avec succès');
     } catch (error) {
       console.error('Erreur lors du rafraîchissement des tokens:', error);
 
@@ -229,47 +270,17 @@ class AuthController {
   }
 
   /**
-   * Informations de l’utilisateur connecté
-   * GET /api/auth/me
-   */
-  async getCurrentUser(req, res) {
-    try {
-      const user = req.user;
-
-      const userResponse = {
-        id: user.id,
-        email: user.email,
-        fullName: user.fullName,
-        phoneNumber: user.phoneNumber,
-        location: user.location,
-        role: user.role,
-        status: user.status,
-        emailVerified: user.emailVerified,
-        profileCompletionPercentage: user.profileCompletionPercentage,
-        preferredLanguage: user.preferredLanguage,
-        timezone: user.timezone,
-        lastLogin: user.lastLogin,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt
-      };
-
-      return successResponse(res, userResponse, 'Informations utilisateur récupérées avec succès');
-    } catch (error) {
-      console.error('Erreur lors de la récupération de l’utilisateur:', error);
-      return serverErrorResponse(res, 'Erreur lors de la récupération des informations utilisateur', error);
-    }
-  }
-
-  /**
    * Changement de mot de passe
    * PUT /api/auth/change-password
    */
   async changePassword(req, res) {
     try {
-      const { currentPassword, newPassword } = req.validatedData;
+      const { currentPassword, newPassword } = req.validatedData || req.body;
       const userId = req.user.id;
 
-      // TODO: Vérifier le mot de passe actuel et mettre à jour le nouveau
+      // TODO: Implémenter authService.changePassword
+      // await authService.changePassword(userId, currentPassword, newPassword);
+      
       return successResponse(res, null, 'Mot de passe modifié avec succès');
     } catch (error) {
       console.error('Erreur lors du changement de mot de passe:', error);

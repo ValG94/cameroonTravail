@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User, Bell, Search, Globe } from 'lucide-react';
+import { Menu, X, User, Bell, Search, Globe} from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -84,7 +84,7 @@ const Header: React.FC = () => {
                   <button className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors">
                     <User className="w-5 h-5 text-gray-700" />
                     <span className="hidden sm:block text-sm font-medium text-gray-700">
-                      {user.firstName}
+                      {user.full_name}
                     </span>
                   </button>
                   
