@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
 import rateLimitLib from 'express-rate-limit';
+import db from '../../models/index.js';
 
 dotenv.config();
 
@@ -15,16 +16,17 @@ if (!process.env.JWT_REFRESH_SECRET) {
 
 const SALT_ROUNDS = 12;
 
-export const hashPassword = async (password) => {
-  return bcrypt.hash(password, SALT_ROUNDS);
-};
+export const hashPassword = async (password) => bcrypt.hash(password, SALT_ROUNDS);
 
-export const verifyPassword = async (password, hashedPassword) => {
-  return bcrypt.compare(password, hashedPassword);
-};
+export const verifyPassword = async (password, hashedPassword) =>
+  bcrypt.compare(password, hashedPassword);
 
+/**
+ * Génère un access token JWT avec un JTI unique (requis pour la révocation)
+ */
 export const generateJWT = (user) => {
   const payload = {
+    jti: crypto.randomUUID(),
     userId: user.id,
     email: user.email,
     role: user.role,
@@ -37,9 +39,12 @@ export const generateJWT = (user) => {
   });
 };
 
+/**
+ * Génère un refresh token JWT avec son propre JTI
+ */
 export const generateRefreshToken = (user) => {
   return jwt.sign(
-    { userId: user.id, type: 'refresh' },
+    { jti: crypto.randomUUID(), userId: user.id, type: 'refresh' },
     process.env.JWT_REFRESH_SECRET,
     {
       expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '30d',
@@ -86,12 +91,14 @@ export const extractTokenFromHeader = (authHeader) => {
 };
 
 /**
- * Middleware JWT — vérifie le token Bearer dans Authorization
- * Unique implémentation (pas de doublon authenticate/isAuthenticated)
+ * Middleware JWT — lit le token depuis le cookie httpOnly (priorité)
+ * ou depuis le header Authorization (compatibilité clients non-browser).
+ * Vérifie aussi que le JTI n'est pas dans la liste de révocation.
  */
-export const isAuthenticated = (req, res, next) => {
+export const isAuthenticated = async (req, res, next) => {
   try {
-    const token = extractTokenFromHeader(req.headers.authorization);
+    const token =
+      req.cookies?.accessToken || extractTokenFromHeader(req.headers.authorization);
 
     if (!token) {
       return res.status(401).json({
@@ -101,6 +108,18 @@ export const isAuthenticated = (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Vérifier la liste de révocation (logout explicite)
+    if (decoded.jti && db.RevokedToken) {
+      const revoked = await db.RevokedToken.findByPk(decoded.jti);
+      if (revoked) {
+        return res.status(401).json({
+          success: false,
+          message: 'Session révoquée, veuillez vous reconnecter',
+        });
+      }
+    }
+
     req.user = decoded;
     next();
   } catch (error) {
@@ -111,14 +130,14 @@ export const isAuthenticated = (req, res, next) => {
   }
 };
 
-// Alias pour compatibilité
+// Alias
 export const authenticate = isAuthenticated;
 
 /**
  * Middleware de limitation de requêtes (anti brute-force)
  */
-export const rateLimit = (maxRequests = 5, windowMs = 15 * 60 * 1000) => {
-  return rateLimitLib({
+export const rateLimit = (maxRequests = 5, windowMs = 15 * 60 * 1000) =>
+  rateLimitLib({
     windowMs,
     max: maxRequests,
     message: {
@@ -129,35 +148,30 @@ export const rateLimit = (maxRequests = 5, windowMs = 15 * 60 * 1000) => {
     standardHeaders: true,
     legacyHeaders: false,
   });
-};
 
 export const validatePasswordStrength = (password) => {
   const result = { isValid: true, score: 0, feedback: [] };
-
   if (password.length < 8) {
     result.isValid = false;
     result.feedback.push('Le mot de passe doit contenir au moins 8 caractères');
-  } else {
-    result.score += 1;
-  }
+  } else result.score++;
   if (!/[a-z]/.test(password)) {
     result.isValid = false;
     result.feedback.push('Le mot de passe doit contenir au moins une lettre minuscule');
-  } else result.score += 1;
+  } else result.score++;
   if (!/[A-Z]/.test(password)) {
     result.isValid = false;
     result.feedback.push('Le mot de passe doit contenir au moins une lettre majuscule');
-  } else result.score += 1;
+  } else result.score++;
   if (!/[0-9]/.test(password)) {
     result.isValid = false;
     result.feedback.push('Le mot de passe doit contenir au moins un chiffre');
-  } else result.score += 1;
+  } else result.score++;
   if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
     result.isValid = false;
     result.feedback.push('Le mot de passe doit contenir au moins un caractère spécial');
-  } else result.score += 1;
-  if (password.length >= 12) result.score += 1;
-
+  } else result.score++;
+  if (password.length >= 12) result.score++;
   return result;
 };
 
@@ -171,15 +185,8 @@ export const generateAuthResponse = (user, accessToken, refreshToken) => ({
       fullName: user.fullName,
       role: user.role,
       status: user.status,
-      emailVerified: user.emailVerified,
-      profileCompletionPercentage: user.profileCompletionPercentage,
-      preferredLanguage: user.preferredLanguage,
     },
-    tokens: {
-      accessToken,
-      refreshToken,
-      expiresIn: process.env.JWT_EXPIRES_IN || '7d',
-    },
+    tokens: { accessToken, refreshToken, expiresIn: process.env.JWT_EXPIRES_IN || '7d' },
   },
 });
 

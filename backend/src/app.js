@@ -1,34 +1,51 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import apiRoutes from './routes/index.js';
 import { notFoundHandler, globalErrorHandler } from './utils/response.js';
+import { isAuthenticated } from './middlewares/auth.js';
 import db from '../models/index.js';
 
 dotenv.config();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 
-// Sécurité — headers HTTP
+// ─── Sécurité ─────────────────────────────────────────────────────────────────
 app.use(helmet());
 
-// CORS
+// ─── CORS ─────────────────────────────────────────────────────────────────────
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
-  credentials: true,
+  credentials: true, // Nécessaire pour que les cookies soient envoyés cross-origin
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// Body parsing
+// ─── Parsing ──────────────────────────────────────────────────────────────────
+app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Fichiers statiques (uploads)
-app.use('/uploads', express.static('uploads'));
+// ─── Fichiers statiques ───────────────────────────────────────────────────────
 
-// Routes principales
+// Photos de profil : publiques (visibles dans les listings, CVthèque, etc.)
+app.use('/uploads/photos', express.static(path.join(__dirname, '../../uploads/photos')));
+
+// CVs : protégés — authentification requise
+app.get('/uploads/cvs/:filename', isAuthenticated, (req, res) => {
+  // path.basename() empêche toute attaque de traversée de répertoire (../../../etc)
+  const safeName = path.basename(req.params.filename);
+  res.sendFile(path.resolve(__dirname, '../../uploads/cvs', safeName));
+});
+
+// ─── Routes API ───────────────────────────────────────────────────────────────
 app.use('/api', apiRoutes);
 
 // Health check
@@ -40,11 +57,11 @@ app.get('/health', (req, res) => {
   });
 });
 
-// 404 et erreurs globales
+// ─── Handlers ─────────────────────────────────────────────────────────────────
 app.use(notFoundHandler);
 app.use(globalErrorHandler);
 
-// Synchronisation des tables Sequelize avec Supabase
+// ─── Synchronisation Sequelize → Supabase ─────────────────────────────────────
 db.sequelize
   .sync({ force: false })
   .then(() => console.log('✅ Tables synchronisées avec Supabase'))

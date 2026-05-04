@@ -1,21 +1,25 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 
+// Envoyer les cookies httpOnly sur chaque requête cross-origin
+axios.defaults.withCredentials = true;
+
 const API_URL = `${import.meta.env.VITE_API_URL}/api/auth`;
 
 interface User {
   id: string;
   email: string;
-  full_name: string;
-  phone_number?: string;
+  fullName: string;
+  phoneNumber?: string;
   role: 'candidate' | 'recruiter' | 'admin';
-  profile_picture?: string;
-  profile_completion?: number;
+  profilePicture?: string;
+  profileCompletionPercentage?: number;
+  preferredLanguage?: string;
+  location?: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
   login: (email: string, password: string) => Promise<boolean>;
   register: (userData: RegisterData) => Promise<boolean>;
   logout: () => void;
@@ -35,56 +39,36 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Au chargement : vérifier l'état auth via le cookie httpOnly (transparent)
   useEffect(() => {
-    // Vérifier si un utilisateur est déjà connecté
-    const savedToken = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
-    
-    if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
-      // Configurer axios avec le token
-      axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`;
-    }
-    
-    setIsLoading(false);
+    axios
+      .get(`${API_URL}/me`)
+      .then((res) => {
+        if (res.data.success) setUser(res.data.data);
+      })
+      .catch(() => {
+        // Pas de cookie valide → non connecté, état normal
+      })
+      .finally(() => setIsLoading(false));
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true);
-      
-      const response = await axios.post(`${API_URL}/login`, {
-        email,
-        password,
-      });
+      const response = await axios.post(`${API_URL}/login`, { email, password });
 
       if (response.data.success) {
-        // ✅ CORRECTION : Utiliser token au lieu de tokens.accessToken
-        const { user: userData, token: accessToken } = response.data.data;
-
-        // Sauvegarder dans le state
-        setUser(userData);
-        setToken(accessToken);
-
-        // Sauvegarder dans localStorage
-        localStorage.setItem('token', accessToken);
-        localStorage.setItem('user', JSON.stringify(userData));
-
-        // Configurer axios avec le token
-        axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-
+        // Le backend a posé les cookies httpOnly — on stocke uniquement l'objet user en mémoire
+        setUser(response.data.data.user);
         return true;
       }
-      
       return false;
-    } catch (error: any) {
-      console.error('Erreur lors de la connexion:', error);
-      if (error.response?.data?.message) {
-        throw new Error(error.response.data.message);
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { message?: string } } };
+      if (axiosError.response?.data?.message) {
+        throw new Error(axiosError.response.data.message);
       }
       return false;
     } finally {
@@ -95,7 +79,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (userData: RegisterData): Promise<boolean> => {
     try {
       setIsLoading(true);
-
       const response = await axios.post(`${API_URL}/register`, {
         email: userData.email,
         password: userData.password,
@@ -106,28 +89,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (response.data.success) {
-        // ✅ CORRECTION : Utiliser token au lieu de tokens.accessToken
-        const { user: newUser, token: accessToken } = response.data.data;
-
-        // Sauvegarder dans le state
-        setUser(newUser);
-        setToken(accessToken);
-
-        // Sauvegarder dans localStorage
-        localStorage.setItem('token', accessToken);
-        localStorage.setItem('user', JSON.stringify(newUser));
-
-        // Configurer axios avec le token
-        axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-
+        setUser(response.data.data.user);
         return true;
       }
-
       return false;
-    } catch (error: any) {
-      console.error('Erreur lors de l\'inscription:', error);
-      if (error.response?.data?.message) {
-        throw new Error(error.response.data.message);
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { message?: string } } };
+      if (axiosError.response?.data?.message) {
+        throw new Error(axiosError.response.data.message);
       }
       return false;
     } finally {
@@ -136,25 +105,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
-    // Nettoyer le state
     setUser(null);
-    setToken(null);
-
-    // Nettoyer localStorage
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-
-    // Nettoyer axios
-    delete axios.defaults.headers.common['Authorization'];
-
-    // Optionnel : appeler l'endpoint de logout du backend
-    axios.post(`${API_URL}/logout`).catch(() => {
-      // Ignorer les erreurs de logout
-    });
+    // Appel backend pour révoquer les tokens et effacer les cookies côté serveur
+    axios.post(`${API_URL}/logout`).catch(() => {});
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
@@ -162,8 +119,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };

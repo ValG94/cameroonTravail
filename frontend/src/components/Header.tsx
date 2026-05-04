@@ -84,7 +84,7 @@ const Header: React.FC = () => {
                   <button className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors">
                     <User className="w-5 h-5 text-gray-700" />
                     <span className="hidden sm:block text-sm font-medium text-gray-700">
-                      {user.full_name}
+                      {user.fullName}
                     </span>
                   </button>
                   
