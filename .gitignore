@@ -105,3 +105,10 @@ temp/
 *.db
 *.sqlite
 *.sqlite3
+
+# Manus internal files
+.manus/
+attached_assets/
+
+# Local Claude config
+.claude/settings.local.json
