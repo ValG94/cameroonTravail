@@ -13,9 +13,14 @@ import { ENV } from "./env";
 import { sdk } from "./sdk";
 
 // ─── CORS origins ──────────────────────────────────────────────────────────────
-const allowedOrigins = ENV.corsOrigin
-  ? ENV.corsOrigin.split(",").map((o) => o.trim()).filter(Boolean)
-  : ["http://localhost:5173", "http://localhost:3000"];
+const normalizeOrigin = (s: string) => s.trim().toLowerCase().replace(/\/+$/, "");
+
+const allowedOrigins = (ENV.corsOrigin
+  ? ENV.corsOrigin.split(",").map(normalizeOrigin).filter(Boolean)
+  : ["http://localhost:5173", "http://localhost:3000"]);
+
+console.log("[CORS] CORS_ORIGIN env =", JSON.stringify(ENV.corsOrigin));
+console.log("[CORS] allowedOrigins =", allowedOrigins);
 
 async function startServer() {
   const app = express();
@@ -27,7 +32,14 @@ async function startServer() {
   // ─── CORS manuel (prioritaire — garantit les headers même sur erreur 5xx) ───
   app.use((req, res, next) => {
     const origin = req.headers.origin as string | undefined;
-    if (origin && allowedOrigins.includes(origin)) {
+    const normalized = origin ? normalizeOrigin(origin) : undefined;
+    const isAllowed = !!normalized && allowedOrigins.includes(normalized);
+
+    if (origin) {
+      console.log(`[CORS] origin="${origin}" normalized="${normalized}" allowed=${isAllowed}`);
+    }
+
+    if (origin && isAllowed) {
       res.setHeader("Access-Control-Allow-Origin", origin);
       res.setHeader("Access-Control-Allow-Credentials", "true");
       res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
@@ -49,7 +61,8 @@ async function startServer() {
   // ─── Rate limiting global ───────────────────────────────────────────────────
   const corsHandler = (req: any, res: any) => {
     const origin = req.headers.origin as string | undefined;
-    if (origin && allowedOrigins.includes(origin)) {
+    const normalized = origin ? normalizeOrigin(origin) : undefined;
+    if (origin && normalized && allowedOrigins.includes(normalized)) {
       res.setHeader("Access-Control-Allow-Origin", origin);
       res.setHeader("Access-Control-Allow-Credentials", "true");
     }
