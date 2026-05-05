@@ -1,9 +1,10 @@
 import { eq, desc } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/mysql2";
-import { 
-  InsertUser, 
-  users, 
-  candidats, 
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import {
+  InsertUser,
+  users,
+  candidats,
   employeurs,
   experiences,
   formations,
@@ -22,15 +23,14 @@ import {
   Competence,
   Langue,
 } from "../drizzle/schema";
-import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      const client = postgres(process.env.DATABASE_URL, { ssl: "require" });
+      _db = drizzle(client);
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
@@ -76,11 +76,8 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     if (user.role !== undefined) {
       values.role = user.role;
       updateSet.role = user.role;
-    } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
     }
-    
+
     if (user.profileType !== undefined) {
       values.profileType = user.profileType;
       updateSet.profileType = user.profileType;
@@ -94,9 +91,10 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       updateSet.lastSignedIn = new Date();
     }
 
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
-      set: updateSet,
-    });
+    await db
+      .insert(users)
+      .values(values)
+      .onConflictDoUpdate({ target: users.openId, set: updateSet });
   } catch (error) {
     console.error("[Database] Failed to upsert user:", error);
     throw error;
@@ -111,7 +109,6 @@ export async function getUserByOpenId(openId: string) {
   }
 
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-
   return result.length > 0 ? result[0] : undefined;
 }
 
@@ -123,7 +120,6 @@ export async function getUserById(id: number) {
   }
 
   const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
-
   return result.length > 0 ? result[0] : undefined;
 }
 
@@ -150,8 +146,8 @@ export async function createCandidat(data: InsertCandidat): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(candidats).values(data);
-  return Number(result[0].insertId);
+  const result = await db.insert(candidats).values(data).returning({ id: candidats.id });
+  return result[0].id;
 }
 
 export async function updateCandidat(id: number, data: Partial<InsertCandidat>) {
@@ -174,8 +170,8 @@ export async function createEmployeur(data: InsertEmployeur): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(employeurs).values(data);
-  return Number(result[0].insertId);
+  const result = await db.insert(employeurs).values(data).returning({ id: employeurs.id });
+  return result[0].id;
 }
 
 export async function updateEmployeur(id: number, data: Partial<InsertEmployeur>) {
@@ -197,8 +193,8 @@ export async function createExperience(data: InsertExperience): Promise<number> 
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(experiences).values(data);
-  return Number(result[0].insertId);
+  const result = await db.insert(experiences).values(data).returning({ id: experiences.id });
+  return result[0].id;
 }
 
 export async function updateExperience(id: number, data: Partial<InsertExperience>) {
@@ -227,8 +223,8 @@ export async function createFormation(data: InsertFormation): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(formations).values(data);
-  return Number(result[0].insertId);
+  const result = await db.insert(formations).values(data).returning({ id: formations.id });
+  return result[0].id;
 }
 
 export async function updateFormation(id: number, data: Partial<InsertFormation>) {
@@ -257,8 +253,8 @@ export async function createCompetence(data: InsertCompetence): Promise<number> 
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(competences).values(data);
-  return Number(result[0].insertId);
+  const result = await db.insert(competences).values(data).returning({ id: competences.id });
+  return result[0].id;
 }
 
 export async function updateCompetence(id: number, data: Partial<InsertCompetence>) {
@@ -287,8 +283,8 @@ export async function createLangue(data: InsertLangue): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(langues).values(data);
-  return Number(result[0].insertId);
+  const result = await db.insert(langues).values(data).returning({ id: langues.id });
+  return result[0].id;
 }
 
 export async function updateLangue(id: number, data: Partial<InsertLangue>) {

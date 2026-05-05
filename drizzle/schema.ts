@@ -1,30 +1,50 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, decimal } from "drizzle-orm/mysql-core";
+import {
+  boolean,
+  decimal,
+  pgEnum,
+  pgTable,
+  serial,
+  text,
+  timestamp,
+  varchar,
+} from "drizzle-orm/pg-core";
 
-/**
- * Schéma de base de données pour Cameroon Travail
- * Plateforme de recrutement avec profils candidats et employeurs
- */
+// ─── Enums PostgreSQL ─────────────────────────────────────────────────────────
+export const roleEnum = pgEnum("role", ["user", "admin"]);
+export const profileTypeEnum = pgEnum("profileType", ["candidat", "employeur"]);
+export const niveauEnum = pgEnum("niveau", ["debutant", "intermediaire", "avance", "expert"]);
+export const niveauLangueEnum = pgEnum("niveauLangue", ["debutant", "intermediaire", "courant", "bilingue", "langue_maternelle"]);
+export const typeOffreEnum = pgEnum("typeOffre", ["public", "prive"]);
+export const typeOffreAlerteEnum = pgEnum("typeOffreAlerte", ["public", "prive", "tous"]);
+export const statutOffreEnum = pgEnum("statutOffre", ["brouillon", "publiee", "expiree", "pourvue"]);
+export const statutCandidatureEnum = pgEnum("statutCandidature", ["en_attente", "vue", "retenue", "rejetee", "entretien"]);
+export const frequenceEnum = pgEnum("frequence", ["immediate", "quotidien", "hebdomadaire"]);
+export const formuleAbonnementEnum = pgEnum("formuleAbonnement", ["gratuit", "professionnel", "entreprise"]);
+export const categorieArticleEnum = pgEnum("categorieArticle", ["Entretien", "CV", "Marche", "Negociation", "Reconversion", "Freelance"]);
+export const typeCvEnum = pgEnum("typeCv", ["upload", "classique", "moderne", "creatif"]);
+export const langueCvEnum = pgEnum("langueCv", ["fr", "en"]);
+export const cibleFormuleEnum = pgEnum("cibleFormule", ["candidat", "employeur"]);
+export const periodeFormuleEnum = pgEnum("periodeFormule", ["mensuel", "annuel", "unique"]);
 
-// Table des utilisateurs avec type de profil
-export const users = mysqlTable("users", {
-  id: int("id").autoincrement().primaryKey(),
+// ─── Utilisateurs ─────────────────────────────────────────────────────────────
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
   openId: varchar("openId", { length: 64 }).unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }).unique(),
-  password: varchar("password", { length: 255 }), // Mot de passe haché
+  password: varchar("password", { length: 255 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
-  // Type de profil: candidat ou employeur
-  profileType: mysqlEnum("profileType", ["candidat", "employeur"]),
+  role: roleEnum("role").default("user").notNull(),
+  profileType: profileTypeEnum("profileType"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
-// Profil candidat détaillé
-export const candidats = mysqlTable("candidats", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+// ─── Profil candidat ──────────────────────────────────────────────────────────
+export const candidats = pgTable("candidats", {
+  id: serial("id").primaryKey(),
+  userId: serial("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
   prenom: varchar("prenom", { length: 100 }),
   nom: varchar("nom", { length: 100 }),
   telephone: varchar("telephone", { length: 20 }),
@@ -35,28 +55,25 @@ export const candidats = mysqlTable("candidats", {
   dateNaissance: timestamp("dateNaissance"),
   nationalite: varchar("nationalite", { length: 100 }),
   situationMatrimoniale: varchar("situationMatrimoniale", { length: 50 }),
-  // CV et documents
   cvUrl: text("cvUrl"),
   cvFileKey: text("cvFileKey"),
   photoUrl: text("photoUrl"),
   photoFileKey: text("photoFileKey"),
-  // Préférences de recherche
   secteurRecherche: text("secteurRecherche"),
   typeContratRecherche: text("typeContratRecherche"),
   localisationRecherche: text("localisationRecherche"),
   salaireMinimum: decimal("salaireMinimum", { precision: 10, scale: 2 }),
   disponibilite: varchar("disponibilite", { length: 50 }),
   mobilite: boolean("mobilite").default(false),
-  // Profil complété
   profileComplete: boolean("profileComplete").default(false),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
-// Expériences professionnelles
-export const experiences = mysqlTable("experiences", {
-  id: int("id").autoincrement().primaryKey(),
-  candidatId: int("candidatId").notNull().references(() => candidats.id, { onDelete: "cascade" }),
+// ─── Expériences ──────────────────────────────────────────────────────────────
+export const experiences = pgTable("experiences", {
+  id: serial("id").primaryKey(),
+  candidatId: serial("candidatId").notNull().references(() => candidats.id, { onDelete: "cascade" }),
   poste: varchar("poste", { length: 200 }).notNull(),
   entreprise: varchar("entreprise", { length: 200 }).notNull(),
   ville: varchar("ville", { length: 100 }),
@@ -67,13 +84,13 @@ export const experiences = mysqlTable("experiences", {
   description: text("description"),
   competencesAcquises: text("competencesAcquises"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
-// Formations et diplômes
-export const formations = mysqlTable("formations", {
-  id: int("id").autoincrement().primaryKey(),
-  candidatId: int("candidatId").notNull().references(() => candidats.id, { onDelete: "cascade" }),
+// ─── Formations ───────────────────────────────────────────────────────────────
+export const formations = pgTable("formations", {
+  id: serial("id").primaryKey(),
+  candidatId: serial("candidatId").notNull().references(() => candidats.id, { onDelete: "cascade" }),
   diplome: varchar("diplome", { length: 200 }).notNull(),
   etablissement: varchar("etablissement", { length: 200 }).notNull(),
   ville: varchar("ville", { length: 100 }),
@@ -84,36 +101,36 @@ export const formations = mysqlTable("formations", {
   domaine: varchar("domaine", { length: 200 }),
   description: text("description"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
-// Compétences
-export const competences = mysqlTable("competences", {
-  id: int("id").autoincrement().primaryKey(),
-  candidatId: int("candidatId").notNull().references(() => candidats.id, { onDelete: "cascade" }),
+// ─── Compétences ──────────────────────────────────────────────────────────────
+export const competences = pgTable("competences", {
+  id: serial("id").primaryKey(),
+  candidatId: serial("candidatId").notNull().references(() => candidats.id, { onDelete: "cascade" }),
   nom: varchar("nom", { length: 100 }).notNull(),
-  niveau: mysqlEnum("niveau", ["debutant", "intermediaire", "avance", "expert"]).notNull(),
+  niveau: niveauEnum("niveau").notNull(),
   categorie: varchar("categorie", { length: 100 }),
-  anneesExperience: int("anneesExperience"),
+  anneesExperience: serial("anneesExperience"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
-// Langues
-export const langues = mysqlTable("langues", {
-  id: int("id").autoincrement().primaryKey(),
-  candidatId: int("candidatId").notNull().references(() => candidats.id, { onDelete: "cascade" }),
+// ─── Langues ──────────────────────────────────────────────────────────────────
+export const langues = pgTable("langues", {
+  id: serial("id").primaryKey(),
+  candidatId: serial("candidatId").notNull().references(() => candidats.id, { onDelete: "cascade" }),
   nom: varchar("nom", { length: 100 }).notNull(),
-  niveauOral: mysqlEnum("niveauOral", ["debutant", "intermediaire", "courant", "bilingue", "langue_maternelle"]).notNull(),
-  niveauEcrit: mysqlEnum("niveauEcrit", ["debutant", "intermediaire", "courant", "bilingue", "langue_maternelle"]).notNull(),
+  niveauOral: niveauLangueEnum("niveauOral").notNull(),
+  niveauEcrit: niveauLangueEnum("niveauEcrit").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
-// Profil employeur
-export const employeurs = mysqlTable("employeurs", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+// ─── Employeurs ───────────────────────────────────────────────────────────────
+export const employeurs = pgTable("employeurs", {
+  id: serial("id").primaryKey(),
+  userId: serial("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
   nomEntreprise: varchar("nomEntreprise", { length: 200 }).notNull(),
   secteurActivite: varchar("secteurActivite", { length: 100 }),
   taille: varchar("taille", { length: 50 }),
@@ -126,27 +143,25 @@ export const employeurs = mysqlTable("employeurs", {
   description: text("description"),
   logoUrl: text("logoUrl"),
   logoFileKey: text("logoFileKey"),
-  // Informations de contact
   nomContact: varchar("nomContact", { length: 100 }),
   prenomContact: varchar("prenomContact", { length: 100 }),
   posteContact: varchar("posteContact", { length: 100 }),
   emailContact: varchar("emailContact", { length: 320 }),
   telephoneContact: varchar("telephoneContact", { length: 20 }),
-  // Abonnement
-  formuleAbonnement: mysqlEnum("formuleAbonnement", ["gratuit", "professionnel", "entreprise"]).default("gratuit").notNull(),
+  formuleAbonnement: formuleAbonnementEnum("formuleAbonnement").default("gratuit").notNull(),
   dateDebutAbonnement: timestamp("dateDebutAbonnement"),
   dateFinAbonnement: timestamp("dateFinAbonnement"),
-  nombreOffresRestantes: int("nombreOffresRestantes").default(0),
+  nombreOffresRestantes: serial("nombreOffresRestantes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
-// Offres d'emploi
-export const offresEmploi = mysqlTable("offresEmploi", {
-  id: int("id").autoincrement().primaryKey(),
-  employeurId: int("employeurId").notNull().references(() => employeurs.id, { onDelete: "cascade" }),
+// ─── Offres d'emploi ──────────────────────────────────────────────────────────
+export const offresEmploi = pgTable("offresEmploi", {
+  id: serial("id").primaryKey(),
+  employeurId: serial("employeurId").notNull().references(() => employeurs.id, { onDelete: "cascade" }),
   titre: varchar("titre", { length: 200 }).notNull(),
-  typeOffre: mysqlEnum("typeOffre", ["public", "prive"]).notNull(),
+  typeOffre: typeOffreEnum("typeOffre").notNull(),
   description: text("description").notNull(),
   missions: text("missions"),
   competencesRequises: text("competencesRequises"),
@@ -156,32 +171,28 @@ export const offresEmploi = mysqlTable("offresEmploi", {
   dureeContrat: varchar("dureeContrat", { length: 100 }),
   salaire: varchar("salaire", { length: 100 }),
   avantages: text("avantages"),
-  // Localisation
   ville: varchar("ville", { length: 100 }).notNull(),
   region: varchar("region", { length: 100 }),
   pays: varchar("pays", { length: 100 }).default("Cameroun"),
-  // Catégorisation
   secteur: varchar("secteur", { length: 100 }),
   metier: varchar("metier", { length: 100 }),
-  // Dates
   datePublication: timestamp("datePublication").defaultNow().notNull(),
   dateLimite: timestamp("dateLimite"),
   dateDebut: timestamp("dateDebut"),
-  // Statut
-  statut: mysqlEnum("statut", ["brouillon", "publiee", "expiree", "pourvue"]).default("publiee").notNull(),
-  nombrePostes: int("nombrePostes").default(1),
-  nombreVues: int("nombreVues").default(0),
-  nombreCandidatures: int("nombreCandidatures").default(0),
+  statut: statutOffreEnum("statut").default("publiee").notNull(),
+  nombrePostes: serial("nombrePostes"),
+  nombreVues: serial("nombreVues"),
+  nombreCandidatures: serial("nombreCandidatures"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
-// Candidatures
-export const candidatures = mysqlTable("candidatures", {
-  id: int("id").autoincrement().primaryKey(),
-  candidatId: int("candidatId").notNull().references(() => candidats.id, { onDelete: "cascade" }),
-  offreId: int("offreId").notNull().references(() => offresEmploi.id, { onDelete: "cascade" }),
-  statut: mysqlEnum("statut", ["en_attente", "vue", "retenue", "rejetee", "entretien"]).default("en_attente").notNull(),
+// ─── Candidatures ─────────────────────────────────────────────────────────────
+export const candidatures = pgTable("candidatures", {
+  id: serial("id").primaryKey(),
+  candidatId: serial("candidatId").notNull().references(() => candidats.id, { onDelete: "cascade" }),
+  offreId: serial("offreId").notNull().references(() => offresEmploi.id, { onDelete: "cascade" }),
+  statut: statutCandidatureEnum("statut").default("en_attente").notNull(),
   lettreMotivation: text("lettreMotivation"),
   cvUrl: text("cvUrl"),
   cvFileKey: text("cvFileKey"),
@@ -190,124 +201,82 @@ export const candidatures = mysqlTable("candidatures", {
   dateReponse: timestamp("dateReponse"),
   commentaireEmployeur: text("commentaireEmployeur"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
-// Alertes d'emploi
-export const alertes = mysqlTable("alertes", {
-  id: int("id").autoincrement().primaryKey(),
-  candidatId: int("candidatId").notNull().references(() => candidats.id, { onDelete: "cascade" }),
+// ─── Alertes emploi ───────────────────────────────────────────────────────────
+export const alertes = pgTable("alertes", {
+  id: serial("id").primaryKey(),
+  candidatId: serial("candidatId").notNull().references(() => candidats.id, { onDelete: "cascade" }),
   nom: varchar("nom", { length: 200 }).notNull(),
-  // Critères de recherche
   motsCles: text("motsCles"),
   secteur: varchar("secteur", { length: 100 }),
   metier: varchar("metier", { length: 100 }),
   typeContrat: varchar("typeContrat", { length: 50 }),
-  typeOffre: mysqlEnum("typeOffre", ["public", "prive", "tous"]).default("tous"),
+  typeOffre: typeOffreAlerteEnum("typeOffre").default("tous"),
   ville: varchar("ville", { length: 100 }),
   region: varchar("region", { length: 100 }),
   salaireMinimum: decimal("salaireMinimum", { precision: 10, scale: 2 }),
-  // Fréquence
-  frequence: mysqlEnum("frequence", ["immediate", "quotidien", "hebdomadaire"]).default("quotidien").notNull(),
+  frequence: frequenceEnum("frequence").default("quotidien").notNull(),
   active: boolean("active").default(true),
   derniereNotification: timestamp("derniereNotification"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
-// Offres favorites
-export const favoris = mysqlTable("favoris", {
-  id: int("id").autoincrement().primaryKey(),
-  candidatId: int("candidatId").notNull().references(() => candidats.id, { onDelete: "cascade" }),
-  offreId: int("offreId").notNull().references(() => offresEmploi.id, { onDelete: "cascade" }),
+// ─── Favoris ──────────────────────────────────────────────────────────────────
+export const favoris = pgTable("favoris", {
+  id: serial("id").primaryKey(),
+  candidatId: serial("candidatId").notNull().references(() => candidats.id, { onDelete: "cascade" }),
+  offreId: serial("offreId").notNull().references(() => offresEmploi.id, { onDelete: "cascade" }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
-// Tokens de réinitialisation de mot de passe
-export const passwordResetTokens = mysqlTable("passwordResetTokens", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+// ─── Réinitialisation de mot de passe ─────────────────────────────────────────
+export const passwordResetTokens = pgTable("passwordResetTokens", {
+  id: serial("id").primaryKey(),
+  userId: serial("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
   token: varchar("token", { length: 255 }).notNull().unique(),
   expiresAt: timestamp("expiresAt").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
-// Export des types
-export type User = typeof users.$inferSelect;
-export type InsertUser = typeof users.$inferInsert;
-
-export type Candidat = typeof candidats.$inferSelect;
-export type InsertCandidat = typeof candidats.$inferInsert;
-
-export type Experience = typeof experiences.$inferSelect;
-export type InsertExperience = typeof experiences.$inferInsert;
-
-export type Formation = typeof formations.$inferSelect;
-export type InsertFormation = typeof formations.$inferInsert;
-
-export type Competence = typeof competences.$inferSelect;
-export type InsertCompetence = typeof competences.$inferInsert;
-
-export type Langue = typeof langues.$inferSelect;
-export type InsertLangue = typeof langues.$inferInsert;
-
-export type Employeur = typeof employeurs.$inferSelect;
-export type InsertEmployeur = typeof employeurs.$inferInsert;
-
-export type OffreEmploi = typeof offresEmploi.$inferSelect;
-export type InsertOffreEmploi = typeof offresEmploi.$inferInsert;
-
-export type Candidature = typeof candidatures.$inferSelect;
-export type InsertCandidature = typeof candidatures.$inferInsert;
-
-export type Alerte = typeof alertes.$inferSelect;
-export type InsertAlerte = typeof alertes.$inferInsert;
-
-export type Favori = typeof favoris.$inferSelect;
-export type InsertFavori = typeof favoris.$inferInsert;
-
-export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
-export type InsertPasswordResetToken = typeof passwordResetTokens.$inferInsert;
-
-// ─── Articles de conseils emploi ──────────────────────────────────────────────
-export const articlesConseils = mysqlTable("articles_conseils", {
-  id: int("id").autoincrement().primaryKey(),
+// ─── Articles de conseils ─────────────────────────────────────────────────────
+export const articlesConseils = pgTable("articles_conseils", {
+  id: serial("id").primaryKey(),
   slug: varchar("slug", { length: 200 }).unique().notNull(),
   titre: varchar("titre", { length: 300 }).notNull(),
   description: text("description").notNull(),
   contenu: text("contenu").notNull(),
-  categorie: mysqlEnum("categorie", ["Entretien", "CV", "Marché", "Négociation", "Reconversion", "Freelance"]).notNull(),
+  categorie: categorieArticleEnum("categorie").notNull(),
   auteur: varchar("auteur", { length: 150 }).notNull(),
   tempsLecture: varchar("tempsLecture", { length: 20 }).notNull(),
   imageUrl: text("imageUrl"),
   featured: boolean("featured").default(false).notNull(),
   datePublication: timestamp("datePublication").defaultNow().notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
-export type ArticleConseil = typeof articlesConseils.$inferSelect;
-export type InsertArticleConseil = typeof articlesConseils.$inferInsert;
-
-// ─── CV Documents ─────────────────────────────────────────────────────────────
-export const cvDocuments = mysqlTable("cv_documents", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
+// ─── Documents CV ─────────────────────────────────────────────────────────────
+export const cvDocuments = pgTable("cv_documents", {
+  id: serial("id").primaryKey(),
+  userId: serial("userId").notNull(),
   nom: varchar("nom", { length: 255 }).notNull(),
-  type: mysqlEnum("type", ["upload", "classique", "moderne", "creatif"]).notNull().default("upload"),
+  type: typeCvEnum("type").notNull().default("upload"),
   fileUrl: text("fileUrl"),
   fileKey: text("fileKey"),
-  langue: mysqlEnum("langue", ["fr", "en"]).notNull().default("fr"),
+  langue: langueCvEnum("langue").notNull().default("fr"),
   actif: boolean("actif").default(false).notNull(),
   visibleCVtheque: boolean("visibleCVtheque").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
-// ─── CV Data (contenu structuré pour les modèles Classique et Moderne) ────────
-export const cvData = mysqlTable("cv_data", {
-  id: int("id").autoincrement().primaryKey(),
-  cvId: int("cvId").notNull().unique(),
+// ─── Données CV structurées ───────────────────────────────────────────────────
+export const cvData = pgTable("cv_data", {
+  id: serial("id").primaryKey(),
+  cvId: serial("cvId").notNull().unique(),
   prenom: varchar("prenom", { length: 100 }),
   nom: varchar("nom", { length: 100 }),
   titre: varchar("titre", { length: 200 }),
@@ -326,65 +295,82 @@ export const cvData = mysqlTable("cv_data", {
   loisirs: text("loisirs"),
   resume: text("resume"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
-export type CvDocument = typeof cvDocuments.$inferSelect;
-export type InsertCvDocument = typeof cvDocuments.$inferInsert;
-export type CvData = typeof cvData.$inferSelect;
-export type InsertCvData = typeof cvData.$inferInsert;
-
-// ─── Messages internes (recruteur → candidat) ────────────────────────────────────────────
-export const messages = mysqlTable("messages", {
-  id: int("id").autoincrement().primaryKey(),
-  // Expéditeur et destinataire (userId)
-  senderId: int("senderId").notNull().references(() => users.id, { onDelete: "cascade" }),
-  receiverId: int("receiverId").notNull().references(() => users.id, { onDelete: "cascade" }),
-  // Sujet et contenu
+// ─── Messages internes ────────────────────────────────────────────────────────
+export const messages = pgTable("messages", {
+  id: serial("id").primaryKey(),
+  senderId: serial("senderId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  receiverId: serial("receiverId").notNull().references(() => users.id, { onDelete: "cascade" }),
   sujet: varchar("sujet", { length: 300 }),
   contenu: text("contenu").notNull(),
-  // Référence optionnelle au CV consulté
-  cvId: int("cvId"),
-  // Statut
+  cvId: serial("cvId"),
   lu: boolean("lu").default(false).notNull(),
   dateLecture: timestamp("dateLecture"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
-export type Message = typeof messages.$inferSelect;
-export type InsertMessage = typeof messages.$inferInsert;
-
-// ─── Vues de profil CVthèque ─────────────────────────────────────────────────────────────────────
-export const profileViews = mysqlTable("profile_views", {
-  id: int("id").autoincrement().primaryKey(),
-  // Candidat dont le profil a été consulté
-  candidatUserId: int("candidatUserId").notNull().references(() => users.id, { onDelete: "cascade" }),
-  // Visiteur (recruteur) - nullable si non connecté
-  viewerUserId: int("viewerUserId"),
-  // CV spécifique consulté
-  cvId: int("cvId"),
+// ─── Vues de profil CVthèque ──────────────────────────────────────────────────
+export const profileViews = pgTable("profile_views", {
+  id: serial("id").primaryKey(),
+  candidatUserId: serial("candidatUserId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  viewerUserId: serial("viewerUserId"),
+  cvId: serial("cvId"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
-export type ProfileView = typeof profileViews.$inferSelect;
-export type InsertProfileView = typeof profileViews.$inferInsert;
-
-// ─── Formules Tarifaires ──────────────────────────────────────────────────────
-export const formulesTarifaires = mysqlTable("formules_tarifaires", {
-  id: int("id").autoincrement().primaryKey(),
+// ─── Formules tarifaires ──────────────────────────────────────────────────────
+export const formulesTarifaires = pgTable("formules_tarifaires", {
+  id: serial("id").primaryKey(),
   nom: varchar("nom", { length: 100 }).notNull(),
-  cible: mysqlEnum("cible", ["candidat", "employeur"]).notNull(),
+  cible: cibleFormuleEnum("cible").notNull(),
   prix: decimal("prix", { precision: 10, scale: 2 }).notNull(),
   devise: varchar("devise", { length: 10 }).notNull().default("XAF"),
-  periode: mysqlEnum("periode", ["mensuel", "annuel", "unique"]).notNull().default("mensuel"),
+  periode: periodeFormuleEnum("periode").notNull().default("mensuel"),
   description: text("description"),
   fonctionnalites: text("fonctionnalites"),
   actif: boolean("actif").default(true).notNull(),
   populaire: boolean("populaire").default(false).notNull(),
-  ordre: int("ordre").default(0).notNull(),
+  ordre: serial("ordre"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
+// ─── Types exportés ───────────────────────────────────────────────────────────
+export type User = typeof users.$inferSelect;
+export type InsertUser = typeof users.$inferInsert;
+export type Candidat = typeof candidats.$inferSelect;
+export type InsertCandidat = typeof candidats.$inferInsert;
+export type Experience = typeof experiences.$inferSelect;
+export type InsertExperience = typeof experiences.$inferInsert;
+export type Formation = typeof formations.$inferSelect;
+export type InsertFormation = typeof formations.$inferInsert;
+export type Competence = typeof competences.$inferSelect;
+export type InsertCompetence = typeof competences.$inferInsert;
+export type Langue = typeof langues.$inferSelect;
+export type InsertLangue = typeof langues.$inferInsert;
+export type Employeur = typeof employeurs.$inferSelect;
+export type InsertEmployeur = typeof employeurs.$inferInsert;
+export type OffreEmploi = typeof offresEmploi.$inferSelect;
+export type InsertOffreEmploi = typeof offresEmploi.$inferInsert;
+export type Candidature = typeof candidatures.$inferSelect;
+export type InsertCandidature = typeof candidatures.$inferInsert;
+export type Alerte = typeof alertes.$inferSelect;
+export type InsertAlerte = typeof alertes.$inferInsert;
+export type Favori = typeof favoris.$inferSelect;
+export type InsertFavori = typeof favoris.$inferInsert;
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type InsertPasswordResetToken = typeof passwordResetTokens.$inferInsert;
+export type ArticleConseil = typeof articlesConseils.$inferSelect;
+export type InsertArticleConseil = typeof articlesConseils.$inferInsert;
+export type CvDocument = typeof cvDocuments.$inferSelect;
+export type InsertCvDocument = typeof cvDocuments.$inferInsert;
+export type CvData = typeof cvData.$inferSelect;
+export type InsertCvData = typeof cvData.$inferInsert;
+export type Message = typeof messages.$inferSelect;
+export type InsertMessage = typeof messages.$inferInsert;
+export type ProfileView = typeof profileViews.$inferSelect;
+export type InsertProfileView = typeof profileViews.$inferInsert;
 export type FormuleTarifaire = typeof formulesTarifaires.$inferSelect;
 export type InsertFormuleTarifaire = typeof formulesTarifaires.$inferInsert;
