@@ -24,25 +24,25 @@ async function startServer() {
   // Disable automatic ETag — prevents browsers caching API responses as HTML
   app.disable("etag");
 
+  // ─── CORS manuel (prioritaire — garantit les headers même sur erreur 5xx) ───
+  app.use((req, res, next) => {
+    const origin = req.headers.origin as string | undefined;
+    if (origin && allowedOrigins.includes(origin)) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+      res.setHeader("Access-Control-Allow-Credentials", "true");
+      res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
+      res.setHeader("Vary", "Origin");
+    }
+    if (req.method === "OPTIONS") return res.sendStatus(204);
+    next();
+  });
+
   // ─── Sécurité HTTP headers ──────────────────────────────────────────────────
   app.use(
     helmet({
       crossOriginEmbedderPolicy: false,
       contentSecurityPolicy: false,
-    })
-  );
-
-  // ─── CORS (jamais wildcard) ─────────────────────────────────────────────────
-  app.use(
-    cors({
-      origin: (origin, cb) => {
-        if (!origin) return cb(null, true); // curl / Postman
-        if (allowedOrigins.includes(origin)) return cb(null, true);
-        cb(new Error(`CORS: origine non autorisée ${origin}`));
-      },
-      credentials: true,
-      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization"],
     })
   );
 
@@ -171,6 +171,21 @@ async function startServer() {
   } else {
     serveStatic(app);
   }
+
+  // ─── Gestionnaire d'erreurs global (retourne JSON, pas HTML) ──────────────
+  app.use((err: any, req: any, res: any, _next: any) => {
+    console.error("[Express Error]", err?.message ?? err);
+    if (!res.headersSent) {
+      const origin = req.headers?.origin as string | undefined;
+      if (origin && allowedOrigins.includes(origin)) {
+        res.setHeader("Access-Control-Allow-Origin", origin);
+        res.setHeader("Access-Control-Allow-Credentials", "true");
+      }
+    }
+    res.status(err?.status || err?.statusCode || 500).json({
+      error: err?.message || "Internal Server Error",
+    });
+  });
 
   // ─── Démarrage ──────────────────────────────────────────────────────────────
   const port = parseInt(process.env.PORT || "3000");
