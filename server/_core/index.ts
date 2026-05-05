@@ -47,21 +47,35 @@ async function startServer() {
   );
 
   // ─── Rate limiting global ───────────────────────────────────────────────────
+  const corsHandler = (req: any, res: any) => {
+    const origin = req.headers.origin as string | undefined;
+    if (origin && allowedOrigins.includes(origin)) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+      res.setHeader("Access-Control-Allow-Credentials", "true");
+    }
+  };
+
   app.use(
     rateLimit({
       windowMs: 15 * 60 * 1000,
-      max: 300,
+      max: 1000,
       standardHeaders: true,
       legacyHeaders: false,
-      message: { error: "Trop de requêtes, réessayez dans quelques minutes." },
+      handler: (req, res) => {
+        corsHandler(req, res);
+        res.status(429).json({ error: "Trop de requêtes, réessayez dans quelques minutes." });
+      },
     })
   );
 
   // ─── Rate limiting strict sur auth ─────────────────────────────────────────
   const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 10,
-    message: { error: "Trop de tentatives, réessayez dans 15 minutes." },
+    max: 20,
+    handler: (req, res) => {
+      corsHandler(req, res);
+      res.status(429).json({ error: "Trop de tentatives, réessayez dans 15 minutes." });
+    },
   });
   app.use("/api/trpc/auth.login", authLimiter);
   app.use("/api/trpc/auth.register", authLimiter);
