@@ -2,7 +2,7 @@
   "buildCommand": "vite build",
   "outputDirectory": "dist/public",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://your-server.railway.app/api/$1" },
+    { "source": "/api/(.*)", "destination": "https://cameroontravail-production.up.railway.app/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
