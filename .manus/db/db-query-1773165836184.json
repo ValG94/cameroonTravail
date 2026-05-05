@@ -1,0 +1,22 @@
+{
+  "query": "\nSELECT \n  cd.id, cd.userId, cd.type, cd.visibleCVtheque, cd.actif,\n  u.name as userName, u.email,\n  cp.prenom, cp.nom, cp.ville\nFROM cv_documents cd\nLEFT JOIN users u ON cd.userId = u.id\nLEFT JOIN candidats cp ON cd.userId = cp.userId\nORDER BY cd.createdAt DESC;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3wXRCLsvW1HH1Na.b98aae65f70d --database SPbMst9fYMnn3KTn3JChUH --execute \nSELECT \n  cd.id, cd.userId, cd.type, cd.visibleCVtheque, cd.actif,\n  u.name as userName, u.email,\n  cp.prenom, cp.nom, cp.ville\nFROM cv_documents cd\nLEFT JOIN users u ON cd.userId = u.id\nLEFT JOIN candidats cp ON cd.userId = cp.userId\nORDER BY cd.createdAt DESC;\n",
+  "rows": [
+    {
+      "id": "1",
+      "userId": "60001",
+      "type": "moderne",
+      "visibleCVtheque": "1",
+      "actif": "1",
+      "userName": "CAMERON ETOT",
+      "email": "cameronetot98@gmail.com",
+      "prenom": "Cameron",
+      "nom": "ETOT",
+      "ville": "Yaoundé"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\ttype\tvisibleCVtheque\tactif\tuserName\temail\tprenom\tnom\tville\n1\t60001\tmoderne\t1\t1\tCAMERON ETOT\tcameronetot98@gmail.com\tCameron\tETOT\tYaoundé\n",
+  "stderr": "",
+  "execution_time_ms": 459
+}

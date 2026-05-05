@@ -1,0 +1,76 @@
+{
+  "query": "SELECT COLUMN_NAME, IS_NULLABLE, COLUMN_DEFAULT, COLUMN_TYPE \nFROM INFORMATION_SCHEMA.COLUMNS \nWHERE TABLE_NAME = 'offresEmploi' \nAND IS_NULLABLE = 'NO'\nORDER BY ORDINAL_POSITION;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3wXRCLsvW1HH1Na.b98aae65f70d --database SPbMst9fYMnn3KTn3JChUH --execute SELECT COLUMN_NAME, IS_NULLABLE, COLUMN_DEFAULT, COLUMN_TYPE \nFROM INFORMATION_SCHEMA.COLUMNS \nWHERE TABLE_NAME = 'offresEmploi' \nAND IS_NULLABLE = 'NO'\nORDER BY ORDINAL_POSITION;",
+  "rows": [
+    {
+      "COLUMN_NAME": "id",
+      "IS_NULLABLE": "NO",
+      "COLUMN_DEFAULT": "NULL",
+      "COLUMN_TYPE": "int(11)"
+    },
+    {
+      "COLUMN_NAME": "employeurId",
+      "IS_NULLABLE": "NO",
+      "COLUMN_DEFAULT": "NULL",
+      "COLUMN_TYPE": "int(11)"
+    },
+    {
+      "COLUMN_NAME": "titre",
+      "IS_NULLABLE": "NO",
+      "COLUMN_DEFAULT": "NULL",
+      "COLUMN_TYPE": "varchar(200)"
+    },
+    {
+      "COLUMN_NAME": "typeOffre",
+      "IS_NULLABLE": "NO",
+      "COLUMN_DEFAULT": "NULL",
+      "COLUMN_TYPE": "enum('public','prive')"
+    },
+    {
+      "COLUMN_NAME": "description",
+      "IS_NULLABLE": "NO",
+      "COLUMN_DEFAULT": "NULL",
+      "COLUMN_TYPE": "text"
+    },
+    {
+      "COLUMN_NAME": "typeContrat",
+      "IS_NULLABLE": "NO",
+      "COLUMN_DEFAULT": "NULL",
+      "COLUMN_TYPE": "varchar(50)"
+    },
+    {
+      "COLUMN_NAME": "ville",
+      "IS_NULLABLE": "NO",
+      "COLUMN_DEFAULT": "NULL",
+      "COLUMN_TYPE": "varchar(100)"
+    },
+    {
+      "COLUMN_NAME": "datePublication",
+      "IS_NULLABLE": "NO",
+      "COLUMN_DEFAULT": "CURRENT_TIMESTAMP",
+      "COLUMN_TYPE": "timestamp"
+    },
+    {
+      "COLUMN_NAME": "statut",
+      "IS_NULLABLE": "NO",
+      "COLUMN_DEFAULT": "publiee",
+      "COLUMN_TYPE": "enum('brouillon','publiee','expiree','pourvue')"
+    },
+    {
+      "COLUMN_NAME": "createdAt",
+      "IS_NULLABLE": "NO",
+      "COLUMN_DEFAULT": "CURRENT_TIMESTAMP",
+      "COLUMN_TYPE": "timestamp"
+    },
+    {
+      "COLUMN_NAME": "updatedAt",
+      "IS_NULLABLE": "NO",
+      "COLUMN_DEFAULT": "CURRENT_TIMESTAMP",
+      "COLUMN_TYPE": "timestamp"
+    }
+  ],
+  "messages": [],
+  "stdout": "COLUMN_NAME\tIS_NULLABLE\tCOLUMN_DEFAULT\tCOLUMN_TYPE\nid\tNO\tNULL\tint(11)\nemployeurId\tNO\tNULL\tint(11)\ntitre\tNO\tNULL\tvarchar(200)\ntypeOffre\tNO\tNULL\tenum('public','prive')\ndescription\tNO\tNULL\ttext\ntypeContrat\tNO\tNULL\tvarchar(50)\nville\tNO\tNULL\tvarchar(100)\ndatePublication\tNO\tCURRENT_TIMESTAMP\ttimestamp\nstatut\tNO\tpubliee\tenum('brouillon','publiee','expiree','pourvue')\ncreatedAt\tNO\tCURRENT_TIMESTAMP\ttimestamp\nupdatedAt\tNO\tCURRENT_TIMESTAMP\ttimestamp\n",
+  "stderr": "",
+  "execution_time_ms": 362
+}

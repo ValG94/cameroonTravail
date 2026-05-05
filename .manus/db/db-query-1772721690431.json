@@ -1,0 +1,28 @@
+{
+  "query": "\n-- Voir les offres et leurs employeurs\nSELECT o.id, o.titre, o.employeurId, e.userId, e.nomEntreprise, u.name, u.email\nFROM offresEmploi o\nJOIN employeurs e ON o.employeurId = e.id\nJOIN users u ON e.userId = u.id\nORDER BY o.id;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3wXRCLsvW1HH1Na.b98aae65f70d --database SPbMst9fYMnn3KTn3JChUH --execute \n-- Voir les offres et leurs employeurs\nSELECT o.id, o.titre, o.employeurId, e.userId, e.nomEntreprise, u.name, u.email\nFROM offresEmploi o\nJOIN employeurs e ON o.employeurId = e.id\nJOIN users u ON e.userId = u.id\nORDER BY o.id;\n",
+  "rows": [
+    {
+      "id": "1",
+      "titre": "Développeur Full Stack",
+      "employeurId": "120001",
+      "userId": "120007",
+      "nomEntreprise": "",
+      "name": "Valéry Garrec",
+      "email": "blankcontact1@gmail.com"
+    },
+    {
+      "id": "30001",
+      "titre": "Attaché commercial B2B – Solutions digitales RH",
+      "employeurId": "120001",
+      "userId": "120007",
+      "nomEntreprise": "",
+      "name": "Valéry Garrec",
+      "email": "blankcontact1@gmail.com"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttitre\temployeurId\tuserId\tnomEntreprise\tname\temail\n1\tDéveloppeur Full Stack\t120001\t120007\t\tValéry Garrec\tblankcontact1@gmail.com\n30001\tAttaché commercial B2B – Solutions digitales RH\t120001\t120007\t\tValéry Garrec\tblankcontact1@gmail.com\n",
+  "stderr": "",
+  "execution_time_ms": 350
+}

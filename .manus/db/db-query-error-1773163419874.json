@@ -1,0 +1,8 @@
+{
+  "query": "\nSELECT cv.id, cv.userId, cv.type, cv.titre, cv.visibleCVtheque, cv.createdAt,\n       u.id as user_id_in_users, u.name as user_name, u.email\nFROM cv_documents cv\nLEFT JOIN users u ON cv.userId = u.id\nWHERE cv.userId = 60001\nLIMIT 10;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3wXRCLsvW1HH1Na.b98aae65f70d --database SPbMst9fYMnn3KTn3JChUH --execute \nSELECT cv.id, cv.userId, cv.type, cv.titre, cv.visibleCVtheque, cv.createdAt,\n       u.id as user_id_in_users, u.name as user_name, u.email\nFROM cv_documents cv\nLEFT JOIN users u ON cv.userId = u.id\nWHERE cv.userId = 60001\nLIMIT 10;\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 2: Unknown column 'cv.titre' in 'field list'"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "query": "\nSELECT cv.id as cv_id, cv.userId, cv.type, cv.visibleCVtheque,\n       u.id as user_id, u.name as user_name, u.email, u.profileType\nFROM cv_documents cv\nLEFT JOIN users u ON cv.userId = u.id\nWHERE cv.userId = 60001;\n\nSELECT id, name, email, profileType FROM users WHERE id = 60001;\nSELECT id, name, email, profileType FROM users ORDER BY id DESC LIMIT 10;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3wXRCLsvW1HH1Na.b98aae65f70d --database SPbMst9fYMnn3KTn3JChUH --execute \nSELECT cv.id as cv_id, cv.userId, cv.type, cv.visibleCVtheque,\n       u.id as user_id, u.name as user_name, u.email, u.profileType\nFROM cv_documents cv\nLEFT JOIN users u ON cv.userId = u.id\nWHERE cv.userId = 60001;\n\nSELECT id, name, email, profileType FROM users WHERE id = 60001;\nSELECT id, name, email, profileType FROM users ORDER BY id DESC LIMIT 10;\n",
+  "rows": [
+    {
+      "cv_id": "1",
+      "userId": "60001",
+      "type": "moderne",
+      "visibleCVtheque": "1",
+      "user_id": "60001",
+      "user_name": "CAMERON ETOT",
+      "email": "cameronetot98@gmail.com",
+      "profileType": "candidat"
+    }
+  ],
+  "messages": [
+    "id\tname\temail\tprofileType",
+    "60001\tCAMERON ETOT\tcameronetot98@gmail.com\tcandidat",
+    "id\tname\temail\tprofileType",
+    "420007\tcontact blank\tcontat@onenationagency.com\temployeur",
+    "390001\tValerie DUPONT\tvalerygarrec@yahoo.fr\tcandidat",
+    "120007\tValéry Garrec\tblankcontact1@gmail.com\temployeur",
+    "60001\tCAMERON ETOT\tcameronetot98@gmail.com\tcandidat",
+    "1\tVal G\tvalerygarrec@gmail.com\temployeur"
+  ],
+  "stdout": "cv_id\tuserId\ttype\tvisibleCVtheque\tuser_id\tuser_name\temail\tprofileType\n1\t60001\tmoderne\t1\t60001\tCAMERON ETOT\tcameronetot98@gmail.com\tcandidat\nid\tname\temail\tprofileType\n60001\tCAMERON ETOT\tcameronetot98@gmail.com\tcandidat\nid\tname\temail\tprofileType\n420007\tcontact blank\tcontat@onenationagency.com\temployeur\n390001\tValerie DUPONT\tvalerygarrec@yahoo.fr\tcandidat\n120007\tValéry Garrec\tblankcontact1@gmail.com\temployeur\n60001\tCAMERON ETOT\tcameronetot98@gmail.com\tcandidat\n1\tVal G\tvalerygarrec@gmail.com\temployeur\n",
+  "stderr": "",
+  "execution_time_ms": 446
+}

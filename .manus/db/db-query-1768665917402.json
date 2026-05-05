@@ -1,0 +1,28 @@
+{
+  "query": "SELECT COLUMN_NAME, IS_NULLABLE, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH \nFROM INFORMATION_SCHEMA.COLUMNS \nWHERE TABLE_NAME = 'offresEmploi' AND COLUMN_NAME IN ('region', 'secteur', 'metier');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3wXRCLsvW1HH1Na.b98aae65f70d --database SPbMst9fYMnn3KTn3JChUH --execute SELECT COLUMN_NAME, IS_NULLABLE, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH \nFROM INFORMATION_SCHEMA.COLUMNS \nWHERE TABLE_NAME = 'offresEmploi' AND COLUMN_NAME IN ('region', 'secteur', 'metier');",
+  "rows": [
+    {
+      "COLUMN_NAME": "region",
+      "IS_NULLABLE": "YES",
+      "DATA_TYPE": "varchar",
+      "CHARACTER_MAXIMUM_LENGTH": "100"
+    },
+    {
+      "COLUMN_NAME": "secteur",
+      "IS_NULLABLE": "YES",
+      "DATA_TYPE": "varchar",
+      "CHARACTER_MAXIMUM_LENGTH": "100"
+    },
+    {
+      "COLUMN_NAME": "metier",
+      "IS_NULLABLE": "YES",
+      "DATA_TYPE": "varchar",
+      "CHARACTER_MAXIMUM_LENGTH": "100"
+    }
+  ],
+  "messages": [],
+  "stdout": "COLUMN_NAME\tIS_NULLABLE\tDATA_TYPE\tCHARACTER_MAXIMUM_LENGTH\nregion\tYES\tvarchar\t100\nsecteur\tYES\tvarchar\t100\nmetier\tYES\tvarchar\t100\n",
+  "stderr": "",
+  "execution_time_ms": 370
+}

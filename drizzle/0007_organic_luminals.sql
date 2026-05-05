@@ -1,0 +1,40 @@
+CREATE TABLE `cv_data` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`cvId` int NOT NULL,
+	`prenom` varchar(100) NOT NULL DEFAULT '',
+	`nom` varchar(100) NOT NULL DEFAULT '',
+	`titre` varchar(200) NOT NULL DEFAULT '',
+	`email` varchar(200) NOT NULL DEFAULT '',
+	`telephone` varchar(50) NOT NULL DEFAULT '',
+	`adresse` varchar(300) NOT NULL DEFAULT '',
+	`siteWeb` varchar(200) NOT NULL DEFAULT '',
+	`photoUrl` text,
+	`photoKey` text,
+	`couleurColonne` varchar(20) NOT NULL DEFAULT '#374151',
+	`experiences` text NOT NULL DEFAULT ('[]'),
+	`formations` text NOT NULL DEFAULT ('[]'),
+	`competences` text NOT NULL DEFAULT ('[]'),
+	`languesCv` text NOT NULL DEFAULT ('[]'),
+	`certifications` text NOT NULL DEFAULT ('[]'),
+	`loisirs` text NOT NULL DEFAULT (''),
+	`resume` text NOT NULL DEFAULT (''),
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `cv_data_id` PRIMARY KEY(`id`),
+	CONSTRAINT `cv_data_cvId_unique` UNIQUE(`cvId`)
+);
+--> statement-breakpoint
+CREATE TABLE `cv_documents` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`userId` int NOT NULL,
+	`nom` varchar(255) NOT NULL,
+	`type` enum('upload','classique','moderne','creatif') NOT NULL DEFAULT 'upload',
+	`fileUrl` text,
+	`fileKey` text,
+	`langue` enum('fr','en') NOT NULL DEFAULT 'fr',
+	`actif` boolean NOT NULL DEFAULT false,
+	`visibleCVtheque` boolean NOT NULL DEFAULT true,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `cv_documents_id` PRIMARY KEY(`id`)
+);

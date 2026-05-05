@@ -1,0 +1,20 @@
+{
+  "query": "\nSELECT cv.id, cv.userId, cv.type, cv.visibleCVtheque, cv.createdAt,\n       u.id as user_id_in_users, u.name as user_name, u.email\nFROM cv_documents cv\nLEFT JOIN users u ON cv.userId = u.id\nWHERE cv.userId = 60001\nLIMIT 10;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3wXRCLsvW1HH1Na.b98aae65f70d --database SPbMst9fYMnn3KTn3JChUH --execute \nSELECT cv.id, cv.userId, cv.type, cv.visibleCVtheque, cv.createdAt,\n       u.id as user_id_in_users, u.name as user_name, u.email\nFROM cv_documents cv\nLEFT JOIN users u ON cv.userId = u.id\nWHERE cv.userId = 60001\nLIMIT 10;\n",
+  "rows": [
+    {
+      "id": "1",
+      "userId": "60001",
+      "type": "moderne",
+      "visibleCVtheque": "1",
+      "createdAt": "2026-03-08 17:03:42",
+      "user_id_in_users": "60001",
+      "user_name": "CAMERON ETOT",
+      "email": "cameronetot98@gmail.com"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\ttype\tvisibleCVtheque\tcreatedAt\tuser_id_in_users\tuser_name\temail\n1\t60001\tmoderne\t1\t2026-03-08 17:03:42\t60001\tCAMERON ETOT\tcameronetot98@gmail.com\n",
+  "stderr": "",
+  "execution_time_ms": 354
+}

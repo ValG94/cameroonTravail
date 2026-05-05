@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO offresEmploi (employeurId, titre, typeOffre, description, typeContrat, ville, region, secteur, statut) \nVALUES (120001, 'Test', 'prive', 'Description test de plus de 50 caractères pour valider', 'CDI', 'Douala', 'Littoral', 'IT', 'publiee');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3wXRCLsvW1HH1Na.b98aae65f70d --database SPbMst9fYMnn3KTn3JChUH --execute INSERT INTO offresEmploi (employeurId, titre, typeOffre, description, typeContrat, ville, region, secteur, statut) \nVALUES (120001, 'Test', 'prive', 'Description test de plus de 50 caractères pour valider', 'CDI', 'Douala', 'Littoral', 'IT', 'publiee');",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 375
+}

@@ -1,0 +1,17 @@
+{
+  "query": "SELECT id, userId, LEFT(token, 20) as token_preview, expiresAt, createdAt FROM passwordResetTokens ORDER BY createdAt DESC LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3wXRCLsvW1HH1Na.b98aae65f70d --database SPbMst9fYMnn3KTn3JChUH --execute SELECT id, userId, LEFT(token, 20) as token_preview, expiresAt, createdAt FROM passwordResetTokens ORDER BY createdAt DESC LIMIT 5;",
+  "rows": [
+    {
+      "id": "30004",
+      "userId": "120007",
+      "token_preview": "$2b$10$h.1A/84pnyb89",
+      "expiresAt": "2026-01-19 22:40:58",
+      "createdAt": "2026-01-18 22:40:58"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\ttoken_preview\texpiresAt\tcreatedAt\n30004\t120007\t$2b$10$h.1A/84pnyb89\t2026-01-19 22:40:58\t2026-01-18 22:40:58\n",
+  "stderr": "",
+  "execution_time_ms": 197
+}

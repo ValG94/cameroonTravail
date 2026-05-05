@@ -1,0 +1,1 @@
+ALTER TABLE `users` MODIFY COLUMN `profileType` enum('candidat','employeur');

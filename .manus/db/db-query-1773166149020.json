@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS `formules_tarifaires` (\n  `id` int AUTO_INCREMENT NOT NULL,\n  `nom` varchar(100) NOT NULL,\n  `cible` enum('candidat','employeur') NOT NULL,\n  `prix` decimal(10,2) NOT NULL,\n  `devise` varchar(10) NOT NULL DEFAULT 'XAF',\n  `periode` enum('mensuel','annuel','unique') NOT NULL DEFAULT 'mensuel',\n  `description` text,\n  `fonctionnalites` text,\n  `actif` boolean NOT NULL DEFAULT true,\n  `populaire` boolean NOT NULL DEFAULT false,\n  `ordre` int NOT NULL DEFAULT 0,\n  `createdAt` timestamp NOT NULL DEFAULT (now()),\n  `updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n  CONSTRAINT `formules_tarifaires_id` PRIMARY KEY(`id`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3wXRCLsvW1HH1Na.b98aae65f70d --database SPbMst9fYMnn3KTn3JChUH --execute CREATE TABLE IF NOT EXISTS `formules_tarifaires` (\n  `id` int AUTO_INCREMENT NOT NULL,\n  `nom` varchar(100) NOT NULL,\n  `cible` enum('candidat','employeur') NOT NULL,\n  `prix` decimal(10,2) NOT NULL,\n  `devise` varchar(10) NOT NULL DEFAULT 'XAF',\n  `periode` enum('mensuel','annuel','unique') NOT NULL DEFAULT 'mensuel',\n  `description` text,\n  `fonctionnalites` text,\n  `actif` boolean NOT NULL DEFAULT true,\n  `populaire` boolean NOT NULL DEFAULT false,\n  `ordre` int NOT NULL DEFAULT 0,\n  `createdAt` timestamp NOT NULL DEFAULT (now()),\n  `updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n  CONSTRAINT `formules_tarifaires_id` PRIMARY KEY(`id`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 428
+}

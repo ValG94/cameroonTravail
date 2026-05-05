@@ -1,0 +1,64 @@
+{
+  "query": "\n-- Voir l'état actuel de la table employeurs\nSELECT id, userId, nomEntreprise, secteurActivite FROM employeurs ORDER BY id;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3wXRCLsvW1HH1Na.b98aae65f70d --database SPbMst9fYMnn3KTn3JChUH --execute \n-- Voir l'état actuel de la table employeurs\nSELECT id, userId, nomEntreprise, secteurActivite FROM employeurs ORDER BY id;\n",
+  "rows": [
+    {
+      "id": "1",
+      "userId": "1",
+      "nomEntreprise": "Test Company",
+      "secteurActivite": "Informatique"
+    },
+    {
+      "id": "2",
+      "userId": "1",
+      "nomEntreprise": "Test Company",
+      "secteurActivite": "NULL"
+    },
+    {
+      "id": "3",
+      "userId": "1",
+      "nomEntreprise": "Test Company",
+      "secteurActivite": "NULL"
+    },
+    {
+      "id": "4",
+      "userId": "1",
+      "nomEntreprise": "Test Company",
+      "secteurActivite": "NULL"
+    },
+    {
+      "id": "5",
+      "userId": "1",
+      "nomEntreprise": "Test Company",
+      "secteurActivite": "NULL"
+    },
+    {
+      "id": "6",
+      "userId": "1",
+      "nomEntreprise": "Test Company",
+      "secteurActivite": "NULL"
+    },
+    {
+      "id": "7",
+      "userId": "1",
+      "nomEntreprise": "Test Company",
+      "secteurActivite": "NULL"
+    },
+    {
+      "id": "90001",
+      "userId": "1",
+      "nomEntreprise": "Test Company",
+      "secteurActivite": "NULL"
+    },
+    {
+      "id": "120001",
+      "userId": "120007",
+      "nomEntreprise": "",
+      "secteurActivite": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\tnomEntreprise\tsecteurActivite\n1\t1\tTest Company\tInformatique\n2\t1\tTest Company\tNULL\n3\t1\tTest Company\tNULL\n4\t1\tTest Company\tNULL\n5\t1\tTest Company\tNULL\n6\t1\tTest Company\tNULL\n7\t1\tTest Company\tNULL\n90001\t1\tTest Company\tNULL\n120001\t120007\t\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 423
+}
