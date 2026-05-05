@@ -67,6 +67,12 @@ async function startServer() {
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
+  // ─── Pas de cache sur les API ───────────────────────────────────────────────
+  app.use("/api", (_req, res, next) => {
+    res.setHeader("Cache-Control", "no-store");
+    next();
+  });
+
   // ─── Health check ───────────────────────────────────────────────────────────
   app.get("/health", (_req, res) => {
     res.json({ ok: true, ts: new Date().toISOString() });
