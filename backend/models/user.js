@@ -112,6 +112,12 @@ export default (sequelize) => {
         defaultValue: 0,
         validate: { min: 0, max: 100 },
       },
+      // URL publique Supabase Storage de la photo de profil
+      // (remplace l'ancien chemin local /uploads/photos/...)
+      cv_url: {
+        type: DataTypes.STRING(500),
+        allowNull: true,
+      },
     },
     {
       sequelize,

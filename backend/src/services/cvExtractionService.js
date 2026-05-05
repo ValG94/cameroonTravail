@@ -1,36 +1,31 @@
-import fs from 'fs';
 import pdfParse from 'pdf-parse';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 class CVExtractionService {
   /**
-   * Extrait le texte d'un fichier PDF
-   * @param {string} filePath - Chemin vers le fichier PDF
-   * @returns {Promise<string>} Le texte extrait
+   * Extrait le texte brut d'un Buffer PDF.
+   * @param {Buffer} buffer
+   * @returns {Promise<string>}
    */
-  static async extractTextFromPDF(filePath) {
+  static async extractTextFromPDF(buffer) {
     try {
-      const dataBuffer = fs.readFileSync(filePath);
-      const data = await pdfParse(dataBuffer);
+      const data = await pdfParse(buffer);
       return data.text;
     } catch (error) {
-      console.error('Erreur lors de l\'extraction du texte du PDF:', error);
-      throw new Error('Impossible d\'extraire le texte du CV');
+      console.error("Erreur extraction texte PDF :", error);
+      throw new Error("Impossible d'extraire le texte du CV.");
     }
   }
 
   /**
-   * Utilise l'IA pour extraire les informations structurées du CV
-   * @param {string} cvText - Le texte du CV
-   * @returns {Promise<Object>} Les informations extraites
+   * Utilise GPT pour structurer les informations du CV en JSON.
+   * @param {string} cvText
+   * @returns {Promise<Object>}
    */
   static async extractCVData(cvText) {
-    try {
-      const prompt = `Tu es un expert en analyse de CV. Analyse le CV suivant et extrais les informations dans un format JSON structuré.
+    const prompt = `Tu es un expert en analyse de CV. Analyse le CV suivant et extrais les informations dans un format JSON structuré.
 
 CV:
 ${cvText}
@@ -88,63 +83,48 @@ Règles importantes:
 - Pour les langues, utilise: beginner, intermediate, advanced, ou native
 - Retourne UNIQUEMENT le JSON, sans markdown, sans texte explicatif`;
 
+    try {
       const completion = await openai.chat.completions.create({
         model: 'gpt-4.1-mini',
         messages: [
           {
             role: 'system',
-            content: 'Tu es un expert en analyse de CV. Tu extrais les informations de manière structurée et précise. Tu retournes UNIQUEMENT du JSON valide, sans texte supplémentaire.'
+            content: 'Tu es un expert en analyse de CV. Tu retournes UNIQUEMENT du JSON valide, sans texte supplémentaire.',
           },
-          {
-            role: 'user',
-            content: prompt
-          }
+          { role: 'user', content: prompt },
         ],
         temperature: 0.3,
-        max_tokens: 3000
+        max_tokens: 3000,
       });
 
-      const responseText = completion.choices[0].message.content.trim();
-      
-      // Nettoyer la réponse si elle contient des balises markdown
-      let cleanedResponse = responseText;
-      if (responseText.startsWith('```json')) {
-        cleanedResponse = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-      } else if (responseText.startsWith('```')) {
-        cleanedResponse = responseText.replace(/```\n?/g, '');
+      let responseText = completion.choices[0].message.content.trim();
+
+      // Nettoyer les balises markdown si présentes
+      if (responseText.startsWith('```')) {
+        responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
       }
 
-      const extractedData = JSON.parse(cleanedResponse);
-      
-      return extractedData;
+      return JSON.parse(responseText);
     } catch (error) {
-      console.error('Erreur lors de l\'extraction des données du CV avec IA:', error);
-      throw new Error('Impossible d\'analyser le CV avec l\'IA');
+      console.error("Erreur extraction CV avec IA :", error);
+      throw new Error("Impossible d'analyser le CV avec l'IA.");
     }
   }
 
   /**
-   * Traite un CV complet : extraction du texte + analyse IA
-   * @param {string} filePath - Chemin vers le fichier PDF
-   * @returns {Promise<Object>} Les informations extraites
+   * Traite un CV complet depuis un Buffer : extraction texte + analyse IA.
+   * Remplace processCVFile (qui lisait depuis le disque).
+   * @param {Buffer} buffer
+   * @returns {Promise<Object>}
    */
-  static async processCVFile(filePath) {
-    try {
-      // Étape 1 : Extraire le texte du PDF
-      const cvText = await this.extractTextFromPDF(filePath);
+  static async processCVBuffer(buffer) {
+    const cvText = await this.extractTextFromPDF(buffer);
 
-      if (!cvText || cvText.trim().length < 50) {
-        throw new Error('Le CV semble vide ou illisible');
-      }
-
-      // Étape 2 : Analyser avec l'IA
-      const extractedData = await this.extractCVData(cvText);
-
-      return extractedData;
-    } catch (error) {
-      console.error('Erreur lors du traitement du CV:', error);
-      throw error;
+    if (!cvText || cvText.trim().length < 50) {
+      throw new Error('Le CV semble vide ou illisible.');
     }
+
+    return this.extractCVData(cvText);
   }
 }
 

@@ -2,6 +2,7 @@ import express from 'express';
 import ProfileController from '../controllers/profileController.js';
 import { authenticate } from '../middlewares/auth.js';
 import { uploadPhoto, uploadCV } from '../config/multer.js';
+import { validateImageUpload, validatePdfUpload } from '../middlewares/fileValidation.js';
 
 const router = express.Router();
 
@@ -12,9 +13,9 @@ router.use(authenticate);
 router.get('/', ProfileController.getProfile);
 router.put('/personal-info', ProfileController.updatePersonalInfo);
 
-// Upload de fichiers
-router.post('/upload-photo', uploadPhoto, ProfileController.uploadPhoto);
-router.post('/upload-cv', uploadCV, ProfileController.uploadCV);
+// Upload de fichiers — multer stocke sur disque, puis fileValidation vérifie les magic bytes
+router.post('/upload-photo', uploadPhoto, validateImageUpload, ProfileController.uploadPhoto);
+router.post('/upload-cv', uploadCV, validatePdfUpload, ProfileController.uploadCV);
 
 // Expériences
 router.post('/experiences', ProfileController.createExperience);
