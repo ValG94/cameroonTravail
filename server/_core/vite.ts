@@ -4,14 +4,12 @@ import { type Server } from "http";
 import path from "path";
 
 export async function setupVite(app: Express, server: Server) {
-  // Dynamic imports so vite + tailwindcss/oxide are never loaded in production
+  // Pure dynamic imports — nothing from vite loads at module init
   const { createServer: createViteServer } = await import("vite");
   const { nanoid } = await import("nanoid");
-  const { default: viteConfig } = await import("../../vite.config.js");
 
   const vite = await createViteServer({
-    ...viteConfig,
-    configFile: false,
+    // Let Vite find vite.config.ts automatically — no static import needed
     server: { middlewareMode: true, hmr: { server }, allowedHosts: true as const },
     appType: "custom",
   });
