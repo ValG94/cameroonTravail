@@ -21,6 +21,9 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
 
+  // Disable automatic ETag — prevents browsers caching API responses as HTML
+  app.disable("etag");
+
   // ─── Sécurité HTTP headers ──────────────────────────────────────────────────
   app.use(
     helmet({
