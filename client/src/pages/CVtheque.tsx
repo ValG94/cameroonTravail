@@ -63,15 +63,20 @@ export default function CVtheque() {
 
   const isEmployeur = user?.profileType === "employeur" || user?.role === "admin";
 
-  const { data, isLoading } = trpc.cv.getCVtheque.useQuery(
+  const { data, isLoading, error } = trpc.cv.getCVtheque.useQuery(
     {
       page,
       limit: ITEMS_PER_PAGE,
       competence: competenceFilter || undefined,
       ville: villeFilter || undefined,
     },
-    { enabled: !loading && !!user && isEmployeur }
+    {
+      enabled: !loading && !!user && isEmployeur,
+      retry: false,
+    }
   );
+
+  const formuleRequise = error?.data?.code === "FORBIDDEN" && error.message === "FORMULE_REQUISE";
 
   // Mutation envoi message
   const sendMessageMutation = trpc.messages.send.useMutation({
@@ -185,6 +190,67 @@ export default function CVtheque() {
           <Button onClick={() => setLocation("/")} className="bg-green-600 hover:bg-green-700">
             Retour à l'accueil
           </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (formuleRequise) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <EmployeurNav />
+        <div className="container mx-auto px-4 py-16 max-w-2xl">
+          <div className="bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl p-8 text-white text-center shadow-lg mb-6">
+            <div className="bg-white/20 rounded-2xl p-4 w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+              <BookOpen className="h-10 w-10" />
+            </div>
+            <h2 className="text-2xl font-bold mb-2">CVthèque réservée aux formules payantes</h2>
+            <p className="text-orange-50 mb-2">
+              Accédez à des milliers de profils candidats qualifiés et contactez-les directement.
+            </p>
+            <p className="text-orange-100 text-sm">
+              Votre formule actuelle : <span className="font-bold">Gratuit</span>
+            </p>
+          </div>
+
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 mb-6">
+            <h3 className="font-bold text-gray-900 mb-3">Avec une formule Pro ou Entreprise :</h3>
+            <ul className="space-y-2 text-sm text-gray-700">
+              <li className="flex items-start gap-2">
+                <span className="text-orange-500 font-bold">✓</span>
+                Accès illimité à la CVthèque
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-orange-500 font-bold">✓</span>
+                Recherche par compétences, ville, expérience
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-orange-500 font-bold">✓</span>
+                Contact direct avec les candidats
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-orange-500 font-bold">✓</span>
+                Publication d'offres illimitée
+              </li>
+            </ul>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button
+              onClick={() => setLocation("/tarifs")}
+              className="bg-orange-600 hover:bg-orange-700 text-white"
+              size="lg"
+            >
+              Découvrir les formules
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setLocation("/employeur/dashboard")}
+              size="lg"
+            >
+              Retour au tableau de bord
+            </Button>
+          </div>
         </div>
       </div>
     );

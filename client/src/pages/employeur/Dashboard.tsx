@@ -3,7 +3,8 @@ import { EmployeurNav } from "@/components/EmployeurNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
-import { Briefcase, Eye, FileText, Plus, TrendingUp, Users } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Briefcase, Crown, Eye, FileText, Plus, Sparkles, TrendingUp, Users, Zap } from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
@@ -91,12 +92,78 @@ export default function EmployeurDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{employeur?.nombreOffresRestantes || 0}</div>
-              <p className="text-xs text-gray-500 mt-1">
-                Formule: {employeur?.formuleAbonnement || "gratuit"}
-              </p>
+              <p className="text-xs text-gray-500 mt-1">Crédits offres disponibles</p>
             </CardContent>
           </Card>
         </div>
+
+        {/* Formule actuelle */}
+        {(() => {
+          const formule = employeur?.formuleAbonnement || "gratuit";
+          const formuleConfig = {
+            gratuit: {
+              label: "Gratuit",
+              icon: Zap,
+              gradient: "from-gray-500 to-gray-700",
+              badgeBg: "bg-gray-100 text-gray-700",
+              description: "Publication d'offres limitée. CVthèque non incluse.",
+              ctaLabel: "Passer à la formule Pro",
+              ctaVariant: "primary" as const,
+            },
+            professionnel: {
+              label: "Professionnel",
+              icon: Sparkles,
+              gradient: "from-orange-500 to-amber-600",
+              badgeBg: "bg-orange-100 text-orange-700",
+              description: "Accès complet à la CVthèque + offres illimitées.",
+              ctaLabel: "Voir les formules",
+              ctaVariant: "outline" as const,
+            },
+            entreprise: {
+              label: "Entreprise",
+              icon: Crown,
+              gradient: "from-purple-500 to-indigo-600",
+              badgeBg: "bg-purple-100 text-purple-700",
+              description: "Toutes les fonctionnalités + support prioritaire et mise en avant.",
+              ctaLabel: "Voir les formules",
+              ctaVariant: "outline" as const,
+            },
+          }[formule];
+          const Icon = formuleConfig.icon;
+
+          return (
+            <Card className="mb-8 overflow-hidden border-0 shadow-md">
+              <div className={`bg-gradient-to-r ${formuleConfig.gradient} p-6 text-white`}>
+                <div className="flex items-center justify-between flex-wrap gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="bg-white/20 rounded-2xl p-3">
+                      <Icon className="h-7 w-7" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-sm font-medium opacity-90">Votre formule actuelle</p>
+                        <Badge className={`${formuleConfig.badgeBg} hover:${formuleConfig.badgeBg}`}>
+                          {formuleConfig.label}
+                        </Badge>
+                      </div>
+                      <p className="text-white/90 text-sm">{formuleConfig.description}</p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => setLocation("/tarifs")}
+                    className={
+                      formuleConfig.ctaVariant === "primary"
+                        ? "bg-white text-orange-600 hover:bg-orange-50"
+                        : "bg-white/20 text-white hover:bg-white/30 border border-white/40"
+                    }
+                  >
+                    {formuleConfig.ctaLabel}
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          );
+        })()}
 
         {/* Quick Actions */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">

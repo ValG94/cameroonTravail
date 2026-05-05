@@ -45,7 +45,7 @@ export default function InscriptionEmployeur() {
   const registerMutation = trpc.auth.register.useMutation({
     onSuccess: () => {
       toast.success("Inscription réussie ! Bienvenue sur Cameroon Travail.");
-      setLocation("/");
+      setLocation("/employeur/bienvenue");
     },
     onError: (error: any) => {
       toast.error(error.message || "Erreur lors de l'inscription");

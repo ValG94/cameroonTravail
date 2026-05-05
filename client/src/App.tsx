@@ -19,6 +19,7 @@ import CandidatLangues from "./pages/candidat/Langues";
 import CandidatCandidatures from "./pages/candidat/Candidatures";
 import CandidatAlertes from "./pages/candidat/Alertes";
 import EmployeurDashboard from "./pages/employeur/Dashboard";
+import BienvenueEmployeur from "./pages/employeur/Bienvenue";
 import EmployeurCandidatures from "./pages/employeur/Candidatures";
 import EmployeurOffres from "./pages/employeur/Offres";
 import ToutesLesOffres from "./pages/ToutesLesOffres";
@@ -68,6 +69,7 @@ function Router() {
       <Route path="/offre/:id" component={OffreDetail} />
       <Route path="/conseils" component={Conseils} />
       <Route path="/conseils/:slug" component={ConseilDetail} />
+      <Route path="/employeur/bienvenue" component={BienvenueEmployeur} />
       <Route path="/employeur/dashboard" component={EmployeurDashboard} />
       <Route path="/employeur/candidatures" component={EmployeurCandidatures} />
       <Route path="/employeur/offres" component={EmployeurOffres} />

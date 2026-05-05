@@ -2487,8 +2487,32 @@ export const appRouter = router({
       .query(async ({ ctx, input }) => {
         const dbInstance = await db.getDb();
         if (!dbInstance) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-        const { cvDocuments, cvData, users, candidats } = await import("../drizzle/schema");
+        const { cvDocuments, cvData, users, candidats, employeurs } = await import("../drizzle/schema");
         const { eq, and, desc, count, like, or, sql } = await import("drizzle-orm");
+
+        // Contrôle d'accès par formule : la CVthèque est réservée aux employeurs
+        // ayant souscrit une formule payante (professionnel ou entreprise)
+        if (ctx.user.role !== "admin") {
+          const [employeurProfile] = await dbInstance
+            .select({ formule: employeurs.formuleAbonnement })
+            .from(employeurs)
+            .where(eq(employeurs.userId, ctx.user.id))
+            .limit(1);
+
+          if (!employeurProfile) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "Profil employeur introuvable. Complétez votre profil entreprise.",
+            });
+          }
+          if (employeurProfile.formule === "gratuit") {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "FORMULE_REQUISE",
+            });
+          }
+        }
+
         const offset = (input.page - 1) * input.limit;
 
         // Conditions de base : CV actif et visible dans la CVthèque
