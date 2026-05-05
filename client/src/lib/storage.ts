@@ -1,7 +1,4 @@
-/**
- * Upload un fichier vers S3 depuis le client
- * Utilise l'endpoint HTTP /api/upload pour gérer l'upload côté serveur
- */
+import { API_BASE } from "./apiBase";
 
 export async function storagePut(
   fileKey: string,
@@ -14,7 +11,7 @@ export async function storagePut(
   );
   
   // Appeler l'endpoint HTTP pour uploader le fichier
-  const response = await fetch('/api/upload', {
+  const response = await fetch(`${API_BASE}/api/upload`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

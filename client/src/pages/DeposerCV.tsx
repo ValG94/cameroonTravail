@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { API_BASE } from "@/lib/apiBase";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -152,7 +153,7 @@ export default function DeposerCV() {
     try {
       const formData = new FormData();
       formData.append("file", uploadFile);
-      const res = await fetch("/api/upload-cv", {
+      const res = await fetch(`${API_BASE}/api/upload-cv`, {
         method: "POST",
         body: formData,
       });

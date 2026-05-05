@@ -45,14 +45,12 @@ queryClient.getMutationCache().subscribe(event => {
   }
 });
 
-// En production (Vercel+Railway), VITE_API_URL pointe vers Railway.
-// En développement, le proxy Vite redirige /api → localhost:3000.
-const apiBase = import.meta.env.VITE_API_URL ?? "";
+import { API_BASE } from "@/lib/apiBase";
 
 const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
-      url: `${apiBase}/api/trpc`,
+      url: `${API_BASE}/api/trpc`,
       transformer: superjson,
       fetch(input, init) {
         return globalThis.fetch(input, {
