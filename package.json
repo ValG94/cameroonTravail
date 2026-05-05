@@ -13,7 +13,7 @@
     "check": "tsc --noEmit",
     "format": "prettier --write .",
     "test": "vitest run",
-    "db:push": "npx drizzle-kit generate && npx drizzle-kit migrate"
+    "db:push": "node scripts/migrate.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.0",

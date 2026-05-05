@@ -1,1 +1,0 @@
-ALTER TABLE `offresEmploi` MODIFY COLUMN `experienceRequise` text;
