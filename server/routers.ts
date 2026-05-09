@@ -596,7 +596,13 @@ export const appRouter = router({
           if (msg.includes("autre méthode de connexion")) {
             throw new TRPCError({ code: "BAD_REQUEST", message: msg });
           }
-          console.error("[LOGIN] Erreur technique lors de l'authentification:", err);
+          // Log détaillé : message + cause + code PostgreSQL
+          console.error("[LOGIN] Erreur technique lors de l'authentification:");
+          console.error("  - message:", err?.message);
+          console.error("  - code:", err?.code ?? err?.cause?.code);
+          console.error("  - detail:", err?.detail ?? err?.cause?.detail);
+          console.error("  - cause:", err?.cause);
+          console.error("  - stack:", err?.stack);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Service temporairement indisponible. Réessayez dans quelques instants.",
