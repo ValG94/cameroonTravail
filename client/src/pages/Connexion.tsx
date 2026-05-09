@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+
+const REMEMBER_EMAIL_KEY = "ct_remember_email";
 
 export default function Connexion() {
   const { t } = useTranslation();
@@ -20,9 +22,24 @@ export default function Connexion() {
   });
   const utils = trpc.useUtils();
 
+  // Pré-remplir l'email si l'utilisateur avait coché "Se souvenir de moi"
+  useEffect(() => {
+    const saved = localStorage.getItem(REMEMBER_EMAIL_KEY);
+    if (saved) {
+      setFormData((prev) => ({ ...prev, email: saved, rememberMe: true }));
+    }
+  }, []);
+
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess: async (data) => {
       toast.success("Connexion réussie !");
+
+      // Si "Se souvenir de moi" est coché, on garde l'email pour la prochaine visite
+      if (formData.rememberMe) {
+        localStorage.setItem(REMEMBER_EMAIL_KEY, formData.email.trim().toLowerCase());
+      } else {
+        localStorage.removeItem(REMEMBER_EMAIL_KEY);
+      }
       
       // Invalider et refetch auth.me pour mettre à jour la session
       await utils.auth.me.invalidate();
