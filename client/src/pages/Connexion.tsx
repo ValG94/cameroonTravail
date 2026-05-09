@@ -79,6 +79,7 @@ export default function Connexion() {
     loginMutation.mutate({
       email: formData.email,
       password: formData.password,
+      rememberMe: formData.rememberMe,
     });
   };
 

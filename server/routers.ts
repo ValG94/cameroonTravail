@@ -582,6 +582,7 @@ export const appRouter = router({
       .input(z.object({
         email: z.string().email(),
         password: z.string(),
+        rememberMe: z.boolean().optional().default(false),
       }))
       .mutation(async ({ ctx, input }) => {
         console.log("[LOGIN] Starting login for email:", input.email);
@@ -618,23 +619,40 @@ export const appRouter = router({
         }
         
         console.log("[LOGIN] User authenticated:", { id: user.id, email: user.email, name: user.name, profileType: user.profileType });
-        
-        // Créer un token JWT
+
+        // Durée de session selon le rôle et "Se souvenir de moi" :
+        //  - admin       : 4h max (compte privilégié, on minimise le risque)
+        //  - rememberMe  : 7 jours
+        //  - défaut      : 24h
+        const HOUR_MS = 60 * 60 * 1000;
+        let durationMs: number;
+        let durationLabel: string;
+        if (user.role === "admin") {
+          durationMs = 4 * HOUR_MS;
+          durationLabel = "4h";
+        } else if (input.rememberMe) {
+          durationMs = 7 * 24 * HOUR_MS;
+          durationLabel = "7d";
+        } else {
+          durationMs = 24 * HOUR_MS;
+          durationLabel = "24h";
+        }
+
+        // Créer un token JWT (expiration alignée sur le cookie)
         const secret = new TextEncoder().encode(ENV.cookieSecret);
         const token = await new SignJWT({ userId: user.id, openId: user.openId || `email-${user.id}` })
           .setProtectedHeader({ alg: "HS256" })
-          .setExpirationTime("30d")
+          .setExpirationTime(durationLabel)
           .sign(secret);
-        
-        console.log("[LOGIN] JWT token created with payload:", { userId: user.id, openId: user.openId || `email-${user.id}` });
-        
-        // Définir le cookie de session
+
+        console.log(`[LOGIN] JWT créé (durée: ${durationLabel}, role: ${user.role}, rememberMe: ${input.rememberMe})`);
+
+        // Définir le cookie de session (même durée que le JWT)
         const cookieOptions = getSessionCookieOptions(ctx.req);
-        console.log("[LOGIN] Cookie options:", cookieOptions);
-        
+
         ctx.res.cookie(COOKIE_NAME, token, {
           ...cookieOptions,
-          maxAge: 30 * 24 * 60 * 60 * 1000, // 30 jours
+          maxAge: durationMs,
         });
         
         console.log("[LOGIN] Cookie set with name:", COOKIE_NAME);
