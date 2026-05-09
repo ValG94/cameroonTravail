@@ -56,7 +56,7 @@ export default function ForgotPassword() {
               </p>
             </div>
 
-            <Link href="/login">
+            <Link href="/connexion">
               <Button variant="outline" className="w-full">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Retour à la connexion
@@ -110,7 +110,7 @@ export default function ForgotPassword() {
             </Button>
 
             <div className="text-center">
-              <Link href="/login">
+              <Link href="/connexion">
                 <Button variant="link" className="text-sm">
                   <ArrowLeft className="h-3 w-3 mr-1" />
                   Retour à la connexion
