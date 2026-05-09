@@ -26,6 +26,9 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
 
+  // Railway/Vercel placent l'IP réelle dans X-Forwarded-For — fait confiance au 1er proxy
+  app.set("trust proxy", 1);
+
   // Disable automatic ETag — prevents browsers caching API responses as HTML
   app.disable("etag");
 
