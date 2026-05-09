@@ -40,8 +40,20 @@ export default function Connexion() {
       }
     },
     onError: (error) => {
+      // Filtrer les messages techniques (SQL, stack traces) pour ne jamais les exposer à l'utilisateur
+      const raw = error.message || "";
+      const looksTechnical =
+        raw.includes("Failed query") ||
+        raw.includes("select ") ||
+        raw.includes("FROM ") ||
+        raw.includes("ECONNREFUSED") ||
+        raw.startsWith("[");
 
-      toast.error(error.message || "Erreur lors de la connexion");
+      const friendly = looksTechnical
+        ? "Service temporairement indisponible. Réessayez dans quelques instants."
+        : raw || "Erreur lors de la connexion";
+
+      toast.error(friendly);
     },
   });
 

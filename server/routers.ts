@@ -585,11 +585,30 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         console.log("[LOGIN] Starting login for email:", input.email);
-        const user = await authenticateUser(input.email, input.password);
-        
+
+        let user;
+        try {
+          user = await authenticateUser(input.email, input.password);
+        } catch (err: any) {
+          // Si c'est une erreur métier connue (ex: méthode de connexion incorrecte)
+          // on la propage telle quelle ; sinon on log l'erreur DB et on renvoie un message générique
+          const msg = err?.message ?? "";
+          if (msg.includes("autre méthode de connexion")) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: msg });
+          }
+          console.error("[LOGIN] Erreur technique lors de l'authentification:", err);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Service temporairement indisponible. Réessayez dans quelques instants.",
+          });
+        }
+
         if (!user) {
           console.log("[LOGIN] Authentication failed for email:", input.email);
-          throw new Error("Email ou mot de passe incorrect");
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Email ou mot de passe incorrect",
+          });
         }
         
         console.log("[LOGIN] User authenticated:", { id: user.id, email: user.email, name: user.name, profileType: user.profileType });
