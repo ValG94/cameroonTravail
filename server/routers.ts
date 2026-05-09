@@ -690,13 +690,18 @@ export const appRouter = router({
         
         const { eq } = await import("drizzle-orm");
         const { users, passwordResetTokens } = await import("../drizzle/schema");
-        
+
+        const normalizedEmail = input.email.trim().toLowerCase();
+        console.log("[requestPasswordReset] Recherche user pour email:", normalizedEmail);
+
         // Vérifier si l'utilisateur existe
         const userList = await dbInstance
           .select()
           .from(users)
-          .where(eq(users.email, input.email))
+          .where(eq(users.email, normalizedEmail))
           .limit(1);
+
+        console.log("[requestPasswordReset] User trouvé:", userList.length > 0);
         
         // Ne pas révéler si l'email existe ou non pour des raisons de sécurité
         if (userList.length === 0) {

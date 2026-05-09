@@ -35,11 +35,13 @@ export async function createUserWithPassword(
     throw new Error("Database not available");
   }
 
+  const normalizedEmail = email.trim().toLowerCase();
+
   // Vérifier si l'email existe déjà
   const existingUser = await db
     .select()
     .from(users)
-    .where(eq(users.email, email))
+    .where(eq(users.email, normalizedEmail))
     .limit(1);
 
   if (existingUser.length > 0) {
@@ -51,7 +53,7 @@ export async function createUserWithPassword(
 
   // Créer l'utilisateur
   const result = await db.insert(users).values({
-    email,
+    email: normalizedEmail,
     password: hashedPassword,
     name,
     profileType,
@@ -72,11 +74,13 @@ export async function authenticateUser(email: string, password: string) {
     throw new Error("Database not available");
   }
 
+  const normalizedEmail = email.trim().toLowerCase();
+
   // Trouver l'utilisateur par email
   const result = await db
     .select()
     .from(users)
-    .where(eq(users.email, email))
+    .where(eq(users.email, normalizedEmail))
     .limit(1);
 
   if (result.length === 0) {
