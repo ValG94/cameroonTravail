@@ -57,14 +57,18 @@ export default function Connexion() {
       }
     },
     onError: (error) => {
-      // Filtrer les messages techniques (SQL, stack traces) pour ne jamais les exposer à l'utilisateur
+      // Filtrer les messages techniques pour ne jamais les exposer à l'utilisateur
       const raw = error.message || "";
       const looksTechnical =
         raw.includes("Failed query") ||
         raw.includes("select ") ||
         raw.includes("FROM ") ||
         raw.includes("ECONNREFUSED") ||
-        raw.startsWith("[");
+        raw.includes("is not defined") ||
+        raw.includes("Cannot read") ||
+        raw.includes("undefined") ||
+        raw.startsWith("[") ||
+        error.data?.code === "INTERNAL_SERVER_ERROR";
 
       const friendly = looksTechnical
         ? "Service temporairement indisponible. Réessayez dans quelques instants."

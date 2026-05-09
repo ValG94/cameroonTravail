@@ -1,4 +1,10 @@
 import "dotenv/config";
+// Polyfill globalThis.crypto pour Node 18 (jose en a besoin pour signer le JWT)
+// À retirer quand Railway sera passé sur Node 20+ (où c'est natif)
+import { webcrypto } from "node:crypto";
+if (!globalThis.crypto) {
+  (globalThis as any).crypto = webcrypto;
+}
 import express from "express";
 import { createServer } from "http";
 import cors from "cors";
