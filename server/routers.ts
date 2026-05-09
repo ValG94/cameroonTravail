@@ -735,10 +735,8 @@ export const appRouter = router({
         
         try {
           const { sendEmail, templatePasswordReset } = await import("./_core/email");
-          // Construire l'URL de base dynamiquement à partir de la requête
-          const reqHost = ctx.req.get("host") || "";
-          const reqProtocol = ctx.req.get("x-forwarded-proto") || ctx.req.protocol || "https";
-          const baseUrl = `${reqProtocol}://${reqHost}`;
+          // URL publique du frontend (Vercel) — fallback sur le host de la requête en dev local
+          const baseUrl = ENV.frontendUrl || `${ctx.req.get("x-forwarded-proto") || ctx.req.protocol || "https"}://${ctx.req.get("host") || ""}`;
           await sendEmail({
             to: user.email,
             subject: "Réinitialisation de votre mot de passe - Cameroon Travail",

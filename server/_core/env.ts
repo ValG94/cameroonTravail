@@ -7,5 +7,7 @@ export const ENV = {
   corsOrigin: process.env.CORS_ORIGIN ?? "",
   openaiApiKey: process.env.OPENAI_API_KEY ?? "",
   resendApiKey: process.env.RESEND_API_KEY ?? "",
+  // URL publique du frontend (Vercel) — utilisée dans les emails
+  frontendUrl: process.env.FRONTEND_URL ?? process.env.CORS_ORIGIN?.split(",")[0]?.trim() ?? "",
   isProduction: process.env.NODE_ENV === "production",
 };
