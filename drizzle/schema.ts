@@ -21,7 +21,7 @@ export const statutCandidatureEnum = pgEnum("statutCandidature", ["en_attente", 
 export const frequenceEnum = pgEnum("frequence", ["immediate", "quotidien", "hebdomadaire"]);
 export const formuleAbonnementEnum = pgEnum("formuleAbonnement", ["gratuit", "professionnel", "entreprise"]);
 export const categorieArticleEnum = pgEnum("categorieArticle", ["Entretien", "CV", "Marche", "Negociation", "Reconversion", "Freelance"]);
-export const typeCvEnum = pgEnum("typeCv", ["upload", "classique", "moderne", "creatif"]);
+export const typeCvEnum = pgEnum("typeCv", ["upload", "classique", "moderne", "creatif", "premium"]);
 export const langueCvEnum = pgEnum("langueCv", ["fr", "en"]);
 export const cibleFormuleEnum = pgEnum("cibleFormule", ["candidat", "employeur"]);
 export const periodeFormuleEnum = pgEnum("periodeFormule", ["mensuel", "annuel", "unique"]);
@@ -269,6 +269,8 @@ export const cvDocuments = pgTable("cv_documents", {
   langue: langueCvEnum("langue").notNull().default("fr"),
   actif: boolean("actif").default(false).notNull(),
   visibleCVtheque: boolean("visibleCVtheque").default(true).notNull(),
+  // Slug du template premium si type === "premium" (null sinon)
+  premiumTemplateSlug: varchar("premiumTemplateSlug", { length: 80 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });

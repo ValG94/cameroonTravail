@@ -2877,7 +2877,24 @@ export const appRouter = router({
           )
           .limit(1);
         if (existing) {
-          return { status: "success" as const, purchaseId: existing.id, alreadyPurchased: true };
+          // Retrouver le cv_documents lié (créé lors du 1er achat)
+          const { cvDocuments } = await import("../drizzle/schema");
+          const [existingCv] = await dbInstance
+            .select({ id: cvDocuments.id })
+            .from(cvDocuments)
+            .where(
+              and(
+                eq(cvDocuments.userId, ctx.user.id),
+                eq(cvDocuments.premiumTemplateSlug, template.slug)
+              )
+            )
+            .limit(1);
+          return {
+            status: "success" as const,
+            purchaseId: existing.id,
+            cvDocumentId: existingCv?.id,
+            alreadyPurchased: true,
+          };
         }
 
         // Créer la transaction
@@ -2908,11 +2925,47 @@ export const appRouter = router({
           })
           .where(eq(cvTemplatePurchases.id, purchase.id));
 
+        // Créer le cv_documents associé pour qu'il apparaisse dans /candidat/cv
+        // (si pas déjà présent — idempotent)
+        const { cvDocuments } = await import("../drizzle/schema");
+        const [existingCv] = await dbInstance
+          .select()
+          .from(cvDocuments)
+          .where(
+            and(
+              eq(cvDocuments.userId, ctx.user.id),
+              eq(cvDocuments.premiumTemplateSlug, template.slug)
+            )
+          )
+          .limit(1);
+
+        let cvDocumentId = existingCv?.id;
+        if (!cvDocumentId) {
+          const [newCv] = await dbInstance
+            .insert(cvDocuments)
+            .values({
+              userId: ctx.user.id,
+              nom: `CV ${template.nom}`,
+              type: "premium",
+              premiumTemplateSlug: template.slug,
+              langue: "fr",
+              actif: false,
+              visibleCVtheque: true,
+            })
+            .returning();
+          cvDocumentId = newCv.id;
+        }
+
         console.log(
-          `[cvTemplates.initiatePurchase] MOCK success — user ${ctx.user.id} template ${template.slug}`
+          `[cvTemplates.initiatePurchase] MOCK success — user ${ctx.user.id} template ${template.slug} cvDocumentId ${cvDocumentId}`
         );
 
-        return { status: "success" as const, purchaseId: purchase.id, alreadyPurchased: false };
+        return {
+          status: "success" as const,
+          purchaseId: purchase.id,
+          cvDocumentId,
+          alreadyPurchased: false,
+        };
       }),
 
     // Lister les achats du user connecté (utile pour son historique)

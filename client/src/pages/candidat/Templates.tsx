@@ -11,6 +11,11 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
@@ -138,9 +143,21 @@ export default function CandidatTemplates() {
 
                 <CardContent className="p-5">
                   <h3 className="font-bold text-gray-900 text-lg mb-1">{tpl.nom}</h3>
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-2 min-h-[40px]">
-                    {tpl.description}
-                  </p>
+                  <div className="mb-4 min-h-[40px]">
+                    <p className="text-sm text-gray-600 line-clamp-2">{tpl.description}</p>
+                    {(tpl.description?.length ?? 0) > 90 && (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button className="text-xs text-amber-600 hover:text-amber-700 hover:underline font-medium mt-1">
+                            Voir plus
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80 text-sm text-gray-700 leading-relaxed">
+                          {tpl.description}
+                        </PopoverContent>
+                      </Popover>
+                    )}
+                  </div>
 
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-2xl font-bold text-gray-900">

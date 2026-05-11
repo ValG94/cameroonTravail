@@ -50,9 +50,24 @@ export function buildTemplateData(input: {
 }
 
 // ─── Mappers ──────────────────────────────────────────────────────────────────
+// Règle générale : si l'utilisateur a fait des édits dans cv_data (JSON non vide),
+// on les utilise. Sinon on retombe sur les rows DB du profil candidat.
+// Cela permet d'éditer le CV sans modifier le profil global.
 
 function mapExperiences(rows: any[], jsonField?: string | null): ExperienceItem[] {
-  // Priorité aux rows DB (tables experiences)
+  const override = parseJsonArray(jsonField);
+  if (override.length > 0) {
+    return override.map((j: any) => ({
+      company: j.entreprise || j.company || "",
+      position: j.poste || j.position || "",
+      location: j.ville || j.location || undefined,
+      startDate: j.dateDebut || j.startDate || undefined,
+      endDate: j.dateFin || j.endDate || undefined,
+      current: !!j.enCours,
+      description: j.description || undefined,
+    }));
+  }
+  // Fallback : profil candidat
   if (rows && rows.length > 0) {
     return rows.map((r) => ({
       company: r.entreprise || "",
@@ -65,19 +80,21 @@ function mapExperiences(rows: any[], jsonField?: string | null): ExperienceItem[
       achievements: undefined,
     }));
   }
-  // Sinon : fallback sur cv_data.experiences (JSON saisi à la main)
-  return parseJsonArray(jsonField).map((j: any) => ({
-    company: j.entreprise || j.company || "",
-    position: j.poste || j.position || "",
-    location: j.ville || j.location || undefined,
-    startDate: j.dateDebut || j.startDate || undefined,
-    endDate: j.dateFin || j.endDate || undefined,
-    current: !!j.enCours,
-    description: j.description || undefined,
-  }));
+  return [];
 }
 
 function mapEducation(rows: any[], jsonField?: string | null): EducationItem[] {
+  const override = parseJsonArray(jsonField);
+  if (override.length > 0) {
+    return override.map((j: any) => ({
+      school: j.etablissement || j.school || "",
+      degree: j.diplome || j.degree || "",
+      field: j.domaine || j.field || undefined,
+      startDate: j.dateDebut || j.startDate || undefined,
+      endDate: j.dateFin || j.endDate || undefined,
+      description: j.description || undefined,
+    }));
+  }
   if (rows && rows.length > 0) {
     return rows.map((r) => ({
       school: r.etablissement || "",
@@ -88,17 +105,14 @@ function mapEducation(rows: any[], jsonField?: string | null): EducationItem[] {
       description: r.description || undefined,
     }));
   }
-  return parseJsonArray(jsonField).map((j: any) => ({
-    school: j.etablissement || j.school || "",
-    degree: j.diplome || j.degree || "",
-    field: j.domaine || j.field || undefined,
-    startDate: j.dateDebut || j.startDate || undefined,
-    endDate: j.dateFin || j.endDate || undefined,
-    description: j.description || undefined,
-  }));
+  return [];
 }
 
 function mapSkills(rows: any[], jsonField: string | null | undefined, includeCategories: string[]): string[] {
+  const override = parseJsonArray(jsonField);
+  if (override.length > 0) {
+    return override.map((j: any) => (typeof j === "string" ? j : j.nom || j.name || "")).filter(Boolean);
+  }
   if (rows && rows.length > 0) {
     return rows
       .filter((r) => {
@@ -109,20 +123,24 @@ function mapSkills(rows: any[], jsonField: string | null | undefined, includeCat
       .map((r) => r.nom)
       .filter(Boolean);
   }
-  return parseJsonArray(jsonField).map((j: any) => j.nom || j.name || "").filter(Boolean);
+  return [];
 }
 
 function mapLanguages(rows: any[], jsonField?: string | null): LanguageItem[] {
+  const override = parseJsonArray(jsonField);
+  if (override.length > 0) {
+    return override.map((j: any) => ({
+      name: j.nom || j.name || "",
+      level: j.niveau || j.level || "",
+    }));
+  }
   if (rows && rows.length > 0) {
     return rows.map((r) => ({
       name: r.nom || "",
       level: r.niveauOral || r.niveauEcrit || "",
     }));
   }
-  return parseJsonArray(jsonField).map((j: any) => ({
-    name: j.nom || j.name || "",
-    level: j.niveau || j.level || "",
-  }));
+  return [];
 }
 
 function mapInterests(jsonField?: string | null): string[] {

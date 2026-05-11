@@ -398,12 +398,14 @@ export default function CVtheque() {
                   moderne: "CV Moderne",
                   creatif: "CV Créatif",
                   upload: "CV Importé",
+                  premium: "CV Premium",
                 }[item.cv.type] || "CV";
                 const cvTypeColor = {
                   classique: "bg-green-100 text-green-700",
                   moderne: "bg-purple-100 text-purple-700",
                   creatif: "bg-orange-100 text-orange-700",
                   upload: "bg-blue-100 text-blue-700",
+                  premium: "bg-amber-100 text-amber-700",
                 }[item.cv.type] || "bg-gray-100 text-gray-700";
 
                 return (
