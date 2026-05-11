@@ -40,18 +40,17 @@ export async function setupVite(app: Express, server: Server) {
 
 export function serveStatic(app: Express) {
   const distPath = path.resolve(process.cwd(), "dist", "public");
+  const hasBuild = fs.existsSync(distPath);
 
-  if (!fs.existsSync(distPath)) {
-    console.warn(
-      `⚠️  Dossier build introuvable : ${distPath} — lancez "npm run build" d'abord`
-    );
+  // Le frontend tourne sur Vercel en prod — pas de log bruyant si pas de build local
+  if (hasBuild) {
+    app.use(express.static(distPath));
   }
 
-  app.use(express.static(distPath));
   app.use("*", (_req, res) => {
     const indexPath = path.resolve(distPath, "index.html");
-    if (!fs.existsSync(indexPath)) {
-      return res.status(404).json({ error: "Frontend not built. Run npm run build." });
+    if (!hasBuild || !fs.existsSync(indexPath)) {
+      return res.status(404).json({ error: "API backend only — frontend served separately." });
     }
     res.sendFile(indexPath);
   });
