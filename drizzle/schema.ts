@@ -337,6 +337,61 @@ export const formulesTarifaires = pgTable("formules_tarifaires", {
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
+// ─── Templates CV premium ─────────────────────────────────────────────────────
+// Catalogue des modèles premium proposés au candidat. Les composants React des
+// templates vivent en code (client/src/cv-templates), mais on stocke ici les
+// métadonnées + visibilité/prix pour pouvoir piloter sans redéployer.
+export const paymentStatusEnum = pgEnum("paymentStatus", [
+  "pending",
+  "success",
+  "failed",
+  "refunded",
+]);
+
+export const paymentProviderEnum = pgEnum("paymentProvider", [
+  "mtn_momo",
+  "orange_money",
+  "manual", // back-office (admin valide à la main si besoin)
+]);
+
+export const cvTemplates = pgTable("cv_templates", {
+  id: serial("id").primaryKey(),
+  slug: varchar("slug", { length: 80 }).notNull().unique(),
+  nom: varchar("nom", { length: 100 }).notNull(),
+  description: text("description"),
+  categorie: varchar("categorie", { length: 50 }),
+  prix: decimal("prix", { precision: 10, scale: 2 }).notNull().default("1000.00"),
+  devise: varchar("devise", { length: 10 }).notNull().default("XAF"),
+  thumbnailUrl: text("thumbnailUrl"),
+  previewUrl: text("previewUrl"),
+  isPremium: boolean("isPremium").notNull().default(true),
+  isActive: boolean("isActive").notNull().default(true),
+  ordre: serial("ordre"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
+// Achat one-shot d'un template par un user. Pay-per-template :
+// 1 entrée success = accès permanent à CE template seulement.
+export const cvTemplatePurchases = pgTable("cv_template_purchases", {
+  id: serial("id").primaryKey(),
+  userId: serial("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  templateId: serial("templateId").notNull().references(() => cvTemplates.id, { onDelete: "cascade" }),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 10 }).notNull().default("XAF"),
+  provider: paymentProviderEnum("provider").notNull(),
+  status: paymentStatusEnum("status").notNull().default("pending"),
+  // Référence externe (ID transaction MoMo/Orange) — null en pending
+  paymentReference: varchar("paymentReference", { length: 200 }),
+  // Numéro de téléphone utilisé pour le paiement (snapshot)
+  payerPhone: varchar("payerPhone", { length: 20 }),
+  // Détail brut renvoyé par le provider (debug / audit)
+  providerPayload: text("providerPayload"),
+  unlockedAt: timestamp("unlockedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
 // ─── Types exportés ───────────────────────────────────────────────────────────
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
@@ -374,3 +429,7 @@ export type ProfileView = typeof profileViews.$inferSelect;
 export type InsertProfileView = typeof profileViews.$inferInsert;
 export type FormuleTarifaire = typeof formulesTarifaires.$inferSelect;
 export type InsertFormuleTarifaire = typeof formulesTarifaires.$inferInsert;
+export type CvTemplate = typeof cvTemplates.$inferSelect;
+export type InsertCvTemplate = typeof cvTemplates.$inferInsert;
+export type CvTemplatePurchase = typeof cvTemplatePurchases.$inferSelect;
+export type InsertCvTemplatePurchase = typeof cvTemplatePurchases.$inferInsert;

@@ -6,6 +6,7 @@ import {
   Bell,
   Briefcase,
   Building2,
+  Crown,
   FileText,
   LogOut,
   Menu,
@@ -43,6 +44,7 @@ export function CandidatNav() {
     { href: "/emploi-prive", label: "Emploi Privé", icon: Briefcase },
     { href: "/candidat/candidatures", label: "Mes candidatures", icon: FileText },
     { href: "/deposer-cv", label: "Déposer mon CV", icon: Upload },
+    { href: "/candidat/templates", label: "Modèles Premium", icon: Crown },
     { href: "/candidat/alertes", label: "Alertes", icon: Bell },
   ];
 
