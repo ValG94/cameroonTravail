@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
-import { CV_TEMPLATES } from "@/cv-templates/registry";
+import { TemplateThumbnail } from "@/cv-templates/Thumbnails";
 import { Crown, Lock, Sparkles, Check, ArrowRight, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
@@ -88,7 +88,8 @@ export default function CandidatTemplates() {
               <h1 className="text-3xl font-bold mb-2">Bibliothèque de modèles premium</h1>
               <p className="text-amber-50 max-w-2xl">
                 Démarquez-vous des autres candidats avec un CV au design professionnel.
-                Modèles à 1000 FCFA, paiement unique par modèle, accès à vie.
+                Modèle à <span className="whitespace-nowrap">1&nbsp;000&nbsp;FCFA</span>,
+                paiement unique par modèle.
               </p>
             </div>
           </div>
@@ -112,7 +113,6 @@ export default function CandidatTemplates() {
         {/* Grille de templates */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {templates?.map((tpl) => {
-            const meta = CV_TEMPLATES[tpl.slug];
             return (
               <Card
                 key={tpl.id}
@@ -122,28 +122,15 @@ export default function CandidatTemplates() {
                     : "border-gray-200 hover:border-amber-400 hover:shadow-lg"
                 }`}
               >
-                {/* Thumbnail (placeholder gradient si pas d'image) */}
-                <div
-                  className="h-56 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative"
-                  style={
-                    meta?.thumbnail
-                      ? {
-                          backgroundImage: `url(${meta.thumbnail})`,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                        }
-                      : undefined
-                  }
-                >
-                  {!meta?.thumbnail && (
-                    <span className="text-gray-400 text-sm">Aperçu du modèle</span>
-                  )}
+                {/* Mini-aperçu CSS du template (reflète sa vraie mise en page) */}
+                <div className="h-56 relative bg-gray-50 border-b border-gray-200">
+                  <TemplateThumbnail slug={tpl.slug} className="w-full h-full" />
                   {tpl.purchased ? (
-                    <Badge className="absolute top-3 right-3 bg-emerald-500 text-white hover:bg-emerald-500">
+                    <Badge className="absolute top-3 right-3 bg-emerald-500 text-white hover:bg-emerald-500 shadow">
                       <Check className="w-3 h-3 mr-1" /> Débloqué
                     </Badge>
                   ) : (
-                    <Badge className="absolute top-3 right-3 bg-amber-500 text-white hover:bg-amber-500">
+                    <Badge className="absolute top-3 right-3 bg-amber-500 text-white hover:bg-amber-500 shadow">
                       <Crown className="w-3 h-3 mr-1" /> Premium
                     </Badge>
                   )}
