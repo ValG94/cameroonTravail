@@ -26,7 +26,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { useLocation, useRoute } from "wouter";
+import { useLocation, useRoute, useSearch } from "wouter";
 import { toast } from "sonner";
 
 /**
@@ -60,11 +60,21 @@ interface EditableCv {
 export default function CvPremiumEditor() {
   const [, params] = useRoute<{ slug: string }>("/candidat/cv-premium/:slug");
   const [, setLocation] = useLocation();
+  const searchString = useSearch();
   const { user, loading: authLoading } = useAuth();
   const utils = trpc.useUtils();
 
   const slug = params?.slug || "";
   const meta = CV_TEMPLATES[slug];
+
+  // cvId peut venir de l'URL (query param après l'achat) — priorité au query param
+  // car cv.list.useQuery peut être stale après une mutation
+  const queryCvId = useMemo(() => {
+    const sp = new URLSearchParams(searchString || "");
+    const v = sp.get("cvId");
+    const n = v ? parseInt(v, 10) : NaN;
+    return Number.isFinite(n) ? n : null;
+  }, [searchString]);
 
   // Vérification d'accès serveur
   const accessQuery = trpc.cvTemplates.checkAccess.useQuery(
@@ -72,17 +82,19 @@ export default function CvPremiumEditor() {
     { enabled: !!slug && !!user, retry: false }
   );
 
-  // Récupérer le cvDocument premium correspondant
+  // Récupérer le cvDocument premium correspondant (fallback si pas de query param)
   const { data: cvList } = trpc.cv.list.useQuery(undefined, { enabled: !!user });
-  const cvDocument = useMemo(
+  const cvDocumentFromList = useMemo(
     () => cvList?.find((c) => c.type === "premium" && c.premiumTemplateSlug === slug),
     [cvList, slug]
   );
 
+  const cvDocumentId = queryCvId ?? cvDocumentFromList?.id ?? null;
+
   // Charger cv_data (overrides existants)
   const { data: savedCvData } = trpc.cv.getData.useQuery(
-    { cvId: cvDocument?.id ?? 0 },
-    { enabled: !!cvDocument?.id }
+    { cvId: cvDocumentId ?? 0 },
+    { enabled: !!cvDocumentId }
   );
 
   // Données profil (fallback)
@@ -154,9 +166,9 @@ export default function CvPremiumEditor() {
   };
 
   const handleSave = () => {
-    if (!editing || !cvDocument?.id) return;
+    if (!editing || !cvDocumentId) return;
     saveMutation.mutate({
-      cvId: cvDocument.id,
+      cvId: cvDocumentId,
       // Identité (mappée sur les champs cv_data correspondants)
       prenom: editing.fullName.split(" ")[0] || "",
       nom: editing.fullName.split(" ").slice(1).join(" ") || "",
@@ -281,7 +293,7 @@ export default function CvPremiumEditor() {
               size="sm"
               variant="outline"
               onClick={handleSave}
-              disabled={!isDirty || saveMutation.isPending || !cvDocument?.id}
+              disabled={!isDirty || saveMutation.isPending || !cvDocumentId}
             >
               <Save className="w-4 h-4 mr-1" />
               {saveMutation.isPending ? "Enregistrement..." : "Enregistrer"}

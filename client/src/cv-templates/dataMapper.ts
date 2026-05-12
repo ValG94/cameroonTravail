@@ -67,9 +67,9 @@ function mapExperiences(rows: any[], jsonField?: string | null): ExperienceItem[
       description: j.description || undefined,
     }));
   }
-  // Fallback : profil candidat
+  // Fallback : profil candidat (dédupliqué par poste+entreprise+dates)
   if (rows && rows.length > 0) {
-    return rows.map((r) => ({
+    const mapped = rows.map((r) => ({
       company: r.entreprise || "",
       position: r.poste || "",
       location: [r.ville, r.pays].filter(Boolean).join(", ") || undefined,
@@ -79,6 +79,7 @@ function mapExperiences(rows: any[], jsonField?: string | null): ExperienceItem[
       description: r.description || undefined,
       achievements: undefined,
     }));
+    return dedupBy(mapped, (e) => `${e.position}|${e.company}|${e.startDate ?? ""}|${e.endDate ?? ""}`);
   }
   return [];
 }
@@ -96,7 +97,7 @@ function mapEducation(rows: any[], jsonField?: string | null): EducationItem[] {
     }));
   }
   if (rows && rows.length > 0) {
-    return rows.map((r) => ({
+    const mapped = rows.map((r) => ({
       school: r.etablissement || "",
       degree: r.diplome || "",
       field: r.domaine || undefined,
@@ -104,6 +105,7 @@ function mapEducation(rows: any[], jsonField?: string | null): EducationItem[] {
       endDate: toIsoYearMonth(r.dateFin),
       description: r.description || undefined,
     }));
+    return dedupBy(mapped, (e) => `${e.degree}|${e.school}|${e.startDate ?? ""}|${e.endDate ?? ""}`);
   }
   return [];
 }
@@ -111,10 +113,11 @@ function mapEducation(rows: any[], jsonField?: string | null): EducationItem[] {
 function mapSkills(rows: any[], jsonField: string | null | undefined, includeCategories: string[]): string[] {
   const override = parseJsonArray(jsonField);
   if (override.length > 0) {
-    return override.map((j: any) => (typeof j === "string" ? j : j.nom || j.name || "")).filter(Boolean);
+    const list = override.map((j: any) => (typeof j === "string" ? j : j.nom || j.name || "")).filter(Boolean);
+    return dedupBy(list, (s) => s.toLowerCase());
   }
   if (rows && rows.length > 0) {
-    return rows
+    const list = rows
       .filter((r) => {
         if (!r.categorie) return true;
         const cat = r.categorie.toLowerCase();
@@ -122,6 +125,7 @@ function mapSkills(rows: any[], jsonField: string | null | undefined, includeCat
       })
       .map((r) => r.nom)
       .filter(Boolean);
+    return dedupBy(list, (s) => s.toLowerCase());
   }
   return [];
 }
@@ -135,12 +139,27 @@ function mapLanguages(rows: any[], jsonField?: string | null): LanguageItem[] {
     }));
   }
   if (rows && rows.length > 0) {
-    return rows.map((r) => ({
+    const mapped = rows.map((r) => ({
       name: r.nom || "",
       level: r.niveauOral || r.niveauEcrit || "",
     }));
+    return dedupBy(mapped, (l) => l.name.toLowerCase());
   }
   return [];
+}
+
+/** Déduplique un tableau en gardant le 1er occurrence pour chaque clé */
+function dedupBy<T>(arr: T[], key: (item: T) => string): T[] {
+  const seen = new Set<string>();
+  const result: T[] = [];
+  for (const item of arr) {
+    const k = key(item);
+    if (!seen.has(k)) {
+      seen.add(k);
+      result.push(item);
+    }
+  }
+  return result;
 }
 
 function mapInterests(jsonField?: string | null): string[] {

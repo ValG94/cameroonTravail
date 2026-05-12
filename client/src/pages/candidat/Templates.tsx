@@ -57,7 +57,12 @@ export default function CandidatTemplates() {
       } else {
         toast.success("Paiement validé. Modèle débloqué pour 6 mois !");
       }
-      setLocation(`/candidat/cv-premium/${variables.slug}`);
+      // Passe cvId en query param pour que l'éditeur l'utilise direct,
+      // sans dépendre de cv.list.useQuery (qui peut être encore en cache stale).
+      const url = data.cvDocumentId
+        ? `/candidat/cv-premium/${variables.slug}?cvId=${data.cvDocumentId}`
+        : `/candidat/cv-premium/${variables.slug}`;
+      setLocation(url);
     },
     onError: (e) => toast.error(e.message || "Erreur lors du paiement"),
   });
