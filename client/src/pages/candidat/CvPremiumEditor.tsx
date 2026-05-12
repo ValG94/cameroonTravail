@@ -95,7 +95,20 @@ export default function CvPremiumEditor() {
     onSuccess: () => {
       utils.cv.list.invalidate();
     },
-    onError: (e) => toast.error(e.message || "Impossible d'initialiser le CV"),
+    onError: (e) => {
+      // Sanitise : pas d'exposition de SQL brut à l'utilisateur
+      const raw = e.message || "";
+      const looksTechnical =
+        raw.includes("Failed query") ||
+        raw.includes("insert into") ||
+        raw.includes("invalid input") ||
+        raw.startsWith("[");
+      toast.error(
+        looksTechnical
+          ? "Impossible d'initialiser le CV. Contactez le support si le problème persiste."
+          : raw || "Erreur d'initialisation"
+      );
+    },
   });
   const [ensuredCvId, setEnsuredCvId] = useState<number | null>(null);
 
