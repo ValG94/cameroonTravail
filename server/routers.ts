@@ -3041,20 +3041,35 @@ export const appRouter = router({
           .limit(1);
         if (existing) return { cvDocumentId: existing.id, created: false };
 
-        // Crée le cv_documents
-        const [created] = await dbInstance
-          .insert(cvDocuments)
-          .values({
-            userId: ctx.user.id,
-            nom: `CV ${template.nom}`,
-            type: "premium",
-            premiumTemplateSlug: template.slug,
-            langue: "fr",
-            actif: false,
-            visibleCVtheque: true,
-          })
-          .returning();
-        return { cvDocumentId: created.id, created: true };
+        // Crée le cv_documents (avec log détaillé en cas d'erreur Postgres)
+        try {
+          const [created] = await dbInstance
+            .insert(cvDocuments)
+            .values({
+              userId: ctx.user.id,
+              nom: `CV ${template.nom}`,
+              type: "premium",
+              premiumTemplateSlug: template.slug,
+              langue: "fr",
+              actif: false,
+              visibleCVtheque: true,
+            })
+            .returning();
+          return { cvDocumentId: created.id, created: true };
+        } catch (err: any) {
+          console.error("[ensurePremiumDocument] INSERT cv_documents a échoué :");
+          console.error("  - message:", err?.message);
+          console.error("  - code:", err?.code ?? err?.cause?.code);
+          console.error("  - detail:", err?.detail ?? err?.cause?.detail);
+          console.error("  - constraint:", err?.constraint ?? err?.cause?.constraint);
+          console.error("  - table:", err?.table ?? err?.cause?.table);
+          console.error("  - column:", err?.column ?? err?.cause?.column);
+          console.error("  - cause:", err?.cause);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Impossible de créer le CV premium. Contactez le support.",
+          });
+        }
       }),
 
     // Lister les achats du user connecté (utile pour son historique)
