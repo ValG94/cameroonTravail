@@ -47,15 +47,16 @@ export default function CandidatTemplates() {
 
   const purchaseMutation = trpc.cvTemplates.initiatePurchase.useMutation({
     onSuccess: (data, variables) => {
+      // Invalider la liste des CVs aussi : un cv_documents premium vient
+      // d'être créé, il doit apparaître dans /candidat/cv ET dans l'éditeur
       utils.cvTemplates.list.invalidate();
+      utils.cv.list.invalidate();
       setSelectedSlug(null);
       if (data.alreadyPurchased) {
-        toast.info("Vous aviez déjà accès à ce modèle");
+        toast.info("Vous avez déjà accès à ce modèle");
       } else {
-        toast.success("Paiement validé. Modèle débloqué !");
+        toast.success("Paiement validé. Modèle débloqué pour 6 mois !");
       }
-      // Rediriger vers l'éditeur du template (à créer en Phase 3)
-      // Pour l'instant on rafraîchit juste la liste
       setLocation(`/candidat/cv-premium/${variables.slug}`);
     },
     onError: (e) => toast.error(e.message || "Erreur lors du paiement"),
@@ -94,7 +95,7 @@ export default function CandidatTemplates() {
               <p className="text-amber-50 max-w-2xl">
                 Démarquez-vous des autres candidats avec un CV au design professionnel.
                 Modèle à <span className="whitespace-nowrap">1&nbsp;000&nbsp;FCFA</span>,
-                paiement unique par modèle.
+                accès pendant 6 mois.
               </p>
             </div>
           </div>
@@ -213,7 +214,9 @@ export default function CandidatTemplates() {
               Débloquer ce modèle
             </DialogTitle>
             <DialogDescription>
-              Paiement unique de 1000 FCFA — accès à vie à ce modèle.
+              Paiement unique de <span className="whitespace-nowrap">1&nbsp;000&nbsp;FCFA</span> —
+              accès à ce modèle pendant 6 mois. Au-delà, un nouveau paiement
+              sera nécessaire pour continuer à l'utiliser.
             </DialogDescription>
           </DialogHeader>
 

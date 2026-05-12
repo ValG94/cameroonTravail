@@ -433,26 +433,18 @@ export default function CvPremiumEditor() {
                 <AccordionItem value="competences">
                   <AccordionTrigger className="text-sm font-semibold">Compétences</AccordionTrigger>
                   <AccordionContent className="space-y-3 pt-2">
-                    <div>
-                      <Label className="text-xs text-gray-600">Techniques (séparées par virgule)</Label>
-                      <Textarea
-                        value={editing.hardSkills.join(", ")}
-                        onChange={(e) => update("hardSkills", e.target.value.split(",").map((s) => s.trim()).filter(Boolean))}
-                        rows={2}
-                        className="text-xs mt-1"
-                        placeholder="React, Node.js, TypeScript"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-xs text-gray-600">Qualités (séparées par virgule)</Label>
-                      <Textarea
-                        value={editing.softSkills.join(", ")}
-                        onChange={(e) => update("softSkills", e.target.value.split(",").map((s) => s.trim()).filter(Boolean))}
-                        rows={2}
-                        className="text-xs mt-1"
-                        placeholder="Leadership, Communication"
-                      />
-                    </div>
+                    <CsvField
+                      label="Techniques (séparées par virgule)"
+                      value={editing.hardSkills}
+                      onChange={(arr) => update("hardSkills", arr)}
+                      placeholder="React, Node.js, TypeScript"
+                    />
+                    <CsvField
+                      label="Qualités (séparées par virgule)"
+                      value={editing.softSkills}
+                      onChange={(arr) => update("softSkills", arr)}
+                      placeholder="Leadership, Communication"
+                    />
                   </AccordionContent>
                 </AccordionItem>
 
@@ -509,11 +501,10 @@ export default function CvPremiumEditor() {
                 <AccordionItem value="loisirs">
                   <AccordionTrigger className="text-sm font-semibold">Centres d'intérêt</AccordionTrigger>
                   <AccordionContent className="pt-2">
-                    <Textarea
-                      value={editing.interests.join(", ")}
-                      onChange={(e) => update("interests", e.target.value.split(",").map((s) => s.trim()).filter(Boolean))}
-                      rows={2}
-                      className="text-xs"
+                    <CsvField
+                      label=""
+                      value={editing.interests}
+                      onChange={(arr) => update("interests", arr)}
                       placeholder="Lecture, Sport, Voyages..."
                     />
                   </AccordionContent>
@@ -563,6 +554,56 @@ function FieldInput({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         className="text-xs mt-1"
+      />
+    </div>
+  );
+}
+
+/**
+ * Champ texte qui pilote un array de strings via une saisie CSV.
+ * Garde un state local string pour permettre virgules et espaces pendant la saisie ;
+ * convertit en array uniquement au blur. Synchronise depuis le parent si la valeur
+ * externe change vraiment (ex : reload des données).
+ */
+function CsvField({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string[];
+  onChange: (v: string[]) => void;
+  placeholder?: string;
+}) {
+  const externalString = value.join(", ");
+  const [localText, setLocalText] = useState(externalString);
+
+  // Re-sync local quand la prop externe change de "vraie" valeur
+  useEffect(() => {
+    setLocalText(externalString);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [externalString]);
+
+  const commit = () => {
+    const arr = localText
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    // N'appelle onChange que si le contenu effectif a changé
+    if (arr.join("|") !== value.join("|")) onChange(arr);
+  };
+
+  return (
+    <div>
+      {label && <Label className="text-xs text-gray-600">{label}</Label>}
+      <Textarea
+        value={localText}
+        onChange={(e) => setLocalText(e.target.value)}
+        onBlur={commit}
+        rows={2}
+        className={`text-xs ${label ? "mt-1" : ""}`}
+        placeholder={placeholder}
       />
     </div>
   );

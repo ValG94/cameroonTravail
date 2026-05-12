@@ -390,6 +390,9 @@ export const cvTemplatePurchases = pgTable("cv_template_purchases", {
   // Détail brut renvoyé par le provider (debug / audit)
   providerPayload: text("providerPayload"),
   unlockedAt: timestamp("unlockedAt"),
+  // Expiration de l'accès (6 mois par défaut à partir de unlockedAt).
+  // Si NULL → accès permanent (cas legacy / admin).
+  expiresAt: timestamp("expiresAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });

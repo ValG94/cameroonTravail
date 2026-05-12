@@ -2812,7 +2812,7 @@ export const appRouter = router({
         const dbInstance = await db.getDb();
         if (!dbInstance) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
         const { cvTemplates, cvTemplatePurchases } = await import("../drizzle/schema");
-        const { eq, and } = await import("drizzle-orm");
+        const { eq, and, or, gt, isNull, desc } = await import("drizzle-orm");
 
         const [template] = await dbInstance
           .select()
@@ -2823,9 +2823,11 @@ export const appRouter = router({
 
         // Admin = accès libre à tous les templates
         if (ctx.user.role === "admin") {
-          return { hasAccess: true, template };
+          return { hasAccess: true, template, expiresAt: null as Date | null };
         }
 
+        // Achat valide = status success ET (pas d'expiration OU expiration future)
+        const now = new Date();
         const [purchase] = await dbInstance
           .select()
           .from(cvTemplatePurchases)
@@ -2833,12 +2835,18 @@ export const appRouter = router({
             and(
               eq(cvTemplatePurchases.userId, ctx.user.id),
               eq(cvTemplatePurchases.templateId, template.id),
-              eq(cvTemplatePurchases.status, "success")
+              eq(cvTemplatePurchases.status, "success"),
+              or(isNull(cvTemplatePurchases.expiresAt), gt(cvTemplatePurchases.expiresAt, now))
             )
           )
+          .orderBy(desc(cvTemplatePurchases.unlockedAt))
           .limit(1);
 
-        return { hasAccess: !!purchase, template };
+        return {
+          hasAccess: !!purchase,
+          template,
+          expiresAt: purchase?.expiresAt ?? null,
+        };
       }),
 
     // Initier un achat — version mock Phase 1 :
@@ -2864,7 +2872,10 @@ export const appRouter = router({
           .limit(1);
         if (!template) throw new TRPCError({ code: "NOT_FOUND", message: "Template inconnu" });
 
-        // Idempotence : si déjà acheté, renvoyer success direct
+        // Idempotence : si déjà acheté ET non expiré, renvoyer success direct.
+        // Si expiré, on autorise un nouveau paiement (renouvellement).
+        const { or, gt, isNull } = await import("drizzle-orm");
+        const now = new Date();
         const [existing] = await dbInstance
           .select()
           .from(cvTemplatePurchases)
@@ -2872,7 +2883,8 @@ export const appRouter = router({
             and(
               eq(cvTemplatePurchases.userId, ctx.user.id),
               eq(cvTemplatePurchases.templateId, template.id),
-              eq(cvTemplatePurchases.status, "success")
+              eq(cvTemplatePurchases.status, "success"),
+              or(isNull(cvTemplatePurchases.expiresAt), gt(cvTemplatePurchases.expiresAt, now))
             )
           )
           .limit(1);
@@ -2915,12 +2927,18 @@ export const appRouter = router({
         // En attendant la Phase 2 (vrai appel MoMo/Orange), on flagge "success"
         // immédiatement pour permettre de tester le flow end-to-end.
         // À retirer Phase 2 — l'unlock se fera via webhook callback.
+        const unlockedAt = new Date();
+        // Expiration : 6 mois après le déblocage
+        const expiresAt = new Date(unlockedAt);
+        expiresAt.setMonth(expiresAt.getMonth() + 6);
+
         await dbInstance
           .update(cvTemplatePurchases)
           .set({
             status: "success",
             paymentReference: `MOCK-${Date.now()}`,
-            unlockedAt: new Date(),
+            unlockedAt,
+            expiresAt,
             updatedAt: new Date(),
           })
           .where(eq(cvTemplatePurchases.id, purchase.id));
