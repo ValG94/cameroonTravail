@@ -89,7 +89,37 @@ export default function CvPremiumEditor() {
     [cvList, slug]
   );
 
-  const cvDocumentId = queryCvId ?? cvDocumentFromList?.id ?? null;
+  // Mutation pour garantir l'existence du cv_documents (idempotent côté serveur).
+  // Appelée si on arrive sur l'éditeur sans cvId en URL ET sans cv dans cv.list.
+  const ensureMutation = trpc.cvTemplates.ensurePremiumDocument.useMutation({
+    onSuccess: () => {
+      utils.cv.list.invalidate();
+    },
+    onError: (e) => toast.error(e.message || "Impossible d'initialiser le CV"),
+  });
+  const [ensuredCvId, setEnsuredCvId] = useState<number | null>(null);
+
+  const cvDocumentId = queryCvId ?? cvDocumentFromList?.id ?? ensuredCvId ?? null;
+
+  // Déclenche l'ensure une fois que tout est chargé et qu'on a vraiment rien
+  useEffect(() => {
+    if (
+      slug &&
+      user &&
+      accessQuery.data?.hasAccess &&
+      cvList !== undefined && // cv.list a chargé
+      !queryCvId &&
+      !cvDocumentFromList &&
+      !ensuredCvId &&
+      !ensureMutation.isPending
+    ) {
+      ensureMutation.mutate(
+        { slug },
+        { onSuccess: (data) => setEnsuredCvId(data.cvDocumentId) }
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug, user, accessQuery.data?.hasAccess, cvList, queryCvId, cvDocumentFromList, ensuredCvId]);
 
   // Charger cv_data (overrides existants)
   const { data: savedCvData } = trpc.cv.getData.useQuery(

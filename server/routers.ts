@@ -2986,6 +2986,77 @@ export const appRouter = router({
         };
       }),
 
+    // Garantit l'existence du cv_documents lié à ce template pour le user.
+    // Idempotent : si déjà présent, le retourne ; sinon le crée (à condition
+    // que l'utilisateur ait un achat success ET non expiré, ou soit admin).
+    // Utile pour réparer les comptes dont l'achat a précédé la migration 0002.
+    ensurePremiumDocument: protectedProcedure
+      .input(z.object({ slug: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        const dbInstance = await db.getDb();
+        if (!dbInstance) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { cvTemplates, cvTemplatePurchases, cvDocuments } = await import("../drizzle/schema");
+        const { eq, and, or, gt, isNull } = await import("drizzle-orm");
+
+        const [template] = await dbInstance
+          .select()
+          .from(cvTemplates)
+          .where(eq(cvTemplates.slug, input.slug))
+          .limit(1);
+        if (!template) throw new TRPCError({ code: "NOT_FOUND", message: "Template inconnu" });
+
+        // Vérifier l'accès (achat valide OU admin)
+        if (ctx.user.role !== "admin") {
+          const now = new Date();
+          const [purchase] = await dbInstance
+            .select()
+            .from(cvTemplatePurchases)
+            .where(
+              and(
+                eq(cvTemplatePurchases.userId, ctx.user.id),
+                eq(cvTemplatePurchases.templateId, template.id),
+                eq(cvTemplatePurchases.status, "success"),
+                or(isNull(cvTemplatePurchases.expiresAt), gt(cvTemplatePurchases.expiresAt, now))
+              )
+            )
+            .limit(1);
+          if (!purchase) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "Vous devez débloquer ce modèle avant de l'utiliser",
+            });
+          }
+        }
+
+        // Cherche le cv_documents existant
+        const [existing] = await dbInstance
+          .select()
+          .from(cvDocuments)
+          .where(
+            and(
+              eq(cvDocuments.userId, ctx.user.id),
+              eq(cvDocuments.premiumTemplateSlug, template.slug)
+            )
+          )
+          .limit(1);
+        if (existing) return { cvDocumentId: existing.id, created: false };
+
+        // Crée le cv_documents
+        const [created] = await dbInstance
+          .insert(cvDocuments)
+          .values({
+            userId: ctx.user.id,
+            nom: `CV ${template.nom}`,
+            type: "premium",
+            premiumTemplateSlug: template.slug,
+            langue: "fr",
+            actif: false,
+            visibleCVtheque: true,
+          })
+          .returning();
+        return { cvDocumentId: created.id, created: true };
+      }),
+
     // Lister les achats du user connecté (utile pour son historique)
     myPurchases: protectedProcedure.query(async ({ ctx }) => {
       const dbInstance = await db.getDb();
