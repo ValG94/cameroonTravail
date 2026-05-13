@@ -22,6 +22,19 @@ import { sdk } from "./sdk";
 const normalizeOrigin = (s: string) => s.trim().toLowerCase().replace(/\/+$/, "");
 const isDev = process.env.NODE_ENV !== "production";
 
+// FAIL-FAST en production : refuse de démarrer si CORS_ORIGIN n'est pas défini.
+// Sans cette garde, l'API tomberait sur le fallback localhost et accepterait
+// silencieusement les requêtes depuis 'http://localhost:3000' depuis n'importe
+// quel attaquant (ou rejetterait toutes les vraies origines, selon l'angle).
+if (!isDev && !ENV.corsOrigin) {
+  console.error(
+    "[CORS] ⛔ CORS_ORIGIN non défini en production. Refus de démarrer.\n" +
+      "Définissez la variable CORS_ORIGIN avec l'URL de votre frontend " +
+      "(ex: https://cameroon-travail.vercel.app)."
+  );
+  process.exit(1);
+}
+
 const allowedOrigins = ENV.corsOrigin
   ? ENV.corsOrigin.split(",").map(normalizeOrigin).filter(Boolean)
   : ["http://localhost:5173", "http://localhost:3000"];
@@ -107,7 +120,7 @@ async function startServer() {
     })
   );
 
-  // ─── Rate limiting strict sur auth ─────────────────────────────────────────
+  // ─── Rate limiting strict sur auth (login, register) ──────────────────────
   const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 20,
@@ -118,6 +131,46 @@ async function startServer() {
   });
   app.use("/api/trpc/auth.login", authLimiter);
   app.use("/api/trpc/auth.register", authLimiter);
+
+  // Reset password : limite très stricte (anti-spam d'emails)
+  const passwordResetLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1h
+    max: 5,
+    handler: (req, res) => {
+      corsHandler(req, res);
+      res.status(429).json({
+        error: "Trop de demandes de réinitialisation. Réessayez dans 1 heure.",
+      });
+    },
+  });
+  app.use("/api/trpc/auth.requestPasswordReset", passwordResetLimiter);
+
+  // Uploads : limite stricte (coût CPU + storage)
+  const uploadLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1h
+    max: 30,
+    handler: (req, res) => {
+      corsHandler(req, res);
+      res.status(429).json({
+        error: "Trop d'uploads. Réessayez dans 1 heure.",
+      });
+    },
+  });
+  app.use("/api/upload-cv", uploadLimiter);
+  app.use("/api/upload", uploadLimiter);
+
+  // Paiements premium : limite stricte (anti-fraude + protection MoMo/Orange)
+  const paymentLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    handler: (req, res) => {
+      corsHandler(req, res);
+      res.status(429).json({
+        error: "Trop de tentatives de paiement. Réessayez dans 15 minutes.",
+      });
+    },
+  });
+  app.use("/api/trpc/cvTemplates.initiatePurchase", paymentLimiter);
 
   // ─── Body parsing ───────────────────────────────────────────────────────────
   app.use(express.json({ limit: "10mb" }));
@@ -162,11 +215,16 @@ async function startServer() {
       bb.on("finish", async () => {
         if (!fileBuffer) return res.status(400).json({ error: "Aucun fichier" });
 
-        // Validation magic bytes PDF
+        // Validation magic bytes + extension + scripts embarqués
         const { fileTypeFromBuffer } = await import("file-type");
+        const { validatePdfUpload } = await import("./uploadGuards");
         const detected = await fileTypeFromBuffer(fileBuffer).catch(() => null);
-        if (!detected || detected.mime !== "application/pdf") {
-          return res.status(400).json({ error: "Seuls les PDF sont acceptés" });
+        const validation = validatePdfUpload(fileBuffer, fileName, detected?.mime);
+        if (!validation.ok) {
+          console.warn(
+            `[upload-cv] Rejeté pour user ${user.id} (${validation.code}): ${fileName}`
+          );
+          return res.status(400).json({ error: validation.message });
         }
 
         const { storagePut } = await import("../storage");
@@ -196,16 +254,23 @@ async function startServer() {
 
       const buffer = Buffer.from(fileData, "base64");
 
-      // Validation magic bytes image
+      // Validation magic bytes + extension du nom de fichier
       const { fileTypeFromBuffer } = await import("file-type");
+      const { validateImageUpload, sanitizeStorageKey } = await import("./uploadGuards");
       const detected = await fileTypeFromBuffer(buffer).catch(() => null);
-      const allowed = ["image/jpeg", "image/png", "image/webp"];
-      if (!detected || !allowed.includes(detected.mime)) {
-        return res.status(400).json({ error: "Seules les images JPEG, PNG, WEBP sont acceptées" });
+      const validation = validateImageUpload(buffer, fileName, detected?.mime);
+      if (!validation.ok) {
+        console.warn(
+          `[upload] Rejeté pour user ${user.id} (${validation.code}): ${fileName}`
+        );
+        return res.status(400).json({ error: validation.message });
       }
 
+      // fileKey provient du client → on sanitise pour éviter le path traversal
+      const safeKey = sanitizeStorageKey(fileKey);
+      if (!safeKey) return res.status(400).json({ error: "Clé de stockage invalide" });
       const { storagePut } = await import("../storage");
-      const result = await storagePut(fileKey, buffer, mimeType);
+      const result = await storagePut(safeKey, buffer, mimeType);
       res.json(result);
     } catch (error: any) {
       res.status(500).json({ error: error.message || "Upload failed" });
