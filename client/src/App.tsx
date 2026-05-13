@@ -18,6 +18,8 @@ import CandidatCompetences from "./pages/candidat/Competences";
 import CandidatLangues from "./pages/candidat/Langues";
 import CandidatCandidatures from "./pages/candidat/Candidatures";
 import CandidatAlertes from "./pages/candidat/Alertes";
+import CandidatTemplates from "./pages/candidat/Templates";
+import CvPremiumEditor from "./pages/candidat/CvPremiumEditor";
 import EmployeurDashboard from "./pages/employeur/Dashboard";
 import BienvenueEmployeur from "./pages/employeur/Bienvenue";
 import EmployeurCandidatures from "./pages/employeur/Candidatures";
@@ -62,6 +64,8 @@ function Router() {
       <Route path={"/candidat/cv"} component={CandidatCV} />
       <Route path="/candidat/candidatures" component={CandidatCandidatures} />
       <Route path="/candidat/alertes" component={CandidatAlertes} />
+      <Route path="/candidat/templates" component={CandidatTemplates} />
+      <Route path="/candidat/cv-premium/:slug" component={CvPremiumEditor} />
       <Route path="/recherche-emploi" component={RechercheEmploi} />
       <Route path="/emploi-public" component={RechercheEmploi} />
       <Route path="/emploi-prive" component={RechercheEmploi} />

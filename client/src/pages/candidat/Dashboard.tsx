@@ -5,14 +5,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { trpc } from "@/lib/trpc";
 import {
+  ArrowRight,
   Award,
   Briefcase,
+  Crown,
   Eye,
   FileText,
   GraduationCap,
   Languages,
   MapPin,
   Phone,
+  Sparkles,
   TrendingUp,
   Upload,
   User,
@@ -82,6 +85,31 @@ export default function CandidatDashboard() {
           <p className="text-gray-600">
             Gérez votre profil et recherchez des opportunités d'emploi
           </p>
+        </div>
+
+        {/* Recommandation : bibliothèque CV premium (optionnelle) */}
+        <div className="mb-8 bg-gradient-to-r from-amber-500 to-orange-600 rounded-2xl p-6 text-white shadow-md flex flex-col md:flex-row items-start md:items-center gap-4">
+          <div className="bg-white/20 rounded-xl p-3 shrink-0">
+            <Crown className="w-7 h-7" />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-bold text-lg">Multipliez vos chances avec un CV professionnel</h3>
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <p className="text-amber-50 text-sm">
+              Démarquez-vous des autres candidats avec nos modèles premium conçus par des
+              designers. Paiement unique de 1000 FCFA par modèle, accès à vie. Optionnel —
+              vous pouvez aussi continuer à uploader votre propre CV.
+            </p>
+          </div>
+          <Button
+            onClick={() => setLocation("/candidat/templates")}
+            className="bg-white text-orange-600 hover:bg-orange-50 shrink-0"
+          >
+            Découvrir
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
         </div>
 
         {/* Complétion du profil */}

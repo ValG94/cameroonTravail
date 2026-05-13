@@ -2772,6 +2772,332 @@ export const appRouter = router({
       }),
   }),
 
+  // ─── Templates CV premium (pay-per-template) ──────────────────────────────────
+  cvTemplates: router({
+    // Liste publique du catalogue + flag "purchased" si user connecté
+    list: publicProcedure.query(async ({ ctx }) => {
+      const dbInstance = await db.getDb();
+      if (!dbInstance) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { cvTemplates, cvTemplatePurchases } = await import("../drizzle/schema");
+      const { eq, and, asc } = await import("drizzle-orm");
+
+      const templates = await dbInstance
+        .select()
+        .from(cvTemplates)
+        .where(eq(cvTemplates.isActive, true))
+        .orderBy(asc(cvTemplates.ordre));
+
+      // Si user connecté : flag "purchased" par template
+      let purchasedIds = new Set<number>();
+      if (ctx.user?.id) {
+        const purchases = await dbInstance
+          .select({ templateId: cvTemplatePurchases.templateId })
+          .from(cvTemplatePurchases)
+          .where(
+            and(
+              eq(cvTemplatePurchases.userId, ctx.user.id),
+              eq(cvTemplatePurchases.status, "success")
+            )
+          );
+        purchasedIds = new Set(purchases.map((p) => p.templateId));
+      }
+
+      return templates.map((t) => ({ ...t, purchased: purchasedIds.has(t.id) }));
+    }),
+
+    // Vérifier si l'utilisateur a accès à un template précis (sécurité avant édition/PDF)
+    checkAccess: protectedProcedure
+      .input(z.object({ slug: z.string() }))
+      .query(async ({ ctx, input }) => {
+        const dbInstance = await db.getDb();
+        if (!dbInstance) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { cvTemplates, cvTemplatePurchases } = await import("../drizzle/schema");
+        const { eq, and, or, gt, isNull, desc } = await import("drizzle-orm");
+
+        const [template] = await dbInstance
+          .select()
+          .from(cvTemplates)
+          .where(eq(cvTemplates.slug, input.slug))
+          .limit(1);
+        if (!template) throw new TRPCError({ code: "NOT_FOUND", message: "Template inconnu" });
+
+        // Admin = accès libre à tous les templates
+        if (ctx.user.role === "admin") {
+          return { hasAccess: true, template, expiresAt: null as Date | null };
+        }
+
+        // Achat valide = status success ET (pas d'expiration OU expiration future)
+        const now = new Date();
+        const [purchase] = await dbInstance
+          .select()
+          .from(cvTemplatePurchases)
+          .where(
+            and(
+              eq(cvTemplatePurchases.userId, ctx.user.id),
+              eq(cvTemplatePurchases.templateId, template.id),
+              eq(cvTemplatePurchases.status, "success"),
+              or(isNull(cvTemplatePurchases.expiresAt), gt(cvTemplatePurchases.expiresAt, now))
+            )
+          )
+          .orderBy(desc(cvTemplatePurchases.unlockedAt))
+          .limit(1);
+
+        return {
+          hasAccess: !!purchase,
+          template,
+          expiresAt: purchase?.expiresAt ?? null,
+        };
+      }),
+
+    // Initier un achat — version mock Phase 1 :
+    // crée la transaction en "pending", la marque "success" en dev (TODO Phase 2 : vrai MoMo/Orange).
+    initiatePurchase: protectedProcedure
+      .input(
+        z.object({
+          slug: z.string(),
+          provider: z.enum(["mtn_momo", "orange_money", "manual"]),
+          payerPhone: z.string().min(8).max(20).optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const dbInstance = await db.getDb();
+        if (!dbInstance) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { cvTemplates, cvTemplatePurchases } = await import("../drizzle/schema");
+        const { eq, and } = await import("drizzle-orm");
+
+        const [template] = await dbInstance
+          .select()
+          .from(cvTemplates)
+          .where(eq(cvTemplates.slug, input.slug))
+          .limit(1);
+        if (!template) throw new TRPCError({ code: "NOT_FOUND", message: "Template inconnu" });
+
+        // Idempotence : si déjà acheté ET non expiré, renvoyer success direct.
+        // Si expiré, on autorise un nouveau paiement (renouvellement).
+        const { or, gt, isNull } = await import("drizzle-orm");
+        const now = new Date();
+        const [existing] = await dbInstance
+          .select()
+          .from(cvTemplatePurchases)
+          .where(
+            and(
+              eq(cvTemplatePurchases.userId, ctx.user.id),
+              eq(cvTemplatePurchases.templateId, template.id),
+              eq(cvTemplatePurchases.status, "success"),
+              or(isNull(cvTemplatePurchases.expiresAt), gt(cvTemplatePurchases.expiresAt, now))
+            )
+          )
+          .limit(1);
+        if (existing) {
+          // Retrouver le cv_documents lié (créé lors du 1er achat)
+          const { cvDocuments } = await import("../drizzle/schema");
+          const [existingCv] = await dbInstance
+            .select({ id: cvDocuments.id })
+            .from(cvDocuments)
+            .where(
+              and(
+                eq(cvDocuments.userId, ctx.user.id),
+                eq(cvDocuments.premiumTemplateSlug, template.slug)
+              )
+            )
+            .limit(1);
+          return {
+            status: "success" as const,
+            purchaseId: existing.id,
+            cvDocumentId: existingCv?.id,
+            alreadyPurchased: true,
+          };
+        }
+
+        // Créer la transaction
+        const [purchase] = await dbInstance
+          .insert(cvTemplatePurchases)
+          .values({
+            userId: ctx.user.id,
+            templateId: template.id,
+            amount: template.prix,
+            currency: template.devise,
+            provider: input.provider,
+            status: "pending",
+            payerPhone: input.payerPhone ?? null,
+          })
+          .returning();
+
+        // ─── PHASE 1 : MOCK ──────────────────────────────────────────────────
+        // En attendant la Phase 2 (vrai appel MoMo/Orange), on flagge "success"
+        // immédiatement pour permettre de tester le flow end-to-end.
+        // À retirer Phase 2 — l'unlock se fera via webhook callback.
+        const unlockedAt = new Date();
+        // Expiration : 6 mois après le déblocage
+        const expiresAt = new Date(unlockedAt);
+        expiresAt.setMonth(expiresAt.getMonth() + 6);
+
+        await dbInstance
+          .update(cvTemplatePurchases)
+          .set({
+            status: "success",
+            paymentReference: `MOCK-${Date.now()}`,
+            unlockedAt,
+            expiresAt,
+            updatedAt: new Date(),
+          })
+          .where(eq(cvTemplatePurchases.id, purchase.id));
+
+        // Créer le cv_documents associé pour qu'il apparaisse dans /candidat/cv
+        // (si pas déjà présent — idempotent)
+        const { cvDocuments } = await import("../drizzle/schema");
+        const [existingCv] = await dbInstance
+          .select()
+          .from(cvDocuments)
+          .where(
+            and(
+              eq(cvDocuments.userId, ctx.user.id),
+              eq(cvDocuments.premiumTemplateSlug, template.slug)
+            )
+          )
+          .limit(1);
+
+        let cvDocumentId = existingCv?.id;
+        if (!cvDocumentId) {
+          const [newCv] = await dbInstance
+            .insert(cvDocuments)
+            .values({
+              userId: ctx.user.id,
+              nom: `CV ${template.nom}`,
+              type: "premium",
+              premiumTemplateSlug: template.slug,
+              langue: "fr",
+              actif: false,
+              visibleCVtheque: true,
+            })
+            .returning();
+          cvDocumentId = newCv.id;
+        }
+
+        console.log(
+          `[cvTemplates.initiatePurchase] MOCK success — user ${ctx.user.id} template ${template.slug} cvDocumentId ${cvDocumentId}`
+        );
+
+        return {
+          status: "success" as const,
+          purchaseId: purchase.id,
+          cvDocumentId,
+          alreadyPurchased: false,
+        };
+      }),
+
+    // Garantit l'existence du cv_documents lié à ce template pour le user.
+    // Idempotent : si déjà présent, le retourne ; sinon le crée (à condition
+    // que l'utilisateur ait un achat success ET non expiré, ou soit admin).
+    // Utile pour réparer les comptes dont l'achat a précédé la migration 0002.
+    ensurePremiumDocument: protectedProcedure
+      .input(z.object({ slug: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        const dbInstance = await db.getDb();
+        if (!dbInstance) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { cvTemplates, cvTemplatePurchases, cvDocuments } = await import("../drizzle/schema");
+        const { eq, and, or, gt, isNull } = await import("drizzle-orm");
+
+        const [template] = await dbInstance
+          .select()
+          .from(cvTemplates)
+          .where(eq(cvTemplates.slug, input.slug))
+          .limit(1);
+        if (!template) throw new TRPCError({ code: "NOT_FOUND", message: "Template inconnu" });
+
+        // Vérifier l'accès (achat valide OU admin)
+        if (ctx.user.role !== "admin") {
+          const now = new Date();
+          const [purchase] = await dbInstance
+            .select()
+            .from(cvTemplatePurchases)
+            .where(
+              and(
+                eq(cvTemplatePurchases.userId, ctx.user.id),
+                eq(cvTemplatePurchases.templateId, template.id),
+                eq(cvTemplatePurchases.status, "success"),
+                or(isNull(cvTemplatePurchases.expiresAt), gt(cvTemplatePurchases.expiresAt, now))
+              )
+            )
+            .limit(1);
+          if (!purchase) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "Vous devez débloquer ce modèle avant de l'utiliser",
+            });
+          }
+        }
+
+        // Cherche le cv_documents existant
+        const [existing] = await dbInstance
+          .select()
+          .from(cvDocuments)
+          .where(
+            and(
+              eq(cvDocuments.userId, ctx.user.id),
+              eq(cvDocuments.premiumTemplateSlug, template.slug)
+            )
+          )
+          .limit(1);
+        if (existing) return { cvDocumentId: existing.id, created: false };
+
+        // Crée le cv_documents (avec log détaillé en cas d'erreur Postgres)
+        try {
+          const [created] = await dbInstance
+            .insert(cvDocuments)
+            .values({
+              userId: ctx.user.id,
+              nom: `CV ${template.nom}`,
+              type: "premium",
+              premiumTemplateSlug: template.slug,
+              langue: "fr",
+              actif: false,
+              visibleCVtheque: true,
+            })
+            .returning();
+          return { cvDocumentId: created.id, created: true };
+        } catch (err: any) {
+          console.error("[ensurePremiumDocument] INSERT cv_documents a échoué :");
+          console.error("  - message:", err?.message);
+          console.error("  - code:", err?.code ?? err?.cause?.code);
+          console.error("  - detail:", err?.detail ?? err?.cause?.detail);
+          console.error("  - constraint:", err?.constraint ?? err?.cause?.constraint);
+          console.error("  - table:", err?.table ?? err?.cause?.table);
+          console.error("  - column:", err?.column ?? err?.cause?.column);
+          console.error("  - cause:", err?.cause);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Impossible de créer le CV premium. Contactez le support.",
+          });
+        }
+      }),
+
+    // Lister les achats du user connecté (utile pour son historique)
+    myPurchases: protectedProcedure.query(async ({ ctx }) => {
+      const dbInstance = await db.getDb();
+      if (!dbInstance) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { cvTemplates, cvTemplatePurchases } = await import("../drizzle/schema");
+      const { eq, desc } = await import("drizzle-orm");
+
+      return dbInstance
+        .select({
+          id: cvTemplatePurchases.id,
+          status: cvTemplatePurchases.status,
+          amount: cvTemplatePurchases.amount,
+          currency: cvTemplatePurchases.currency,
+          provider: cvTemplatePurchases.provider,
+          createdAt: cvTemplatePurchases.createdAt,
+          unlockedAt: cvTemplatePurchases.unlockedAt,
+          templateSlug: cvTemplates.slug,
+          templateNom: cvTemplates.nom,
+        })
+        .from(cvTemplatePurchases)
+        .innerJoin(cvTemplates, eq(cvTemplatePurchases.templateId, cvTemplates.id))
+        .where(eq(cvTemplatePurchases.userId, ctx.user.id))
+        .orderBy(desc(cvTemplatePurchases.createdAt));
+    }),
+  }),
+
   // ─── Vues de profil CVthèque ──────────────────────────────────────────────────
   profileViews: router({
     // Enregistrer une vue de profil

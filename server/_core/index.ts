@@ -20,13 +20,32 @@ import { sdk } from "./sdk";
 
 // ─── CORS origins ──────────────────────────────────────────────────────────────
 const normalizeOrigin = (s: string) => s.trim().toLowerCase().replace(/\/+$/, "");
+const isDev = process.env.NODE_ENV !== "production";
 
-const allowedOrigins = (ENV.corsOrigin
+const allowedOrigins = ENV.corsOrigin
   ? ENV.corsOrigin.split(",").map(normalizeOrigin).filter(Boolean)
-  : ["http://localhost:5173", "http://localhost:3000"]);
+  : ["http://localhost:5173", "http://localhost:3000"];
+
+// Pattern pour autoriser les preview deployments Vercel de notre projet
+// (ex: cameroon-travail-git-feat-xxx-valg94s-projects.vercel.app).
+// On ne whitelist QUE les sous-domaines qui commencent par "cameroon-travail-"
+// pour ne pas ouvrir CORS à n'importe quel projet Vercel.
+const VERCEL_PREVIEW_PATTERN = /^https:\/\/cameroon-travail-[a-z0-9-]+\.vercel\.app$/;
+// En dev, on autorise tout localhost / 127.0.0.1 quel que soit le port
+const LOCAL_DEV_PATTERN = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+
+const isOriginAllowed = (origin: string): boolean => {
+  const normalized = normalizeOrigin(origin);
+  if (allowedOrigins.includes(normalized)) return true;
+  if (VERCEL_PREVIEW_PATTERN.test(normalized)) return true;
+  if (isDev && LOCAL_DEV_PATTERN.test(normalized)) return true;
+  return false;
+};
 
 console.log("[CORS] CORS_ORIGIN env =", JSON.stringify(ENV.corsOrigin));
 console.log("[CORS] allowedOrigins =", allowedOrigins);
+console.log("[CORS] Vercel preview pattern enabled:", VERCEL_PREVIEW_PATTERN.toString());
+if (isDev) console.log("[CORS] DEV mode — localhost/127.0.0.1 auto-allowed");
 
 async function startServer() {
   const app = express();
@@ -41,14 +60,13 @@ async function startServer() {
   // ─── CORS manuel (prioritaire — garantit les headers même sur erreur 5xx) ───
   app.use((req, res, next) => {
     const origin = req.headers.origin as string | undefined;
-    const normalized = origin ? normalizeOrigin(origin) : undefined;
-    const isAllowed = !!normalized && allowedOrigins.includes(normalized);
+    const allowed = !!origin && isOriginAllowed(origin);
 
     if (origin) {
-      console.log(`[CORS] origin="${origin}" normalized="${normalized}" allowed=${isAllowed}`);
+      console.log(`[CORS] origin="${origin}" allowed=${allowed}`);
     }
 
-    if (origin && isAllowed) {
+    if (origin && allowed) {
       res.setHeader("Access-Control-Allow-Origin", origin);
       res.setHeader("Access-Control-Allow-Credentials", "true");
       res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
@@ -70,8 +88,7 @@ async function startServer() {
   // ─── Rate limiting global ───────────────────────────────────────────────────
   const corsHandler = (req: any, res: any) => {
     const origin = req.headers.origin as string | undefined;
-    const normalized = origin ? normalizeOrigin(origin) : undefined;
-    if (origin && normalized && allowedOrigins.includes(normalized)) {
+    if (origin && isOriginAllowed(origin)) {
       res.setHeader("Access-Control-Allow-Origin", origin);
       res.setHeader("Access-Control-Allow-Credentials", "true");
     }
@@ -213,7 +230,7 @@ async function startServer() {
     console.error("[Express Error]", err?.message ?? err);
     if (!res.headersSent) {
       const origin = req.headers?.origin as string | undefined;
-      if (origin && allowedOrigins.includes(origin)) {
+      if (origin && isOriginAllowed(origin)) {
         res.setHeader("Access-Control-Allow-Origin", origin);
         res.setHeader("Access-Control-Allow-Credentials", "true");
       }
