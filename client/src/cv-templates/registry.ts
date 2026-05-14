@@ -44,13 +44,13 @@ export const CV_TEMPLATES: Record<string, CvTemplateMeta> = {
   },
   hospitality_timeline: {
     slug: "hospitality_timeline",
-    nom: "Communication Minimaliste",
+    nom: "Communication Bleu Marine",
     description:
-      "Sidebar pastel avec photo, identité forte et timeline d'expériences à puces. Adapté aux profils communication, marketing et chef de projet.",
+      "CV professionnel minimaliste avec fond bleu marine élégant et cartes blanches pour mettre en valeur expériences et formations. Adapté aux profils communication, marketing et chef de projet.",
     categorie: "minimaliste",
     thumbnail: "/cv-templates/hospitality_timeline.svg",
     Component: lazy(() => import("./hospitality_timeline/Template")),
-    defaultAccent: "#1e3a5f",
+    defaultAccent: "#14215D",
   },
   minimal_centered: {
     slug: "minimal_centered",
