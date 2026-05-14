@@ -34,13 +34,13 @@ export interface CvTemplateMeta {
 export const CV_TEMPLATES: Record<string, CvTemplateMeta> = {
   modern_sidebar_dark: {
     slug: "modern_sidebar_dark",
-    nom: "Moderne Sombre",
+    nom: "Jeune Diplômé Sombre",
     description:
-      "Colonne latérale sombre avec photo et accents colorés. Idéal pour profils tech et créatifs.",
+      "Sidebar foncée avec photo carrée et sections en blanc, identité centrée à droite avec FORMATION, EXPÉRIENCES et COMPÉTENCES en deux colonnes. Adapté aux profils ingénieurs, jeunes diplômés et techniques.",
     categorie: "moderne",
     thumbnail: "/cv-templates/modern_sidebar_dark.svg",
     Component: lazy(() => import("./modern_sidebar_dark/Template")),
-    defaultAccent: "#10b981",
+    defaultAccent: "#111827",
   },
   hospitality_timeline: {
     slug: "hospitality_timeline",
