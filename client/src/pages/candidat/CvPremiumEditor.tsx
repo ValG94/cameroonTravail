@@ -13,9 +13,19 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { trpc } from "@/lib/trpc";
-import { CV_TEMPLATES } from "@/cv-templates/registry";
+import { CV_TEMPLATES, type CvSectionLabels } from "@/cv-templates/registry";
 import { buildTemplateData } from "@/cv-templates/dataMapper";
 import type { ExperienceItem, EducationItem, LanguageItem } from "@/cv-templates/types";
+
+const DEFAULT_LABELS: Required<CvSectionLabels> = {
+  contact: "Contact",
+  hardSkills: "Compétences",
+  softSkills: "Qualités",
+  languages: "Langues",
+  interests: "Centres d'intérêt",
+  experiences: "Expérience professionnelle",
+  education: "Formations",
+};
 import {
   ArrowLeft,
   Crown,
@@ -165,7 +175,23 @@ export default function CvPremiumEditor() {
   // State éditable (initialisé depuis computedData puis modifiable)
   const [editing, setEditing] = useState<EditableCv | null>(null);
   const [accentColor, setAccentColor] = useState<string>(meta?.defaultAccent || "#10b981");
+  const [labels, setLabels] = useState<Required<CvSectionLabels>>(DEFAULT_LABELS);
   const [isDirty, setIsDirty] = useState(false);
+
+  // Charge les labels personnalisés depuis cv_data.certifications (réutilisé)
+  // si présents au moment du chargement.
+  useEffect(() => {
+    if (savedCvData?.certifications) {
+      try {
+        const parsed = JSON.parse(savedCvData.certifications);
+        if (parsed && typeof parsed === "object" && parsed.__customLabels) {
+          setLabels({ ...DEFAULT_LABELS, ...parsed.__customLabels });
+        }
+      } catch {
+        // pas du JSON valide — on ignore
+      }
+    }
+  }, [savedCvData?.certifications]);
 
   // Re-init de l'état éditable quand computedData change (chargement initial)
   useEffect(() => {
@@ -210,6 +236,13 @@ export default function CvPremiumEditor() {
 
   const handleSave = () => {
     if (!editing || !cvDocumentId) return;
+    // Diff par rapport aux defaults : on stocke uniquement les labels modifiés
+    const customLabels: Partial<CvSectionLabels> = {};
+    (Object.keys(DEFAULT_LABELS) as Array<keyof CvSectionLabels>).forEach((k) => {
+      if (labels[k] && labels[k] !== DEFAULT_LABELS[k]) {
+        customLabels[k] = labels[k];
+      }
+    });
     saveMutation.mutate({
       cvId: cvDocumentId,
       // Identité (mappée sur les champs cv_data correspondants)
@@ -228,7 +261,15 @@ export default function CvPremiumEditor() {
       competences: JSON.stringify([...editing.hardSkills, ...editing.softSkills]),
       languesCv: JSON.stringify(editing.languages),
       loisirs: JSON.stringify(editing.interests),
+      // Champ certifications réutilisé pour stocker les labels personnalisés
+      // (les templates premium ne consomment pas certifications par ailleurs)
+      certifications: JSON.stringify({ __customLabels: customLabels }),
     });
+  };
+
+  const updateLabel = (key: keyof CvSectionLabels, value: string) => {
+    setLabels({ ...labels, [key]: value });
+    setIsDirty(true);
   };
 
   if (authLoading || accessQuery.isLoading || !editing) {
@@ -564,6 +605,26 @@ export default function CvPremiumEditor() {
                     />
                   </AccordionContent>
                 </AccordionItem>
+
+                {/* Personnaliser les libellés des sections */}
+                <AccordionItem value="labels">
+                  <AccordionTrigger className="text-sm font-semibold">
+                    Personnaliser les libellés
+                  </AccordionTrigger>
+                  <AccordionContent className="space-y-3 pt-2">
+                    <p className="text-[11px] text-gray-500 mb-2">
+                      Renommez les en-têtes des sections (ex: « Compétences » → « Skills »).
+                      Laissez vide pour utiliser le libellé par défaut.
+                    </p>
+                    <FieldInput label="Contact" value={labels.contact} onChange={(v) => updateLabel("contact", v)} placeholder="Contact" />
+                    <FieldInput label="Compétences" value={labels.hardSkills} onChange={(v) => updateLabel("hardSkills", v)} placeholder="Compétences" />
+                    <FieldInput label="Qualités" value={labels.softSkills} onChange={(v) => updateLabel("softSkills", v)} placeholder="Qualités" />
+                    <FieldInput label="Langues" value={labels.languages} onChange={(v) => updateLabel("languages", v)} placeholder="Langues" />
+                    <FieldInput label="Centres d'intérêt" value={labels.interests} onChange={(v) => updateLabel("interests", v)} placeholder="Centres d'intérêt" />
+                    <FieldInput label="Expériences" value={labels.experiences} onChange={(v) => updateLabel("experiences", v)} placeholder="Expérience professionnelle" />
+                    <FieldInput label="Formations" value={labels.education} onChange={(v) => updateLabel("education", v)} placeholder="Formations" />
+                  </AccordionContent>
+                </AccordionItem>
               </Accordion>
             </CardContent>
           </Card>
@@ -579,7 +640,7 @@ export default function CvPremiumEditor() {
                 </div>
               }
             >
-              <Component data={dataForTemplate} accentColor={accentColor} />
+              <Component data={dataForTemplate} accentColor={accentColor} labels={labels} />
             </Suspense>
           </div>
         </main>

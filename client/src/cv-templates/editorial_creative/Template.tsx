@@ -1,8 +1,35 @@
 import type { CvTemplateData } from "../types";
 
+/**
+ * Labels personnalisables des sections.
+ * Si non fournis, les valeurs par défaut sont utilisées.
+ * Permettent au candidat de renommer "Compétences" en "Skills",
+ * "Expérience professionnelle" en "Parcours pro", etc.
+ */
+export interface CvSectionLabels {
+  contact?: string;
+  hardSkills?: string;
+  softSkills?: string;
+  languages?: string;
+  interests?: string;
+  experiences?: string;
+  education?: string;
+}
+
+const DEFAULT_LABELS: Required<CvSectionLabels> = {
+  contact: "Contact",
+  hardSkills: "Compétences",
+  softSkills: "Qualités",
+  languages: "Langues",
+  interests: "Centres d'intérêt",
+  experiences: "Expérience professionnelle",
+  education: "Formations",
+};
+
 interface Props {
   data: CvTemplateData;
   accentColor?: string;
+  labels?: CvSectionLabels;
 }
 
 // Couleurs figées du template (charte maquette PPT)
@@ -36,7 +63,8 @@ const TEXT_COLOR = "#374151"; // gris foncé pour corps texte
  * Pas de LANGUES ni CENTRES D'INTÉRÊT dans cette mise en page
  * (cohérent avec le PPTX original — on garde le template pur).
  */
-export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc" }: Props) {
+export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc", labels }: Props) {
+  const L = { ...DEFAULT_LABELS, ...labels };
   return (
     <div
       id="cv-render-root"
@@ -99,7 +127,7 @@ export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc
         <aside className="w-[71mm] shrink-0 px-[8mm] py-[8mm] space-y-6">
           {/* Contact */}
           <section>
-            <SidebarTitle>Contact</SidebarTitle>
+            <SidebarTitle>{L.contact}</SidebarTitle>
             <ul className="space-y-1.5 text-xs break-words">
               {data.phoneNumber && <ContactRow accent={accentColor} symbol="☎">{data.phoneNumber}</ContactRow>}
               {data.email && <ContactRow accent={accentColor} symbol="✉">{data.email}</ContactRow>}
@@ -115,7 +143,7 @@ export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc
           {/* Compétences */}
           {data.hardSkills.length > 0 && (
             <section>
-              <SidebarTitle>Compétences</SidebarTitle>
+              <SidebarTitle>{L.hardSkills}</SidebarTitle>
               <ul className="space-y-1 text-xs">
                 {data.hardSkills.map((s, i) => (
                   <li key={i} className="flex gap-2 items-baseline">
@@ -130,12 +158,46 @@ export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc
           {/* Qualités */}
           {data.softSkills.length > 0 && (
             <section>
-              <SidebarTitle>Qualités</SidebarTitle>
+              <SidebarTitle>{L.softSkills}</SidebarTitle>
               <ul className="space-y-1 text-xs">
                 {data.softSkills.map((s, i) => (
                   <li key={i} className="flex gap-2 items-baseline">
                     <span style={{ color: TITLE_COLOR }}>•</span>
                     <span>{s}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {/* Langues (optionnel) */}
+          {data.languages.length > 0 && (
+            <section>
+              <SidebarTitle>{L.languages}</SidebarTitle>
+              <ul className="space-y-1.5 text-xs">
+                {data.languages.map((l, i) => (
+                  <li key={i}>
+                    <div className="font-semibold" style={{ color: TITLE_COLOR }}>
+                      {l.name}
+                    </div>
+                    <div className="text-[10px] uppercase tracking-wider text-gray-500">
+                      {l.level.replace(/_/g, " ")}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {/* Centres d'intérêt (optionnel) */}
+          {data.interests.length > 0 && (
+            <section>
+              <SidebarTitle>{L.interests}</SidebarTitle>
+              <ul className="space-y-1 text-xs">
+                {data.interests.map((it, i) => (
+                  <li key={i} className="flex gap-2 items-baseline">
+                    <span style={{ color: TITLE_COLOR }}>•</span>
+                    <span>{it}</span>
                   </li>
                 ))}
               </ul>
@@ -147,7 +209,7 @@ export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc
         <main className="flex-1 px-[10mm] py-[8mm] space-y-6">
           {data.experiences.length > 0 && (
             <section>
-              <MainTitle>Expérience professionnelle</MainTitle>
+              <MainTitle>{L.experiences}</MainTitle>
               <div className="space-y-5">
                 {data.experiences.map((exp, i) => (
                   <article key={i}>
@@ -180,7 +242,7 @@ export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc
 
           {data.education.length > 0 && (
             <section>
-              <MainTitle>Formations</MainTitle>
+              <MainTitle>{L.education}</MainTitle>
               <div className="space-y-3">
                 {data.education.map((ed, i) => (
                   <article key={i}>

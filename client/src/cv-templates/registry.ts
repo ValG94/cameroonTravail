@@ -1,6 +1,17 @@
 import { lazy, type LazyExoticComponent, type ComponentType } from "react";
 import type { CvTemplateData } from "./types";
 
+/** Libellés personnalisables des sections (passés à tous les templates). */
+export interface CvSectionLabels {
+  contact?: string;
+  hardSkills?: string;
+  softSkills?: string;
+  languages?: string;
+  interests?: string;
+  experiences?: string;
+  education?: string;
+}
+
 export interface CvTemplateMeta {
   slug: string;
   nom: string;
@@ -8,7 +19,9 @@ export interface CvTemplateMeta {
   categorie: string;
   thumbnail: string;
   /** Composant React qui rend le CV à partir des données candidat. */
-  Component: LazyExoticComponent<ComponentType<{ data: CvTemplateData; accentColor?: string }>>;
+  Component: LazyExoticComponent<
+    ComponentType<{ data: CvTemplateData; accentColor?: string; labels?: CvSectionLabels }>
+  >;
   /** Couleur d'accent par défaut (overridable depuis l'éditeur). */
   defaultAccent: string;
 }
