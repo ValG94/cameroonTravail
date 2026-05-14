@@ -74,11 +74,11 @@ export const CV_TEMPLATES: Record<string, CvTemplateMeta> = {
   executive_curved: {
     slug: "executive_curved",
     nom: "Exécutif",
-    description: "Modèle corporate avec formes graphiques. Pour postes de direction.",
+    description: "Modèle corporate avec formes graphiques organiques en haut. Adapté aux postes de direction et profils seniors.",
     categorie: "executif",
     thumbnail: "/cv-templates/executive_curved.svg",
-    Component: lazy(() => import("./modern_sidebar_dark/Template")),
-    defaultAccent: "#1e3a8a",
+    Component: lazy(() => import("./executive_curved/Template")),
+    defaultAccent: "#4a5568",
   },
 };
 
