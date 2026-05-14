@@ -56,11 +56,11 @@ export const CV_TEMPLATES: Record<string, CvTemplateMeta> = {
   minimal_centered: {
     slug: "minimal_centered",
     nom: "Minimal Centré",
-    description: "Mise en page épurée et centrée pour profils corporate et consulting.",
+    description: "Mise en page épurée et centrée, parfaite pour les profils corporate, juridiques ou consulting.",
     categorie: "minimaliste",
     thumbnail: "/cv-templates/minimal_centered.svg",
-    Component: lazy(() => import("./modern_sidebar_dark/Template")),
-    defaultAccent: "#374151",
+    Component: lazy(() => import("./minimal_centered/Template")),
+    defaultAccent: "#1f2937",
   },
   editorial_creative: {
     slug: "editorial_creative",
