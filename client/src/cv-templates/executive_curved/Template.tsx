@@ -59,7 +59,8 @@ export default function ExecutiveCurvedTemplate({
 }: Props) {
   const L = { ...DEFAULT_LABELS, ...labels };
   const mainColor = accentColor;
-  const blobColor = accentColor; // blob foncée = couleur principale
+  const blobDark = accentColor; // blob principale (foncée)
+  const blobLight = mix(accentColor, 0.35); // blob secondaire (plus claire) pour effet de profondeur
 
   return (
     <div
@@ -67,57 +68,73 @@ export default function ExecutiveCurvedTemplate({
       className="bg-white shadow-lg relative overflow-hidden"
       style={{ width: "210mm", minHeight: "297mm", fontFamily: "'Lora', serif", color: TEXT_COLOR }}
     >
-      {/* ─── Header avec blob grise courbée ──────────────────────────────── */}
+      {/* ─── Header avec 2 blobs organiques ──────────────────────────────── */}
       <header className="relative h-[105mm]">
-        {/* Blob unique en haut avec courbure organique en bas */}
+        {/* Blob 1 — grande, foncée, couvre droite + bas du header */}
         <svg
           className="absolute top-0 left-0 w-full h-full pointer-events-none"
           viewBox="0 0 800 420"
           preserveAspectRatio="none"
           aria-hidden="true"
         >
-          {/* Grand bandeau couvrant toute la largeur, bord bas ondulé/courbé.
-              La courbe démarre haut-gauche, plonge en bas-centre/gauche
-              puis remonte vers la droite — imite la blob du PPTX. */}
           <path
             d="M 0,0
                L 800,0
                L 800,360
-               C 720,400 600,395 480,355
-               C 360,315 280,360 220,380
-               C 160,395 100,370 0,360
+               C 720,405 600,395 480,355
+               C 360,315 280,365 220,385
+               C 160,400 100,375 0,365
                Z"
-            fill={blobColor}
+            fill={blobDark}
           />
         </svg>
 
-        {/* Contenu du header */}
-        <div className="relative z-10 h-full flex items-center px-[15mm] gap-[12mm]">
-          {/* Photo squircle */}
-          <div className="shrink-0">
-            <PhotoSquircle photoUrl={data.photoUrl} fullName={data.fullName} accentColor={mainColor} />
-          </div>
+        {/* Blob 2 — plus claire, plus petite, donne de la profondeur (haut-droite) */}
+        <svg
+          className="absolute top-0 left-0 w-full h-full pointer-events-none"
+          viewBox="0 0 800 420"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M 800,0
+               L 800,280
+               C 700,305 600,280 540,230
+               C 480,180 470,90 530,30
+               C 580,-20 700,-15 800,0
+               Z"
+            fill={blobLight}
+            opacity="0.7"
+          />
+        </svg>
 
-          {/* Nom + titre + intro */}
-          <div className="flex-1 min-w-0 text-white pt-2">
-            <h1
-              className="font-bold uppercase leading-[0.95] tracking-tight"
-              style={{ fontSize: "48px", letterSpacing: "0.02em" }}
-            >
-              {splitNameForDisplay(data.fullName)}
-            </h1>
-            <p
-              className="mt-3 font-semibold uppercase tracking-[0.2em]"
-              style={{ fontSize: "13px" }}
-            >
-              {data.title || "Votre titre"}
+        {/* Photo squircle — position absolue selon coordonnées PPT (x=35mm, y=19mm) */}
+        <div className="absolute z-10" style={{ left: "35mm", top: "19mm" }}>
+          <PhotoSquircle photoUrl={data.photoUrl} fullName={data.fullName} accentColor={mainColor} />
+        </div>
+
+        {/* Nom + titre + intro — position absolue à droite de la photo */}
+        <div
+          className="absolute z-10 text-white"
+          style={{ left: "115mm", top: "22mm", right: "15mm" }}
+        >
+          <h1
+            className="font-bold uppercase leading-[0.95] tracking-tight"
+            style={{ fontSize: "48px", letterSpacing: "0.02em" }}
+          >
+            {splitNameForDisplay(data.fullName)}
+          </h1>
+          <p
+            className="mt-3 font-semibold uppercase tracking-[0.2em]"
+            style={{ fontSize: "13px" }}
+          >
+            {data.title || "Votre titre"}
+          </p>
+          {data.professionalSummary && (
+            <p className="mt-3 text-[11px] leading-snug max-w-[80mm] text-white/95">
+              {data.professionalSummary}
             </p>
-            {data.professionalSummary && (
-              <p className="mt-3 text-[11px] leading-snug max-w-[95mm] text-white/90">
-                {data.professionalSummary}
-              </p>
-            )}
-          </div>
+          )}
         </div>
       </header>
 
@@ -281,15 +298,16 @@ function PhotoSquircle({
   fullName: string;
   accentColor: string;
 }) {
+  // Dimensions exactes selon le PPTX : 66mm × 64mm (presque carré)
   return (
     <div
       className="overflow-hidden bg-gray-200"
       style={{
-        width: "130px",
-        height: "165px",
-        borderRadius: "22%",
+        width: "66mm",
+        height: "64mm",
+        borderRadius: "18%",
         border: "3px solid white",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+        boxShadow: "0 2px 10px rgba(0,0,0,0.18)",
       }}
     >
       {photoUrl ? (
@@ -300,7 +318,7 @@ function PhotoSquircle({
         />
       ) : (
         <div
-          className="w-full h-full flex items-center justify-center text-3xl font-bold text-white"
+          className="w-full h-full flex items-center justify-center text-4xl font-bold text-white"
           style={{ backgroundColor: accentColor }}
         >
           {getInitials(fullName)}
