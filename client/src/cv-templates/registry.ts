@@ -44,14 +44,13 @@ export const CV_TEMPLATES: Record<string, CvTemplateMeta> = {
   },
   hospitality_timeline: {
     slug: "hospitality_timeline",
-    nom: "Hospitalité",
+    nom: "Communication Minimaliste",
     description:
-      "Timeline visuelle et bandeaux colorés. Pensé pour restauration, hôtellerie et services.",
-    categorie: "service",
+      "Sidebar pastel avec photo, identité forte et timeline d'expériences à puces. Adapté aux profils communication, marketing et chef de projet.",
+    categorie: "minimaliste",
     thumbnail: "/cv-templates/hospitality_timeline.svg",
-    // Placeholder : ces 4 templates seront implémentés en Phase 3
-    Component: lazy(() => import("./modern_sidebar_dark/Template")),
-    defaultAccent: "#d97706",
+    Component: lazy(() => import("./hospitality_timeline/Template")),
+    defaultAccent: "#1e3a5f",
   },
   minimal_centered: {
     slug: "minimal_centered",
