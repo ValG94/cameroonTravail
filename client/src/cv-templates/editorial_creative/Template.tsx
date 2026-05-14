@@ -32,10 +32,22 @@ interface Props {
   labels?: CvSectionLabels;
 }
 
-// Couleurs figées du template (charte maquette PPT)
-const SIDEBAR_BG = "#e5f4f6"; // bleu pastel très clair
-const TITLE_COLOR = "#36626b"; // bleu canard foncé pour titres
-const TEXT_COLOR = "#374151"; // gris foncé pour corps texte
+// Texte courant (gris foncé) — non lié à l'accent
+const TEXT_COLOR = "#374151";
+
+/**
+ * Mixe un hex avec du blanc selon un poids (0 = couleur pure, 1 = blanc).
+ * Utilisé pour dériver les nuances pastel du template à partir de l'accentColor.
+ */
+function mix(hex: string, weightWhite: number): string {
+  const m = hex.match(/^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i);
+  if (!m) return hex;
+  const r = parseInt(m[1], 16);
+  const g = parseInt(m[2], 16);
+  const b = parseInt(m[3], 16);
+  const f = (c: number) => Math.round(c * (1 - weightWhite) + 255 * weightWhite);
+  return `rgb(${f(r)}, ${f(g)}, ${f(b)})`;
+}
 
 /**
  * Template "Editorial Creative" — mise en page fidèle au PPTX original.
@@ -63,31 +75,45 @@ const TEXT_COLOR = "#374151"; // gris foncé pour corps texte
  * Pas de LANGUES ni CENTRES D'INTÉRÊT dans cette mise en page
  * (cohérent avec le PPTX original — on garde le template pur).
  */
-export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc", labels }: Props) {
+export default function EditorialCreativeTemplate({ data, accentColor = "#36626b", labels }: Props) {
   const L = { ...DEFAULT_LABELS, ...labels };
+  // Toute la palette dérivée de l'accentColor : pilote les titres, le brush,
+  // la sidebar, et les bordures. Le picker utilisateur change tout d'un coup.
+  const titleColor = accentColor;
+  const sidebarBg = mix(accentColor, 0.88);
+  const brushColor = mix(accentColor, 0.55);
   return (
     <div
       id="cv-render-root"
       className="bg-white shadow-lg relative overflow-hidden"
       style={{ width: "210mm", minHeight: "297mm", fontFamily: "system-ui, sans-serif", color: TEXT_COLOR }}
     >
-      {/* ─── Sidebar gauche bleue (sous le brush, pleine hauteur restante) ─── */}
+      {/* ─── Sidebar gauche (sous le brush, pleine hauteur restante) ─── */}
       <aside
         className="absolute left-0 w-[71mm] z-0"
         style={{
           top: "55mm",
           bottom: "0",
-          backgroundColor: SIDEBAR_BG,
+          backgroundColor: sidebarBg,
         }}
       />
 
       {/* ─── Header brush (toute la largeur, en haut) ──────────────────────── */}
       <header className="relative h-[60mm]">
-        {/* Image brush en fond */}
-        <img
-          src="/cv-templates/editorial-brush.png"
-          alt=""
-          className="absolute top-0 left-0 w-full h-full object-fill pointer-events-none"
+        {/* Brush : image PNG utilisée en mask CSS pour pouvoir colorier
+            dynamiquement avec brushColor. La forme déchirée est préservée,
+            seule la couleur suit l'accent. */}
+        <div
+          className="absolute top-0 left-0 w-full h-full pointer-events-none"
+          style={{
+            backgroundColor: brushColor,
+            maskImage: "url(/cv-templates/editorial-brush.png)",
+            WebkitMaskImage: "url(/cv-templates/editorial-brush.png)",
+            maskSize: "100% 100%",
+            WebkitMaskSize: "100% 100%",
+            maskRepeat: "no-repeat",
+            WebkitMaskRepeat: "no-repeat",
+          }}
           aria-hidden="true"
         />
 
@@ -95,20 +121,20 @@ export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc
         <div className="relative z-10 h-full flex items-center px-[10mm] gap-[8mm]">
           {/* Photo en hexagone */}
           <div className="shrink-0">
-            <PhotoHexagone photoUrl={data.photoUrl} fullName={data.fullName} />
+            <PhotoHexagone photoUrl={data.photoUrl} fullName={data.fullName} fallbackColor={titleColor} />
           </div>
 
           {/* Identité + intro à droite */}
           <div className="flex-1 min-w-0">
             <div
               className="text-3xl leading-none mb-1"
-              style={{ fontFamily: "'Allura', cursive", color: TITLE_COLOR }}
+              style={{ fontFamily: "'Allura', cursive", color: titleColor }}
             >
               {data.fullName || "Votre nom"}
             </div>
             <h1
               className="text-2xl font-bold uppercase leading-tight tracking-wide mb-2"
-              style={{ fontFamily: "'Lora', serif", color: TITLE_COLOR }}
+              style={{ fontFamily: "'Lora', serif", color: titleColor }}
             >
               {data.title || "Votre titre"}
             </h1>
@@ -127,7 +153,7 @@ export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc
         <aside className="w-[71mm] shrink-0 px-[8mm] py-[8mm] space-y-6">
           {/* Contact */}
           <section>
-            <SidebarTitle>{L.contact}</SidebarTitle>
+            <SidebarTitle color={titleColor}>{L.contact}</SidebarTitle>
             <ul className="space-y-1.5 text-xs break-words">
               {data.phoneNumber && <ContactRow accent={accentColor} symbol="☎">{data.phoneNumber}</ContactRow>}
               {data.email && <ContactRow accent={accentColor} symbol="✉">{data.email}</ContactRow>}
@@ -143,11 +169,11 @@ export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc
           {/* Compétences */}
           {data.hardSkills.length > 0 && (
             <section>
-              <SidebarTitle>{L.hardSkills}</SidebarTitle>
+              <SidebarTitle color={titleColor}>{L.hardSkills}</SidebarTitle>
               <ul className="space-y-1 text-xs">
                 {data.hardSkills.map((s, i) => (
                   <li key={i} className="flex gap-2 items-baseline">
-                    <span style={{ color: TITLE_COLOR }}>•</span>
+                    <span style={{ color: titleColor }}>•</span>
                     <span>{s}</span>
                   </li>
                 ))}
@@ -158,11 +184,11 @@ export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc
           {/* Qualités */}
           {data.softSkills.length > 0 && (
             <section>
-              <SidebarTitle>{L.softSkills}</SidebarTitle>
+              <SidebarTitle color={titleColor}>{L.softSkills}</SidebarTitle>
               <ul className="space-y-1 text-xs">
                 {data.softSkills.map((s, i) => (
                   <li key={i} className="flex gap-2 items-baseline">
-                    <span style={{ color: TITLE_COLOR }}>•</span>
+                    <span style={{ color: titleColor }}>•</span>
                     <span>{s}</span>
                   </li>
                 ))}
@@ -173,11 +199,11 @@ export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc
           {/* Langues (optionnel) */}
           {data.languages.length > 0 && (
             <section>
-              <SidebarTitle>{L.languages}</SidebarTitle>
+              <SidebarTitle color={titleColor}>{L.languages}</SidebarTitle>
               <ul className="space-y-1.5 text-xs">
                 {data.languages.map((l, i) => (
                   <li key={i}>
-                    <div className="font-semibold" style={{ color: TITLE_COLOR }}>
+                    <div className="font-semibold" style={{ color: titleColor }}>
                       {l.name}
                     </div>
                     <div className="text-[10px] uppercase tracking-wider text-gray-500">
@@ -192,11 +218,11 @@ export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc
           {/* Centres d'intérêt (optionnel) */}
           {data.interests.length > 0 && (
             <section>
-              <SidebarTitle>{L.interests}</SidebarTitle>
+              <SidebarTitle color={titleColor}>{L.interests}</SidebarTitle>
               <ul className="space-y-1 text-xs">
                 {data.interests.map((it, i) => (
                   <li key={i} className="flex gap-2 items-baseline">
-                    <span style={{ color: TITLE_COLOR }}>•</span>
+                    <span style={{ color: titleColor }}>•</span>
                     <span>{it}</span>
                   </li>
                 ))}
@@ -209,13 +235,13 @@ export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc
         <main className="flex-1 px-[10mm] py-[8mm] space-y-6">
           {data.experiences.length > 0 && (
             <section>
-              <MainTitle>{L.experiences}</MainTitle>
+              <MainTitle color={titleColor}>{L.experiences}</MainTitle>
               <div className="space-y-5">
                 {data.experiences.map((exp, i) => (
                   <article key={i}>
                     <h3
                       className="text-sm font-bold"
-                      style={{ fontFamily: "'Lora', serif", color: TITLE_COLOR }}
+                      style={{ fontFamily: "'Lora', serif", color: titleColor }}
                     >
                       {exp.position}
                     </h3>
@@ -242,13 +268,13 @@ export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc
 
           {data.education.length > 0 && (
             <section>
-              <MainTitle>{L.education}</MainTitle>
+              <MainTitle color={titleColor}>{L.education}</MainTitle>
               <div className="space-y-3">
                 {data.education.map((ed, i) => (
                   <article key={i}>
                     <h3
                       className="text-sm font-bold"
-                      style={{ fontFamily: "'Lora', serif", color: TITLE_COLOR }}
+                      style={{ fontFamily: "'Lora', serif", color: titleColor }}
                     >
                       {ed.degree}
                       {ed.field && ` — ${ed.field}`}
@@ -282,7 +308,15 @@ export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc
 /**
  * Photo en hexagone (SVG polygon) avec bordure blanche.
  */
-function PhotoHexagone({ photoUrl, fullName }: { photoUrl?: string; fullName: string }) {
+function PhotoHexagone({
+  photoUrl,
+  fullName,
+  fallbackColor,
+}: {
+  photoUrl?: string;
+  fullName: string;
+  fallbackColor: string;
+}) {
   const id = `hex-clip-${Math.random().toString(36).slice(2, 9)}`;
   const points = "50,2 96,28 96,87 50,113 4,87 4,28";
   return (
@@ -308,7 +342,7 @@ function PhotoHexagone({ photoUrl, fullName }: { photoUrl?: string; fullName: st
         />
       ) : (
         <>
-          <polygon points={points} fill={TITLE_COLOR} />
+          <polygon points={points} fill={fallbackColor} />
           <text
             x="50"
             y="65"
@@ -327,23 +361,23 @@ function PhotoHexagone({ photoUrl, fullName }: { photoUrl?: string; fullName: st
   );
 }
 
-function SidebarTitle({ children }: { children: React.ReactNode }) {
+function SidebarTitle({ children, color }: { children: React.ReactNode; color: string }) {
   return (
     <h2
       className="text-xs uppercase font-bold tracking-[0.18em] mb-2 pb-1 border-b"
-      style={{ color: TITLE_COLOR, borderColor: TITLE_COLOR, fontFamily: "'Lora', serif" }}
+      style={{ color, borderColor: color, fontFamily: "'Lora', serif" }}
     >
       {children}
     </h2>
   );
 }
 
-function MainTitle({ children }: { children: React.ReactNode }) {
+function MainTitle({ children, color }: { children: React.ReactNode; color: string }) {
   return (
-    <div className="mb-3 pb-1 border-b" style={{ borderColor: TITLE_COLOR }}>
+    <div className="mb-3 pb-1 border-b" style={{ borderColor: color }}>
       <h2
         className="text-base uppercase font-bold tracking-[0.15em]"
-        style={{ fontFamily: "'Lora', serif", color: TITLE_COLOR }}
+        style={{ fontFamily: "'Lora', serif", color }}
       >
         {children}
       </h2>
