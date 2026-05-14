@@ -20,10 +20,6 @@ interface Props {
   labels?: CvSectionLabels;
 }
 
-/**
- * Mixe un hex avec du blanc (0 = couleur pure, 1 = blanc).
- * Sert à dériver les variantes claires depuis l'accentColor.
- */
 function mix(hex: string, weightWhite: number): string {
   const m = hex.match(/^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i);
   if (!m) return hex;
@@ -39,20 +35,20 @@ function mix(hex: string, weightWhite: number): string {
  * "CV Document A4 Marketing Moderne Gris Noir Beige".
  *
  *  ┌────────────────────────────────────────────────────────────┐
- *  │ ╱╲ blob organique haut-gauche      ╱╲ blob organique haut  │
- *  │ ╲ photo ovale ╱       CÉDRIC      ╲ droite (déborde)       │
- *  │              ╲       MULLER       ╱                        │
- *  │               ╲ DIR. MARKETING  ╱                          │
+ *  │ ░░░░░░░░░░ BLOB GRISE (hauteur ~100mm) ░░░░░░░░░░░         │
+ *  │ ┌────────┐                                                  │
+ *  │ │squircle│   CÉDRIC                                        │
+ *  │ │ photo  │   MULLER                                        │
+ *  │ │        │   DIRECTEUR MARKETING                           │
+ *  │ └────────┘   Texte intro court...                          │
+ *  │             ╲___ courbe descendante ___╱                   │
  *  ├──────────┬──────────────────────────────────────────────────┤
- *  │ CONTACT  │  COMPÉTENCES                                    │
- *  │ ...      │  ...                                             │
- *  │          │                                                  │
- *  │ COMPÉT.  │  FORMATION                                      │
- *  │ ...      │  ...                                             │
- *  │          │                                                  │
- *  │ LANGUES  │  EXPÉRIENCES                                    │
- *  │ ...      │  ...                                             │
- *  │          │                                                  │
+ *  │ CONTACT  │   FORMATION                                     │
+ *  │ ...      │   ...                                            │
+ *  │ COMPÉT.  │                                                  │
+ *  │ ...      │   EXPÉRIENCES                                   │
+ *  │ LANGUES  │   ...                                            │
+ *  │ ...      │                                                  │
  *  │ LOISIRS  │                                                  │
  *  └──────────┴──────────────────────────────────────────────────┘
  */
@@ -63,8 +59,7 @@ export default function ExecutiveCurvedTemplate({
 }: Props) {
   const L = { ...DEFAULT_LABELS, ...labels };
   const mainColor = accentColor;
-  const blobColor = mix(accentColor, 0.05); // presque pure pour contraste
-  const lightBg = mix(accentColor, 0.95); // très clair pour éventuels accents
+  const blobColor = accentColor; // blob foncée = couleur principale
 
   return (
     <div
@@ -72,61 +67,56 @@ export default function ExecutiveCurvedTemplate({
       className="bg-white shadow-lg relative overflow-hidden"
       style={{ width: "210mm", minHeight: "297mm", fontFamily: "'Lora', serif", color: TEXT_COLOR }}
     >
-      {/* ─── Header avec blobs organiques ──────────────────────────────── */}
-      <header className="relative h-[105mm] overflow-hidden">
-        {/* Blob organique en haut à droite (déborde) */}
+      {/* ─── Header avec blob grise courbée ──────────────────────────────── */}
+      <header className="relative h-[105mm]">
+        {/* Blob unique en haut avec courbure organique en bas */}
         <svg
-          className="absolute top-0 right-0 pointer-events-none"
-          width="60%"
-          height="100%"
-          viewBox="0 0 400 500"
+          className="absolute top-0 left-0 w-full h-full pointer-events-none"
+          viewBox="0 0 800 420"
           preserveAspectRatio="none"
           aria-hidden="true"
         >
+          {/* Grand bandeau couvrant toute la largeur, bord bas ondulé/courbé.
+              La courbe démarre haut-gauche, plonge en bas-centre/gauche
+              puis remonte vers la droite — imite la blob du PPTX. */}
           <path
-            d="M 400,0 L 400,500 L 280,500 C 220,490 160,460 130,400 C 100,340 110,260 100,180 C 95,120 110,60 160,20 C 200,-10 280,-15 400,0 Z"
+            d="M 0,0
+               L 800,0
+               L 800,360
+               C 720,400 600,395 480,355
+               C 360,315 280,360 220,380
+               C 160,395 100,370 0,360
+               Z"
             fill={blobColor}
           />
         </svg>
 
-        {/* Blob organique en haut à gauche (déborde, plus petit) */}
-        <svg
-          className="absolute top-0 left-0 pointer-events-none"
-          width="40%"
-          height="60%"
-          viewBox="0 0 300 280"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-        >
-          <path
-            d="M -50,-50 L 250,-30 C 280,30 270,90 240,140 C 210,190 150,230 80,240 C 30,245 -20,220 -50,180 L -50,-50 Z"
-            fill={blobColor}
-          />
-        </svg>
-
-        {/* Contenu du header par-dessus les blobs */}
-        <div className="relative z-10 h-full flex items-center px-[15mm] gap-[10mm]">
-          {/* Photo ovale au centre */}
+        {/* Contenu du header */}
+        <div className="relative z-10 h-full flex items-center px-[15mm] gap-[12mm]">
+          {/* Photo squircle */}
           <div className="shrink-0">
-            <PhotoOvale photoUrl={data.photoUrl} fullName={data.fullName} accentColor={mainColor} />
+            <PhotoSquircle photoUrl={data.photoUrl} fullName={data.fullName} accentColor={mainColor} />
           </div>
 
-          {/* Nom + titre à droite */}
-          <div className="flex-1 min-w-0 text-white">
+          {/* Nom + titre + intro */}
+          <div className="flex-1 min-w-0 text-white pt-2">
             <h1
               className="font-bold uppercase leading-[0.95] tracking-tight"
-              style={{ fontSize: "44px", letterSpacing: "0.02em" }}
+              style={{ fontSize: "48px", letterSpacing: "0.02em" }}
             >
               {splitNameForDisplay(data.fullName)}
             </h1>
-            <div
-              className="mt-3 px-3 py-1 inline-block bg-white/20 backdrop-blur-sm"
-              style={{ borderTop: "2px solid white", borderBottom: "2px solid white" }}
+            <p
+              className="mt-3 font-semibold uppercase tracking-[0.2em]"
+              style={{ fontSize: "13px" }}
             >
-              <p className="font-semibold uppercase tracking-[0.15em] text-sm">
-                {data.title || "Votre titre"}
+              {data.title || "Votre titre"}
+            </p>
+            {data.professionalSummary && (
+              <p className="mt-3 text-[11px] leading-snug max-w-[95mm] text-white/90">
+                {data.professionalSummary}
               </p>
-            </div>
+            )}
           </div>
         </div>
       </header>
@@ -136,28 +126,25 @@ export default function ExecutiveCurvedTemplate({
         {/* Sidebar gauche */}
         <aside className="w-[60mm] shrink-0 space-y-6">
           {/* Contact */}
-          <section>
+          <section className="text-center">
             <SidebarTitle color={mainColor}>{L.contact}</SidebarTitle>
-            <ul className="space-y-1.5 text-xs break-words" style={{ color: TEXT_COLOR }}>
-              {data.phoneNumber && <li>📞 {data.phoneNumber}</li>}
-              {data.email && <li>✉ {data.email}</li>}
-              {data.linkedin && <li>🌐 {data.linkedin}</li>}
+            <ul className="space-y-1 text-xs" style={{ color: TEXT_COLOR }}>
               {(data.city || data.country) && (
-                <li>📍 {[data.city, data.country].filter(Boolean).join(", ")}</li>
+                <li>{[data.city, data.country].filter(Boolean).join(", ")}</li>
               )}
+              {data.email && <li>{data.email}</li>}
+              {data.phoneNumber && <li>{data.phoneNumber}</li>}
+              {data.linkedin && <li className="break-all">{data.linkedin}</li>}
             </ul>
           </section>
 
-          {/* Compétences (sidebar) */}
+          {/* Compétences */}
           {data.hardSkills.length > 0 && (
-            <section>
+            <section className="text-center">
               <SidebarTitle color={mainColor}>{L.hardSkills}</SidebarTitle>
               <ul className="space-y-1 text-xs">
                 {data.hardSkills.map((s, i) => (
-                  <li key={i} className="flex gap-2 items-baseline">
-                    <span style={{ color: mainColor }}>•</span>
-                    <span>{s}</span>
-                  </li>
+                  <li key={i}>{s}</li>
                 ))}
               </ul>
             </section>
@@ -165,20 +152,19 @@ export default function ExecutiveCurvedTemplate({
 
           {/* Langues */}
           {data.languages.length > 0 && (
-            <section>
+            <section className="text-center">
               <SidebarTitle color={mainColor}>{L.languages}</SidebarTitle>
-              <ul className="space-y-1.5 text-xs">
+              <ul className="space-y-1 text-xs">
                 {data.languages.map((l, i) => (
                   <li key={i}>
-                    <div className="font-semibold" style={{ color: mainColor }}>
-                      {l.name}
-                    </div>
-                    <div
-                      className="text-[10px] uppercase tracking-wider"
-                      style={{ color: TEXT_LIGHT }}
-                    >
-                      {l.level.replace(/_/g, " ")}
-                    </div>
+                    {l.name}
+                    {l.level && (
+                      <span style={{ color: TEXT_LIGHT }}>
+                        {" ("}
+                        {l.level.replace(/_/g, " ")}
+                        {")"}
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -187,14 +173,23 @@ export default function ExecutiveCurvedTemplate({
 
           {/* Loisirs */}
           {data.interests.length > 0 && (
-            <section>
+            <section className="text-center">
               <SidebarTitle color={mainColor}>{L.interests}</SidebarTitle>
               <ul className="space-y-1 text-xs">
                 {data.interests.map((it, i) => (
-                  <li key={i} className="flex gap-2 items-baseline">
-                    <span style={{ color: mainColor }}>•</span>
-                    <span>{it}</span>
-                  </li>
+                  <li key={i}>{it}</li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {/* Qualités (optionnel) */}
+          {data.softSkills.length > 0 && (
+            <section className="text-center">
+              <SidebarTitle color={mainColor}>{L.softSkills}</SidebarTitle>
+              <ul className="space-y-1 text-xs">
+                {data.softSkills.map((s, i) => (
+                  <li key={i}>{s}</li>
                 ))}
               </ul>
             </section>
@@ -202,54 +197,25 @@ export default function ExecutiveCurvedTemplate({
         </aside>
 
         {/* Main */}
-        <main className="flex-1 space-y-6">
-          {/* Qualités (équivalent COMPÉTENCES dans le PPT, séparé des hard skills) */}
-          {data.softSkills.length > 0 && (
-            <section>
-              <MainTitle color={mainColor}>{L.softSkills}</MainTitle>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                {data.softSkills.map((s, i) => (
-                  <div key={i} className="flex gap-2 items-baseline">
-                    <span style={{ color: mainColor }}>•</span>
-                    <span>{s}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
+        <main className="flex-1 space-y-7">
           {/* Formations */}
           {data.education.length > 0 && (
             <section>
               <MainTitle color={mainColor}>{L.education}</MainTitle>
-              <div className="space-y-2.5">
+              <div className="space-y-1.5">
                 {data.education.map((ed, i) => (
-                  <article key={i} className="flex gap-3">
-                    <div
-                      className="w-[45px] shrink-0 text-[10px] text-right pt-0.5"
-                      style={{ color: TEXT_LIGHT }}
-                    >
-                      <div>{formatDateShort(ed.startDate)}</div>
-                      <div>{formatDateShort(ed.endDate)}</div>
-                    </div>
-                    <div
-                      className="w-[2px] shrink-0 mt-1"
-                      style={{ backgroundColor: mainColor, minHeight: "30px" }}
-                    />
-                    <div className="flex-1">
-                      <h3 className="text-sm font-bold" style={{ color: mainColor }}>
-                        {ed.degree}
-                        {ed.field && ` — ${ed.field}`}
-                      </h3>
-                      <div className="text-xs italic" style={{ color: TEXT_LIGHT }}>
-                        {ed.school}
-                      </div>
-                      {ed.description && (
-                        <p className="text-xs mt-1" style={{ color: TEXT_COLOR }}>
-                          {ed.description}
-                        </p>
-                      )}
-                    </div>
+                  <article key={i} className="text-sm">
+                    <span className="font-bold" style={{ color: mainColor }}>
+                      {formatYear(ed.startDate) || formatYear(ed.endDate)}
+                    </span>
+                    {" – "}
+                    <span className="font-semibold">
+                      {ed.degree}
+                      {ed.field && ` — ${ed.field}`}
+                    </span>
+                    {ed.school && (
+                      <span style={{ color: TEXT_LIGHT }}> · {ed.school}</span>
+                    )}
                   </article>
                 ))}
               </div>
@@ -260,32 +226,33 @@ export default function ExecutiveCurvedTemplate({
           {data.experiences.length > 0 && (
             <section>
               <MainTitle color={mainColor}>{L.experiences}</MainTitle>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {data.experiences.map((exp, i) => (
-                  <article key={i} className="flex gap-3">
-                    <div
-                      className="w-[45px] shrink-0 text-[10px] text-right pt-0.5"
-                      style={{ color: TEXT_LIGHT }}
-                    >
+                  <article key={i} className="flex gap-4">
+                    <div className="w-[60px] shrink-0 text-xs pt-0.5 font-semibold" style={{ color: TEXT_COLOR }}>
                       <div>{formatDateShort(exp.startDate)}</div>
-                      <div>{exp.current ? "Auj." : formatDateShort(exp.endDate)}</div>
+                      {exp.company && (
+                        <div className="font-normal italic mt-1" style={{ color: TEXT_LIGHT }}>
+                          {exp.company}
+                        </div>
+                      )}
                     </div>
-                    <div
-                      className="w-[2px] shrink-0 mt-1"
-                      style={{ backgroundColor: mainColor, minHeight: "30px" }}
-                    />
                     <div className="flex-1">
-                      <h3 className="text-sm font-bold" style={{ color: mainColor }}>
+                      <h3
+                        className="text-sm font-bold uppercase tracking-wider mb-1"
+                        style={{ color: mainColor }}
+                      >
                         {exp.position}
                       </h3>
-                      <div className="text-xs italic" style={{ color: TEXT_LIGHT }}>
-                        {exp.company}
-                        {exp.location && ` · ${exp.location}`}
-                      </div>
                       {exp.description && (
-                        <p className="text-xs mt-1 leading-snug" style={{ color: TEXT_COLOR }}>
-                          {exp.description}
-                        </p>
+                        <ul className="space-y-0.5 text-xs leading-snug" style={{ color: TEXT_COLOR }}>
+                          {exp.description.split("\n").map((line, j) => (
+                            <li key={j} className="flex gap-2">
+                              <span style={{ color: mainColor }}>·</span>
+                              <span>{line}</span>
+                            </li>
+                          ))}
+                        </ul>
                       )}
                     </div>
                   </article>
@@ -301,7 +268,11 @@ export default function ExecutiveCurvedTemplate({
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function PhotoOvale({
+/**
+ * Photo en squircle (rectangle vertical à coins très arrondis).
+ * Ratio ~3:4 pour matcher la maquette.
+ */
+function PhotoSquircle({
   photoUrl,
   fullName,
   accentColor,
@@ -310,49 +281,40 @@ function PhotoOvale({
   fullName: string;
   accentColor: string;
 }) {
-  // Ovale vertical (ellipse 60×80 ratio ~3:4)
-  const id = `oval-clip-${Math.random().toString(36).slice(2, 9)}`;
   return (
-    <svg viewBox="0 0 100 130" width="120" height="156" className="block">
-      <defs>
-        <clipPath id={id}>
-          <ellipse cx="50" cy="65" rx="48" ry="63" />
-        </clipPath>
-      </defs>
+    <div
+      className="overflow-hidden bg-gray-200"
+      style={{
+        width: "130px",
+        height: "165px",
+        borderRadius: "22%",
+        border: "3px solid white",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+      }}
+    >
       {photoUrl ? (
-        <image
-          href={photoUrl}
-          width="100"
-          height="130"
-          preserveAspectRatio="xMidYMid slice"
-          clipPath={`url(#${id})`}
+        <img
+          src={photoUrl}
+          alt={fullName}
+          className="w-full h-full object-cover"
         />
       ) : (
-        <>
-          <ellipse cx="50" cy="65" rx="48" ry="63" fill={accentColor} opacity="0.3" />
-          <text
-            x="50"
-            y="73"
-            textAnchor="middle"
-            fontSize="24"
-            fontWeight="bold"
-            fill="white"
-            fontFamily="system-ui"
-          >
-            {getInitials(fullName)}
-          </text>
-        </>
+        <div
+          className="w-full h-full flex items-center justify-center text-3xl font-bold text-white"
+          style={{ backgroundColor: accentColor }}
+        >
+          {getInitials(fullName)}
+        </div>
       )}
-      <ellipse cx="50" cy="65" rx="48" ry="63" fill="none" stroke="white" strokeWidth="3" />
-    </svg>
+    </div>
   );
 }
 
 function SidebarTitle({ children, color }: { children: React.ReactNode; color: string }) {
   return (
     <h2
-      className="text-sm uppercase font-bold tracking-[0.18em] mb-2 pb-1 border-b"
-      style={{ color, borderColor: color }}
+      className="text-sm uppercase font-bold tracking-[0.25em] mb-2"
+      style={{ color }}
     >
       {children}
     </h2>
@@ -361,14 +323,12 @@ function SidebarTitle({ children, color }: { children: React.ReactNode; color: s
 
 function MainTitle({ children, color }: { children: React.ReactNode; color: string }) {
   return (
-    <div className="mb-3 pb-1 border-b-2" style={{ borderColor: color }}>
-      <h2
-        className="text-base uppercase font-bold tracking-[0.18em]"
-        style={{ color }}
-      >
-        {children}
-      </h2>
-    </div>
+    <h2
+      className="text-base uppercase font-bold tracking-[0.25em] mb-3 text-center"
+      style={{ color }}
+    >
+      {children}
+    </h2>
   );
 }
 
@@ -385,11 +345,6 @@ function getInitials(fullName: string): string {
     .toUpperCase();
 }
 
-/**
- * Affiche le nom sur 2 lignes (prénom / nom) avec une coupure pour
- * imiter la maquette CÉDRIC / MULLER.
- * Si nom vide, juste le prénom sur 2 lignes selon la longueur.
- */
 function splitNameForDisplay(fullName: string): React.ReactNode {
   const parts = (fullName || "Votre nom").trim().split(/\s+/);
   if (parts.length >= 2) {
@@ -404,16 +359,19 @@ function splitNameForDisplay(fullName: string): React.ReactNode {
   return parts[0];
 }
 
+function formatYear(d?: string): string {
+  if (!d) return "";
+  const m = d.match(/^(\d{4})/);
+  return m ? m[1] : d;
+}
+
 function formatDateShort(d?: string): string {
   if (!d) return "";
   const m = d.match(/^(\d{4})-?(\d{2})?/);
   if (m) {
     const year = m[1];
     const month = m[2];
-    if (month) {
-      const months = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
-      return `${months[parseInt(month) - 1] ?? ""}/${year}`;
-    }
+    if (month) return `${month}/${year}`;
     return year;
   }
   return d;
