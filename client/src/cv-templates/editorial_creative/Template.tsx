@@ -5,47 +5,53 @@ interface Props {
   accentColor?: string;
 }
 
+// Couleurs figées du template (commande maquette)
+const SIDEBAR_BG = "#e5f4f6"; // bleu pastel très clair
+const TITLE_COLOR = "#36626b"; // bleu canard foncé pour les titres
+const BRUSH_COLOR = "#9ec9d2"; // brush décoratif un peu plus prononcé
+
 /**
- * Template "Editorial Creative" — inspiré du style magazine
- *  - Sidebar gauche bleu pastel pleine hauteur (avec photo en losange,
- *    signature manuscrite prénom+nom, contact, compétences, qualités)
- *  - Zone droite blanche : intro + expérience professionnelle + formations
- *  - Effet brush organique sur la frontière entre les 2 zones
- *  - Titres de section en font Lora pour le côté éditorial
+ * Template "Editorial Creative" — style magazine éditorial
+ *  - Sidebar gauche bleu pastel pleine hauteur
+ *  - Brush décoratif (SVG filter) au-dessus de la photo dans le bandeau
+ *  - Photo en hexagone (SVG polygon)
+ *  - Signature manuscrite (Allura) prénom + nom
+ *  - Titres en font Lora couleur canard foncé, soulignés d'une ligne fine
+ *
+ * L'accentColor du picker influence les puces et l'épaisseur du brush.
+ * Les couleurs principales (sidebar, titres) sont figées par charte.
  */
 export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc" }: Props) {
-  const pastel = pastelize(accentColor);
-
   return (
     <div
       id="cv-render-root"
-      className="bg-white shadow-lg flex text-gray-900 relative"
+      className="bg-white shadow-lg flex text-gray-900 relative overflow-hidden"
       style={{ width: "210mm", minHeight: "297mm", fontFamily: "system-ui, sans-serif" }}
     >
       {/* ─── Sidebar gauche bleue pastel ─────────────────────────── */}
       <aside
-        className="w-[36%] shrink-0 px-7 py-8 relative"
-        style={{ backgroundColor: pastel }}
+        className="w-[36%] shrink-0 px-7 pt-12 pb-8 relative"
+        style={{ backgroundColor: SIDEBAR_BG }}
       >
-        {/* Photo en losange + signature + titre */}
-        <div className="flex flex-col items-center text-center mb-6">
-          {/* Photo en losange */}
-          <div className="relative mb-5">
-            <PhotoLosange photoUrl={data.photoUrl} accentColor={accentColor} fullName={data.fullName} />
-          </div>
+        {/* Brush décoratif en haut de la sidebar */}
+        <BrushStroke />
 
-          {/* Signature manuscrite (prénom + nom complet) */}
+        {/* Photo en hexagone + signature + titre */}
+        <div className="flex flex-col items-center text-center mb-7 relative z-10">
+          <PhotoHexagone photoUrl={data.photoUrl} fullName={data.fullName} />
+
+          {/* Signature manuscrite prénom + nom */}
           <div
-            className="text-3xl text-gray-700 leading-none mb-2"
-            style={{ fontFamily: "'Allura', cursive" }}
+            className="mt-4 text-3xl leading-none mb-2"
+            style={{ fontFamily: "'Allura', cursive", color: TITLE_COLOR }}
           >
             {data.fullName || "Votre nom"}
           </div>
 
           {/* Titre principal façon magazine */}
           <h1
-            className="text-xl font-bold uppercase leading-tight tracking-wide text-gray-900"
-            style={{ fontFamily: "'Lora', serif" }}
+            className="text-xl font-bold uppercase leading-tight tracking-wide"
+            style={{ fontFamily: "'Lora', serif", color: TITLE_COLOR }}
           >
             {data.title || "Votre titre"}
           </h1>
@@ -53,7 +59,7 @@ export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc
 
         {/* Contact */}
         <section className="mb-6">
-          <SidebarTitle accent={accentColor}>Contact</SidebarTitle>
+          <SidebarTitle>Contact</SidebarTitle>
           <ul className="space-y-1.5 text-xs text-gray-700 break-words">
             {data.phoneNumber && <ContactRow accent={accentColor} symbol="☎">{data.phoneNumber}</ContactRow>}
             {data.email && <ContactRow accent={accentColor} symbol="✉">{data.email}</ContactRow>}
@@ -69,7 +75,7 @@ export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc
         {/* Compétences */}
         {data.hardSkills.length > 0 && (
           <section className="mb-6">
-            <SidebarTitle accent={accentColor}>Compétences</SidebarTitle>
+            <SidebarTitle>Compétences</SidebarTitle>
             <ul className="space-y-1 text-xs text-gray-700">
               {data.hardSkills.map((s, i) => (
                 <li key={i} className="flex gap-2 items-baseline">
@@ -84,7 +90,7 @@ export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc
         {/* Qualités */}
         {data.softSkills.length > 0 && (
           <section className="mb-6">
-            <SidebarTitle accent={accentColor}>Qualités</SidebarTitle>
+            <SidebarTitle>Qualités</SidebarTitle>
             <ul className="space-y-1 text-xs text-gray-700">
               {data.softSkills.map((s, i) => (
                 <li key={i} className="flex gap-2 items-baseline">
@@ -99,11 +105,13 @@ export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc
         {/* Langues */}
         {data.languages.length > 0 && (
           <section className="mb-6">
-            <SidebarTitle accent={accentColor}>Langues</SidebarTitle>
+            <SidebarTitle>Langues</SidebarTitle>
             <ul className="space-y-1.5 text-xs text-gray-700">
               {data.languages.map((l, i) => (
                 <li key={i}>
-                  <div className="font-semibold text-gray-800">{l.name}</div>
+                  <div className="font-semibold" style={{ color: TITLE_COLOR }}>
+                    {l.name}
+                  </div>
                   <div className="text-[10px] uppercase tracking-wider text-gray-500">
                     {l.level.replace(/_/g, " ")}
                   </div>
@@ -116,7 +124,7 @@ export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc
         {/* Centres d'intérêt */}
         {data.interests.length > 0 && (
           <section>
-            <SidebarTitle accent={accentColor}>Centres d'intérêt</SidebarTitle>
+            <SidebarTitle>Centres d'intérêt</SidebarTitle>
             <ul className="space-y-1 text-xs text-gray-700">
               {data.interests.map((it, i) => (
                 <li key={i} className="flex gap-2 items-baseline">
@@ -127,16 +135,13 @@ export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc
             </ul>
           </section>
         )}
-
-        {/* Effet brush sur la frontière droite (déborde sur le contenu) */}
-        <BrushEdge color={pastel} />
       </aside>
 
       {/* ─── Colonne principale blanche ────────────────────────── */}
-      <main className="flex-1 px-10 py-8 space-y-7 relative">
+      <main className="flex-1 px-10 py-10 space-y-7 relative">
         {/* Intro / résumé */}
         {data.professionalSummary && (
-          <section className="pb-3 border-b border-gray-200">
+          <section className="pb-3">
             <p className="text-sm text-gray-700 leading-relaxed italic">
               {data.professionalSummary}
             </p>
@@ -146,13 +151,13 @@ export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc
         {/* Expériences */}
         {data.experiences.length > 0 && (
           <section>
-            <MainTitle accent={accentColor}>Expérience professionnelle</MainTitle>
+            <MainTitle>Expérience professionnelle</MainTitle>
             <div className="space-y-5">
               {data.experiences.map((exp, i) => (
                 <article key={i}>
                   <h3
-                    className="text-sm font-bold text-gray-900"
-                    style={{ fontFamily: "'Lora', serif" }}
+                    className="text-sm font-bold"
+                    style={{ fontFamily: "'Lora', serif", color: TITLE_COLOR }}
                   >
                     {exp.position}
                   </h3>
@@ -190,13 +195,13 @@ export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc
         {/* Formations */}
         {data.education.length > 0 && (
           <section>
-            <MainTitle accent={accentColor}>Formations</MainTitle>
+            <MainTitle>Formations</MainTitle>
             <div className="space-y-3">
               {data.education.map((ed, i) => (
                 <article key={i}>
                   <h3
-                    className="text-sm font-bold text-gray-900"
-                    style={{ fontFamily: "'Lora', serif" }}
+                    className="text-sm font-bold"
+                    style={{ fontFamily: "'Lora', serif", color: TITLE_COLOR }}
                   >
                     {ed.degree}
                     {ed.field && ` — ${ed.field}`}
@@ -226,87 +231,107 @@ export default function EditorialCreativeTemplate({ data, accentColor = "#7dd3fc
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function PhotoLosange({
-  photoUrl,
-  accentColor,
-  fullName,
-}: {
-  photoUrl?: string;
-  accentColor: string;
-  fullName: string;
-}) {
-  // Carré tourné de 45° pour faire un losange.
-  // L'image est tournée -45° à l'intérieur pour rester droite visuellement.
-  return (
-    <div
-      className="w-32 h-32 overflow-hidden shadow-md"
-      style={{
-        transform: "rotate(45deg)",
-        border: `4px solid white`,
-        outline: `1px solid ${accentColor}`,
-      }}
-    >
-      <div
-        className="w-full h-full flex items-center justify-center"
-        style={{ transform: "rotate(-45deg) scale(1.4)" }}
-      >
-        {photoUrl ? (
-          <img src={photoUrl} alt={fullName} className="w-full h-full object-cover" />
-        ) : (
-          <div
-            className="w-full h-full flex items-center justify-center text-2xl font-bold text-white"
-            style={{ backgroundColor: accentColor }}
-          >
-            {getInitials(fullName)}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 /**
- * Effet "brush stroke" sur la frontière droite de la sidebar.
- * SVG path qui simule un coup de pinceau organique.
+ * Effet brush décoratif (SVG inline) en haut de la sidebar.
+ * Filter feTurbulence + feDisplacementMap simulent un coup de pinceau organique.
  */
-function BrushEdge({ color }: { color: string }) {
+function BrushStroke() {
   return (
     <svg
-      className="absolute top-0 -right-3 h-full pointer-events-none"
-      width="20"
-      viewBox="0 0 20 800"
+      className="absolute top-3 left-2 right-2 h-16 pointer-events-none z-0"
+      viewBox="0 0 200 50"
       preserveAspectRatio="none"
+      aria-hidden="true"
     >
-      <path
-        d="M0,0 L8,0 Q14,40 6,90 T12,180 T4,270 T14,360 T6,460 T12,560 T4,660 T10,760 L10,800 L0,800 Z"
-        fill={color}
+      <defs>
+        <filter id="brush-grunge" x="-5%" y="-15%" width="110%" height="130%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.04 0.08" numOctaves="3" seed="7" />
+          <feDisplacementMap in="SourceGraphic" scale="8" />
+        </filter>
+      </defs>
+      <rect
+        x="5"
+        y="8"
+        width="190"
+        height="34"
+        rx="2"
+        fill={BRUSH_COLOR}
+        filter="url(#brush-grunge)"
+        opacity="0.85"
       />
-      {/* Petites éclaboussures décoratives pour renforcer l'effet brush */}
-      <circle cx="16" cy="120" r="2" fill={color} opacity="0.6" />
-      <circle cx="14" cy="320" r="1.5" fill={color} opacity="0.5" />
-      <circle cx="17" cy="540" r="2.5" fill={color} opacity="0.7" />
-      <circle cx="13" cy="700" r="1.5" fill={color} opacity="0.5" />
     </svg>
   );
 }
 
-function SidebarTitle({ children, accent }: { children: React.ReactNode; accent: string }) {
+/**
+ * Photo en hexagone (SVG polygon) avec bordure blanche fine.
+ * Si pas de photo : fond avec initiales.
+ */
+function PhotoHexagone({ photoUrl, fullName }: { photoUrl?: string; fullName: string }) {
+  const id = `hex-clip-${Math.random().toString(36).slice(2, 9)}`;
+  // Hexagone vertical (pointes haut/bas), proportions ~1:1.155 (cos 30°)
+  const points = "50,2 96,28 96,87 50,113 4,87 4,28";
+  return (
+    <svg
+      viewBox="0 0 100 115"
+      width="160"
+      height="184"
+      className="block relative z-10"
+      style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.15))" }}
+    >
+      <defs>
+        <clipPath id={id}>
+          <polygon points={points} />
+        </clipPath>
+      </defs>
+      {photoUrl ? (
+        <image
+          href={photoUrl}
+          width="100"
+          height="115"
+          preserveAspectRatio="xMidYMid slice"
+          clipPath={`url(#${id})`}
+        />
+      ) : (
+        <polygon points={points} fill={TITLE_COLOR} />
+      )}
+      {/* Initiales si pas de photo */}
+      {!photoUrl && (
+        <text
+          x="50"
+          y="65"
+          textAnchor="middle"
+          fontSize="22"
+          fontWeight="bold"
+          fill="white"
+          fontFamily="system-ui"
+        >
+          {getInitials(fullName)}
+        </text>
+      )}
+      {/* Bordure blanche par-dessus pour effet "passe-partout" */}
+      <polygon points={points} fill="none" stroke="white" strokeWidth="3" />
+    </svg>
+  );
+}
+
+function SidebarTitle({ children }: { children: React.ReactNode }) {
   return (
     <h2
       className="text-xs uppercase font-bold tracking-[0.18em] mb-2 pb-1 border-b"
-      style={{ color: "#1f2937", borderColor: accent, fontFamily: "'Lora', serif" }}
+      style={{ color: TITLE_COLOR, borderColor: TITLE_COLOR, fontFamily: "'Lora', serif" }}
     >
       {children}
     </h2>
   );
 }
 
-function MainTitle({ children, accent }: { children: React.ReactNode; accent: string }) {
+function MainTitle({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mb-3 pb-1 border-b-2" style={{ borderColor: accent }}>
+    <div className="mb-3 pb-1 border-b" style={{ borderColor: TITLE_COLOR }}>
       <h2
-        className="text-base uppercase font-bold tracking-[0.15em] text-gray-900"
-        style={{ fontFamily: "'Lora', serif" }}
+        className="text-base uppercase font-bold tracking-[0.15em]"
+        style={{ fontFamily: "'Lora', serif", color: TITLE_COLOR }}
       >
         {children}
       </h2>
@@ -357,15 +382,4 @@ function formatDate(d?: string): string {
     return year;
   }
   return d;
-}
-
-/** Convertit un hex accent en sa version pastel (~82% blanc + 18% accent). */
-function pastelize(hex: string): string {
-  const m = hex.match(/^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i);
-  if (!m) return "#dbeafe"; // fallback bleu pastel
-  const r = parseInt(m[1], 16);
-  const g = parseInt(m[2], 16);
-  const b = parseInt(m[3], 16);
-  const mix = (c: number) => Math.round(c * 0.18 + 255 * 0.82);
-  return `rgb(${mix(r)}, ${mix(g)}, ${mix(b)})`;
 }
