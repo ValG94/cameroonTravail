@@ -1,9 +1,6 @@
 import type { CvTemplateData } from "../types";
 import type { CvSectionLabels } from "../registry";
 
-const TEXT_COLOR = "#1f2937";
-const TEXT_LIGHT = "#6b7280";
-
 const DEFAULT_LABELS: Required<CvSectionLabels> = {
   contact: "Informations",
   hardSkills: "Compétences",
@@ -20,92 +17,76 @@ interface Props {
   labels?: CvSectionLabels;
 }
 
-function mix(hex: string, weightWhite: number): string {
-  const m = hex.match(/^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i);
-  if (!m) return hex;
-  const r = parseInt(m[1], 16);
-  const g = parseInt(m[2], 16);
-  const b = parseInt(m[3], 16);
-  const f = (c: number) => Math.round(c * (1 - weightWhite) + 255 * weightWhite);
-  return `rgb(${f(r)}, ${f(g)}, ${f(b)})`;
-}
-
 /**
- * Template "Communication Minimaliste" (anciennement hospitality_timeline)
- * d'après le PPTX "CV professionnel chargé de communication minimaliste bleu.pptx".
+ * Template "Communication Minimaliste" — d'après le PPTX
+ * "CV professionnel chargé de communication minimaliste bleu.pptx"
+ * (Antoine Auclair).
  *
- * Structure :
- *  ┌─────────────────┬───────────────────────────────────────┐
- *  │   ▒▒▒▒▒▒▒▒▒▒    │                                       │
- *  │   ▒▒ photo ▒▒   │   Antoine Auclair (gros bleu)         │
- *  │   ▒▒▒▒▒▒▒▒▒▒    │   CHARGÉ DE COMMUNICATION             │
- *  │                 │   Paragraphe d'intro                   │
- *  │   INFORMATIONS  │                                       │
- *  │   ─────────     │                                       │
- *  │   téléphone     │   ━━━━━━ EXPÉRIENCES PROF. ━━━━━━     │
- *  │   email         │                                       │
- *  │   adresse       │   ●   Chargé de Communication         │
- *  │                 │       JANVIER 2018 - ACTUEL           │
- *  │   COMPÉTENCES   │       Description...                  │
- *  │   ─────────     │                                       │
- *  │   ...           │   ●   Assistant Chargé...             │
- *  │                 │       JUIN 2015 - DÉCEMBRE 2017       │
- *  │   LANGUES       │       Description...                  │
- *  │   ─────────     │                                       │
- *  │   ...           │   ━━━━━━━━ FORMATIONS ━━━━━━━━        │
- *  │                 │                                       │
- *  │   INTÉRÊTS      │   ●   Master en Communication...      │
- *  │   ─────────     │       2013 - 2015                     │
- *  │   ...           │       École...                        │
- *  └─────────────────┴───────────────────────────────────────┘
+ *  Fond entier en bleu marine. Sidebar texte BLANC à gauche.
+ *  Items expériences/formations en cartes BLANCHES sur le fond bleu.
+ *  Ligne verticale pointillée séparant sidebar et main.
  *
- * Sidebar bleu marine (foncé) sur la gauche, contenu à droite sur fond blanc.
- * Puces rondes bleues à gauche de chaque expérience/formation.
+ *  ┌───────────────────────────────────────────────────────────┐
+ *  │ ▓▓▓ FOND BLEU MARINE COMPLET ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ │
+ *  │  ┌──────┐                                                  │
+ *  │  │photo │┊  ANTOINE AUCLAIR (blanc)                        │
+ *  │  └──────┘┊  CHARGÉ DE COMMUNICATION                        │
+ *  │          ┊  Intro...                                       │
+ *  │ INFOS    ┊  ─────────                                      │
+ *  │ ────     ┊  EXPÉRIENCES PROF.                              │
+ *  │ tel      ┊  ┌──────────────────────────────────────────┐   │
+ *  │ email    ┊  │ ● Chargé de Comm - Agence Tempo (foncé) │   │
+ *  │ adresse  ┊  │   JANVIER 2018 - ACTUEL                  │   │
+ *  │          ┊  │   Description...                         │   │
+ *  │ COMPÉT.  ┊  └──────────────────────────────────────────┘   │
+ *  │ ...      ┊  ...                                            │
+ *  │ LANGUES  ┊  FORMATIONS                                     │
+ *  │ ...      ┊  ...                                            │
+ *  │ INTÉRÊTS ┊                                                 │
+ *  │ ...      ┊                                                 │
+ *  └───────────────────────────────────────────────────────────┘
  */
 export default function HospitalityTimelineTemplate({
   data,
-  accentColor = "#1e3a5f",
+  accentColor = "#14215D",
   labels,
 }: Props) {
   const L = { ...DEFAULT_LABELS, ...labels };
-  const mainColor = accentColor;
-  const sidebarBg = mix(accentColor, 0.92); // très clair (presque blanc bleuté)
+  const bgColor = accentColor;
 
   return (
     <div
       id="cv-render-root"
-      className="bg-white shadow-lg flex"
+      className="shadow-lg flex relative"
       style={{
         width: "210mm",
         minHeight: "297mm",
         fontFamily: "'Inter', sans-serif",
-        color: TEXT_COLOR,
+        backgroundColor: bgColor,
+        color: "#ffffff",
       }}
     >
-      {/* ─── Sidebar gauche ─────────────────────────────────────────── */}
-      <aside
-        className="w-[88mm] shrink-0 px-[10mm] py-[10mm]"
-        style={{ backgroundColor: sidebarBg }}
-      >
+      {/* ─── Sidebar gauche (texte blanc sur fond bleu marine) ────── */}
+      <aside className="w-[80mm] shrink-0 px-[10mm] py-[12mm] relative">
         {/* Photo carrée en haut */}
-        <PhotoSquare photoUrl={data.photoUrl} fullName={data.fullName} accentColor={mainColor} />
+        <PhotoSquare photoUrl={data.photoUrl} fullName={data.fullName} />
 
         {/* INFORMATIONS */}
-        <SidebarSection title={L.contact} color={mainColor}>
-          <div className="space-y-1" style={{ fontSize: "9pt", color: TEXT_COLOR }}>
-            {data.phoneNumber && <div>{data.phoneNumber}</div>}
-            {data.email && <div className="break-all">{data.email}</div>}
+        <SidebarSection title={L.contact}>
+          <ul className="space-y-1.5" style={{ fontSize: "9pt" }}>
+            {data.phoneNumber && <li>{data.phoneNumber}</li>}
+            {data.email && <li className="break-all">{data.email}</li>}
             {(data.city || data.country) && (
-              <div>{[data.city, data.country].filter(Boolean).join(", ")}</div>
+              <li>{[data.city, data.country].filter(Boolean).join(", ")}</li>
             )}
-            {data.linkedin && <div className="break-all">{data.linkedin}</div>}
-          </div>
+            {data.linkedin && <li className="break-all">{data.linkedin}</li>}
+          </ul>
         </SidebarSection>
 
         {/* COMPÉTENCES */}
         {data.hardSkills.length > 0 && (
-          <SidebarSection title={L.hardSkills} color={mainColor}>
-            <ul className="space-y-1" style={{ fontSize: "9pt", color: TEXT_COLOR }}>
+          <SidebarSection title={L.hardSkills}>
+            <ul className="space-y-1.5" style={{ fontSize: "9pt" }}>
               {data.hardSkills.map((s, i) => (
                 <li key={i}>{s}</li>
               ))}
@@ -115,8 +96,8 @@ export default function HospitalityTimelineTemplate({
 
         {/* QUALITÉS (optionnel) */}
         {data.softSkills.length > 0 && (
-          <SidebarSection title={L.softSkills} color={mainColor}>
-            <ul className="space-y-1" style={{ fontSize: "9pt", color: TEXT_COLOR }}>
+          <SidebarSection title={L.softSkills}>
+            <ul className="space-y-1.5" style={{ fontSize: "9pt" }}>
               {data.softSkills.map((s, i) => (
                 <li key={i}>{s}</li>
               ))}
@@ -126,8 +107,8 @@ export default function HospitalityTimelineTemplate({
 
         {/* LANGUES */}
         {data.languages.length > 0 && (
-          <SidebarSection title={L.languages} color={mainColor}>
-            <ul className="space-y-1" style={{ fontSize: "9pt", color: TEXT_COLOR }}>
+          <SidebarSection title={L.languages}>
+            <ul className="space-y-1.5" style={{ fontSize: "9pt" }}>
               {data.languages.map((l, i) => (
                 <li key={i}>
                   {l.name}
@@ -140,8 +121,8 @@ export default function HospitalityTimelineTemplate({
 
         {/* INTÉRÊTS */}
         {data.interests.length > 0 && (
-          <SidebarSection title={L.interests} color={mainColor}>
-            <ul className="space-y-1" style={{ fontSize: "9pt", color: TEXT_COLOR }}>
+          <SidebarSection title={L.interests}>
+            <ul className="space-y-1.5" style={{ fontSize: "9pt" }}>
               {data.interests.map((it, i) => (
                 <li key={i}>{it}</li>
               ))}
@@ -150,17 +131,27 @@ export default function HospitalityTimelineTemplate({
         )}
       </aside>
 
+      {/* ─── Ligne verticale pointillée séparatrice ────────────────── */}
+      <div
+        className="absolute top-[15mm] bottom-[15mm] pointer-events-none"
+        style={{
+          left: "80mm",
+          width: "0",
+          borderLeft: "1px dashed rgba(255,255,255,0.3)",
+        }}
+        aria-hidden="true"
+      />
+
       {/* ─── Colonne principale droite ─────────────────────────────── */}
-      <main className="flex-1 px-[12mm] py-[15mm]">
-        {/* Identité + intro */}
-        <header className="mb-8">
+      <main className="flex-1 px-[12mm] py-[12mm] space-y-6">
+        {/* Identité + intro (texte BLANC sur fond bleu) */}
+        <header>
           <h1
             className="leading-tight"
             style={{
-              fontSize: "35pt",
+              fontSize: "32pt",
               fontWeight: 700,
-              color: mainColor,
-              fontFamily: "'Inter', sans-serif",
+              color: "#ffffff",
             }}
           >
             {data.fullName || "Votre nom"}
@@ -172,7 +163,7 @@ export default function HospitalityTimelineTemplate({
                 fontSize: "13pt",
                 fontWeight: 700,
                 letterSpacing: "0.1em",
-                color: mainColor,
+                color: "#ffffff",
               }}
             >
               {data.title}
@@ -181,7 +172,7 @@ export default function HospitalityTimelineTemplate({
           {data.professionalSummary && (
             <p
               className="mt-3 leading-relaxed"
-              style={{ fontSize: "9.5pt", color: TEXT_COLOR }}
+              style={{ fontSize: "9.5pt", color: "rgba(255,255,255,0.95)" }}
             >
               {data.professionalSummary}
             </p>
@@ -190,13 +181,13 @@ export default function HospitalityTimelineTemplate({
 
         {/* EXPÉRIENCES PROFESSIONNELLES */}
         {data.experiences.length > 0 && (
-          <section className="mb-8">
-            <MainTitle color={mainColor}>{L.experiences}</MainTitle>
-            <div className="space-y-5">
+          <section>
+            <MainTitle>{L.experiences}</MainTitle>
+            <div className="space-y-3">
               {data.experiences.map((exp, i) => (
-                <TimelineItem
+                <WhiteCard
                   key={i}
-                  color={mainColor}
+                  bgColor={bgColor}
                   title={exp.position + (exp.company ? ` - ${exp.company}` : "")}
                   date={formatDateRange(exp.startDate, exp.endDate, exp.current)}
                   description={exp.description}
@@ -209,12 +200,12 @@ export default function HospitalityTimelineTemplate({
         {/* FORMATIONS */}
         {data.education.length > 0 && (
           <section>
-            <MainTitle color={mainColor}>{L.education}</MainTitle>
-            <div className="space-y-5">
+            <MainTitle>{L.education}</MainTitle>
+            <div className="space-y-3">
               {data.education.map((ed, i) => (
-                <TimelineItem
+                <WhiteCard
                   key={i}
-                  color={mainColor}
+                  bgColor={bgColor}
                   title={ed.degree + (ed.field ? ` ${ed.field}` : "")}
                   date={formatDateRange(ed.startDate, ed.endDate)}
                   description={ed.school || ed.description}
@@ -230,23 +221,14 @@ export default function HospitalityTimelineTemplate({
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function PhotoSquare({
-  photoUrl,
-  fullName,
-  accentColor,
-}: {
-  photoUrl?: string;
-  fullName: string;
-  accentColor: string;
-}) {
+function PhotoSquare({ photoUrl, fullName }: { photoUrl?: string; fullName: string }) {
   return (
     <div
-      className="overflow-hidden mb-6"
+      className="overflow-hidden mb-7"
       style={{
         width: "60mm",
         height: "60mm",
-        borderRadius: "2mm",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+        border: "2px solid rgba(255,255,255,0.4)",
       }}
     >
       {photoUrl ? (
@@ -258,7 +240,7 @@ function PhotoSquare({
       ) : (
         <div
           className="w-full h-full flex items-center justify-center text-3xl font-bold text-white"
-          style={{ backgroundColor: accentColor }}
+          style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
         >
           {getInitials(fullName)}
         </div>
@@ -267,44 +249,34 @@ function PhotoSquare({
   );
 }
 
-function SidebarSection({
-  title,
-  color,
-  children,
-}: {
-  title: string;
-  color: string;
-  children: React.ReactNode;
-}) {
+function SidebarSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mb-6">
       <h2
-        className="uppercase mb-2 pb-2 border-b"
+        className="uppercase mb-2 pb-2 border-b text-white"
         style={{
-          fontSize: "13pt",
+          fontSize: "12pt",
           fontWeight: 700,
-          color,
-          borderColor: color,
-          letterSpacing: "0.05em",
+          letterSpacing: "0.1em",
+          borderColor: "rgba(255,255,255,0.4)",
         }}
       >
         {title}
       </h2>
-      {children}
+      <div className="text-white">{children}</div>
     </section>
   );
 }
 
-function MainTitle({ children, color }: { children: React.ReactNode; color: string }) {
+function MainTitle({ children }: { children: React.ReactNode }) {
   return (
     <h2
-      className="uppercase mb-4 pb-2 border-b-2"
+      className="uppercase mb-3 pb-2 border-b text-white"
       style={{
-        fontSize: "14pt",
+        fontSize: "13pt",
         fontWeight: 700,
-        color,
-        borderColor: color,
-        letterSpacing: "0.05em",
+        letterSpacing: "0.1em",
+        borderColor: "rgba(255,255,255,0.4)",
       }}
     >
       {children}
@@ -313,29 +285,32 @@ function MainTitle({ children, color }: { children: React.ReactNode; color: stri
 }
 
 /**
- * Item de timeline avec puce ronde à gauche, titre + date + description à droite.
+ * Carte blanche (sur le fond bleu) qui contient une expérience ou formation.
+ * Petite puce ronde colorée à gauche, titre + date + description à droite.
  */
-function TimelineItem({
-  color,
+function WhiteCard({
+  bgColor,
   title,
   date,
   description,
 }: {
-  color: string;
+  bgColor: string;
   title: string;
   date?: string;
   description?: string;
 }) {
   return (
-    <article className="flex gap-4">
-      {/* Puce ronde */}
+    <article
+      className="flex gap-3 px-4 py-3"
+      style={{ backgroundColor: "#ffffff" }}
+    >
       <div
         className="shrink-0 mt-1.5"
         style={{
           width: "10px",
           height: "10px",
           borderRadius: "50%",
-          backgroundColor: color,
+          backgroundColor: bgColor,
         }}
       />
       <div className="flex-1">
@@ -343,7 +318,7 @@ function TimelineItem({
           style={{
             fontSize: "11pt",
             fontWeight: 700,
-            color,
+            color: bgColor,
             letterSpacing: "0.01em",
           }}
         >
@@ -354,8 +329,9 @@ function TimelineItem({
             className="uppercase mt-0.5 mb-1.5"
             style={{
               fontSize: "8.5pt",
-              color: TEXT_LIGHT,
-              letterSpacing: "0.1em",
+              color: "#6b7280",
+              letterSpacing: "0.08em",
+              fontWeight: 600,
             }}
           >
             {date}
@@ -364,7 +340,7 @@ function TimelineItem({
         {description && (
           <p
             className="leading-relaxed"
-            style={{ fontSize: "9.5pt", color: TEXT_COLOR }}
+            style={{ fontSize: "9pt", color: "#374151" }}
           >
             {description}
           </p>
