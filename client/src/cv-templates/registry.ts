@@ -55,7 +55,7 @@ export const CV_TEMPLATES: Record<string, CvTemplateMeta> = {
     description: "Style magazine avec photo en évidence. Pour communication et design.",
     categorie: "creatif",
     thumbnail: "/cv-templates/editorial_creative.svg",
-    Component: lazy(() => import("./modern_sidebar_dark/Template")),
+    Component: lazy(() => import("./editorial_creative/Template")),
     defaultAccent: "#7dd3fc",
   },
   executive_curved: {
