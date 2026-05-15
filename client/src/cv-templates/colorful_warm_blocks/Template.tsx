@@ -8,11 +8,12 @@ const PURPLE_LIGHT = "#D4AFE9";
 const PURPLE_DARK = "#BB98CE";
 const ORANGE = "#F4AE31";
 const YELLOW_ORANGE = "#FAB844";
+const RED = "#E53935";
 
 const DEFAULT_LABELS: Required<CvSectionLabels> = {
   contact: "Contact",
   hardSkills: "Compétences techniques",
-  softSkills: "Qualités",
+  softSkills: "Informatique",
   languages: "Langues",
   interests: "Centres d'intérêt",
   experiences: "Expériences professionnelles",
@@ -30,246 +31,210 @@ interface Props {
  * "CV Vie professionnelle en Crème Violet Orange style Vif Coloré.pptx"
  * (Mariam Chapuis - Comptabilité).
  *
- * Style "mosaïque colorée" : fond crème, blocs alternés violet/orange
- * pour chaque section, cartes pour expériences et formations.
- *
- *  ┌──────────────────────────────────────────────────────────┐
- *  │  ░░░░░░ FOND CRÈME ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │
- *  │                                                           │
- *  │   MARIAM CHAPUIS    ┌────────┐                            │
- *  │   Lyon, France      │ photo  │                            │
- *  │   email | tel       │        │                            │
- *  │                     └────────┘                            │
- *  │                                                           │
- *  │  ░░░░░░ FORMATION (en blocs colorés) ░░░░░░░░░░░░░░░░░░░ │
- *  │   ▓▓▓▓ violet ▓▓▓▓▓▓                                      │
- *  │   │ 2029       │  BTS COMPTABILITÉ ET GESTION             │
- *  │   │ aujourd'hui│  Lycée Commercial Saint-Bloch            │
- *  │   ▓▓▓▓▓▓▓▓▓▓▓▓                                            │
- *  │   ▓▓▓▓ orange ▓▓▓▓▓▓                                      │
- *  │   │ 2027       │  BACCALAURÉAT STMG                       │
- *  │   ▓▓▓▓▓▓▓▓▓▓▓▓                                            │
- *  │                                                           │
- *  │  ░░░░░░ EXPÉRIENCES PRO (blocs alternés) ░░░░░░░░░░░░░░░ │
- *  │   ...                                                     │
- *  │                                                           │
- *  │  ░░░░░░ COMPÉTENCES, LANGUES, INTÉRÊTS ░░░░░░░░░░░░░░░░░ │
- *  │   ...                                                     │
- *  └──────────────────────────────────────────────────────────┘
- *
- * Police par défaut : Poppins (substitut de Koho du PPT, pas sur Google Fonts).
- * Le color picker pilote la couleur principale (par défaut violet pastel).
- * Les autres couleurs (orange, jaune) sont dérivées.
+ * Caractéristiques :
+ * - Fond crème, icône fleur stylisée en haut à gauche
+ * - Photo en forme organique avec signature manuscrite + ligne rouge
+ * - Labels de section (FORMATION, EXPÉRIENCES PROF...) en bandeaux
+ *   ORANGE VERTICAUX à gauche (texte tourné -90°)
+ * - 2 cartes par section dans des couleurs alternées (violet/orange)
+ * - Police Outfit (substitut de Koho du PPT)
  */
 export default function ColorfulWarmBlocksTemplate({
   data,
-  accentColor = PURPLE_LIGHT,
+  accentColor: _accentColor = PURPLE_LIGHT,
   labels,
 }: Props) {
   const L = { ...DEFAULT_LABELS, ...labels };
 
+  // Pour le rendu en cartes côte-à-côte par paires
+  const eduPairs = chunkPairs(data.education);
+  const expPairs = chunkPairs(data.experiences);
+
   return (
     <div
       id="cv-render-root"
-      className="shadow-lg"
+      className="shadow-lg relative"
       style={{
         width: "210mm",
         minHeight: "297mm",
-        fontFamily: "'Poppins', sans-serif",
+        fontFamily: "'Outfit', sans-serif",
         backgroundColor: CREAM_BG,
         color: TEXT_DARK,
       }}
     >
-      <div className="px-[12mm] py-[14mm] space-y-7">
-        {/* ─── Header : Nom + photo + contact ───────────────────── */}
-        <header className="flex gap-6 items-start">
-          {/* Identité à gauche */}
-          <div className="flex-1 pt-2">
-            <h1
-              className="leading-[0.95] uppercase"
-              style={{
-                fontSize: "44pt",
-                fontWeight: 700,
-                color: TEXT_DARK,
-                letterSpacing: "-0.01em",
-              }}
-            >
-              {(data.fullName || "Votre nom").toUpperCase()}
-            </h1>
-            {data.title && (
-              <p
-                className="mt-2 uppercase"
+      <div className="px-[14mm] py-[14mm]">
+        {/* ─── Header : nom + photo + signature + fleur ───────────── */}
+        <header className="relative mb-7">
+          {/* Icône fleur/étoile en haut à gauche */}
+          <FlowerIcon />
+
+          <div className="flex items-start justify-between gap-6 mt-4">
+            {/* Nom + contact à gauche */}
+            <div className="flex-1 pt-3">
+              <h1
+                className="leading-[0.92] uppercase"
                 style={{
-                  fontSize: "13pt",
-                  fontWeight: 600,
-                  color: TEXT_LIGHT,
-                  letterSpacing: "0.05em",
+                  fontSize: "48pt",
+                  fontWeight: 800,
+                  color: TEXT_DARK,
+                  letterSpacing: "-0.02em",
                 }}
               >
-                {data.title}
-              </p>
-            )}
-            {/* Contact en ligne */}
-            <div
-              className="flex flex-wrap gap-x-3 gap-y-1 mt-4"
-              style={{ fontSize: "10pt", color: TEXT_DARK }}
-            >
-              {(data.city || data.country) && (
-                <span>{[data.city, data.country].filter(Boolean).join(", ")}</span>
+                {splitNameForDisplay(data.fullName)}
+              </h1>
+              {data.title && (
+                <p
+                  className="mt-2 uppercase"
+                  style={{
+                    fontSize: "12pt",
+                    fontWeight: 600,
+                    color: TEXT_LIGHT,
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  {data.title}
+                </p>
               )}
-              {data.email && (
-                <>
-                  <span style={{ color: ORANGE }}>|</span>
-                  <span>{data.email}</span>
-                </>
-              )}
-              {data.phoneNumber && (
-                <>
-                  <span style={{ color: ORANGE }}>|</span>
-                  <span>{data.phoneNumber}</span>
-                </>
-              )}
-            </div>
-            {/* Résumé */}
-            {data.professionalSummary && (
-              <p
-                className="mt-3 leading-relaxed italic"
+              {/* Contact en lignes séparées */}
+              <div
+                className="mt-4 space-y-0.5"
                 style={{ fontSize: "10pt", color: TEXT_DARK }}
               >
-                {data.professionalSummary}
-              </p>
-            )}
-          </div>
-
-          {/* Photo à droite */}
-          {(data.photoUrl || data.fullName) && (
-            <div
-              className="shrink-0 overflow-hidden"
-              style={{
-                width: "55mm",
-                height: "65mm",
-                backgroundColor: TEXT_DARK,
-              }}
-            >
-              {data.photoUrl ? (
-                <img
-                  src={data.photoUrl}
-                  alt={data.fullName}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-white">
-                  {getInitials(data.fullName)}
-                </div>
+                {(data.city || data.country) && (
+                  <div
+                    className="underline"
+                    style={{ textUnderlineOffset: "2px", textDecorationColor: ORANGE }}
+                  >
+                    {[data.city, data.country].filter(Boolean).join(", ")}
+                  </div>
+                )}
+                {data.email && (
+                  <div
+                    className="underline"
+                    style={{ textUnderlineOffset: "2px", textDecorationColor: ORANGE }}
+                  >
+                    {data.email}
+                  </div>
+                )}
+                {data.phoneNumber && (
+                  <div
+                    className="underline"
+                    style={{ textUnderlineOffset: "2px", textDecorationColor: ORANGE }}
+                  >
+                    {data.phoneNumber}
+                  </div>
+                )}
+              </div>
+              {/* Résumé */}
+              {data.professionalSummary && (
+                <p
+                  className="mt-3 leading-relaxed italic max-w-[100mm]"
+                  style={{ fontSize: "10pt", color: TEXT_DARK }}
+                >
+                  {data.professionalSummary}
+                </p>
               )}
             </div>
-          )}
+
+            {/* Photo + éléments décoratifs à droite */}
+            <PhotoWithDecorations photoUrl={data.photoUrl} fullName={data.fullName} />
+          </div>
         </header>
 
-        {/* ─── FORMATION ─────────────────────────────────────────── */}
+        {/* ─── FORMATION (avec bandeau orange vertical à gauche) ───── */}
         {data.education.length > 0 && (
-          <section>
-            <SectionTitle accentColor={accentColor}>{L.education}</SectionTitle>
-            <div className="space-y-3">
-              {data.education.map((ed, i) => (
-                <ColorBlock
-                  key={i}
-                  bgColor={i % 2 === 0 ? PURPLE_LIGHT : ORANGE}
-                  dateBgColor={i % 2 === 0 ? ORANGE : PURPLE_DARK}
-                  date={formatDateRange(ed.startDate, ed.endDate)}
-                  title={ed.degree + (ed.field ? ` — ${ed.field}` : "")}
-                  subtitle={ed.school}
-                  description={ed.description}
-                />
-              ))}
-            </div>
-          </section>
+          <SectionWithVerticalLabel
+            label={L.education}
+            labelBg={ORANGE}
+            className="mb-4"
+          >
+            {eduPairs.map((pair, rowIdx) => (
+              <div key={rowIdx} className="grid grid-cols-2 gap-2 mb-2">
+                {pair.map((ed, colIdx) => (
+                  <ColorBlock
+                    key={colIdx}
+                    bgColor={(rowIdx + colIdx) % 2 === 0 ? PURPLE_LIGHT : YELLOW_ORANGE}
+                    title={ed.degree + (ed.field ? ` ${ed.field}` : "")}
+                    date={formatDateRange(ed.startDate, ed.endDate)}
+                    subtitle={ed.school}
+                    bullets={ed.description ? ed.description.split("\n") : []}
+                  />
+                ))}
+                {pair.length === 1 && <div />}
+              </div>
+            ))}
+          </SectionWithVerticalLabel>
         )}
 
         {/* ─── EXPÉRIENCES PROFESSIONNELLES ──────────────────────── */}
         {data.experiences.length > 0 && (
-          <section>
-            <SectionTitle accentColor={accentColor}>{L.experiences}</SectionTitle>
-            <div className="space-y-3">
-              {data.experiences.map((exp, i) => (
-                <ColorBlock
-                  key={i}
-                  bgColor={i % 2 === 0 ? PURPLE_DARK : YELLOW_ORANGE}
-                  dateBgColor={i % 2 === 0 ? ORANGE : PURPLE_LIGHT}
-                  date={formatDateRange(exp.startDate, exp.endDate, exp.current)}
-                  title={exp.position}
-                  subtitle={exp.company}
-                  description={exp.description}
-                />
-              ))}
-            </div>
-          </section>
+          <SectionWithVerticalLabel
+            label={L.experiences}
+            labelBg={PURPLE_LIGHT}
+            className="mb-4"
+          >
+            {expPairs.map((pair, rowIdx) => (
+              <div key={rowIdx} className="grid grid-cols-2 gap-2 mb-2">
+                {pair.map((exp, colIdx) => (
+                  <ColorBlock
+                    key={colIdx}
+                    bgColor={(rowIdx + colIdx) % 2 === 0 ? ORANGE : PURPLE_DARK}
+                    title={exp.position}
+                    subtitle={exp.company}
+                    date={formatDateRange(exp.startDate, exp.endDate, exp.current)}
+                    bullets={exp.description ? exp.description.split("\n") : []}
+                  />
+                ))}
+                {pair.length === 1 && <div />}
+              </div>
+            ))}
+          </SectionWithVerticalLabel>
         )}
 
-        {/* ─── COMPÉTENCES TECHNIQUES + INFORMATIQUE ─────────────── */}
+        {/* ─── COMPÉTENCES + INFORMATIQUE ─────────────────────────── */}
         {(data.hardSkills.length > 0 || data.softSkills.length > 0) && (
-          <section>
-            <SectionTitle accentColor={accentColor}>{L.hardSkills}</SectionTitle>
-            <div className="grid grid-cols-2 gap-3">
-              {data.hardSkills.length > 0 && (
-                <SkillsBox bgColor={PURPLE_LIGHT}>
-                  {data.hardSkills.map((s, i) => (
-                    <li key={i} className="flex gap-2 items-baseline">
-                      <span style={{ color: ORANGE, fontWeight: 700 }}>•</span>
-                      <span>{s}</span>
-                    </li>
-                  ))}
-                </SkillsBox>
-              )}
-              {data.softSkills.length > 0 && (
-                <SkillsBox bgColor={YELLOW_ORANGE}>
-                  {data.softSkills.map((s, i) => (
-                    <li key={i} className="flex gap-2 items-baseline">
-                      <span style={{ color: PURPLE_DARK, fontWeight: 700 }}>•</span>
-                      <span>{s}</span>
-                    </li>
-                  ))}
-                </SkillsBox>
-              )}
-            </div>
-          </section>
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            {data.hardSkills.length > 0 && (
+              <SkillsBox
+                title={L.hardSkills}
+                bgColor={PURPLE_LIGHT}
+                items={data.hardSkills}
+                bulletColor={ORANGE}
+              />
+            )}
+            {data.softSkills.length > 0 && (
+              <SkillsBox
+                title={L.softSkills}
+                bgColor={YELLOW_ORANGE}
+                items={data.softSkills}
+                bulletColor={PURPLE_DARK}
+              />
+            )}
+          </div>
         )}
 
-        {/* ─── LANGUES + CENTRES D'INTÉRÊT ───────────────────────── */}
+        {/* ─── LANGUES + CENTRES D'INTÉRÊT ────────────────────────── */}
         {(data.languages.length > 0 || data.interests.length > 0) && (
-          <section>
-            <div className="grid grid-cols-2 gap-3">
-              {data.languages.length > 0 && (
-                <div>
-                  <SectionTitle accentColor={accentColor}>{L.languages}</SectionTitle>
-                  <SkillsBox bgColor={ORANGE}>
-                    {data.languages.map((l, i) => (
-                      <li key={i} className="flex gap-2 items-baseline">
-                        <span style={{ color: PURPLE_DARK, fontWeight: 700 }}>•</span>
-                        <span>
-                          <strong>{l.name}</strong>
-                          {l.level && ` — ${l.level.replace(/_/g, " ")}`}
-                        </span>
-                      </li>
-                    ))}
-                  </SkillsBox>
-                </div>
-              )}
-              {data.interests.length > 0 && (
-                <div>
-                  <SectionTitle accentColor={accentColor}>{L.interests}</SectionTitle>
-                  <SkillsBox bgColor={PURPLE_DARK}>
-                    {data.interests.map((it, i) => (
-                      <li key={i} className="flex gap-2 items-baseline">
-                        <span style={{ color: YELLOW_ORANGE, fontWeight: 700 }}>•</span>
-                        <span>{it}</span>
-                      </li>
-                    ))}
-                  </SkillsBox>
-                </div>
-              )}
-            </div>
-          </section>
+          <div className="grid grid-cols-2 gap-2">
+            {data.languages.length > 0 && (
+              <SkillsBox
+                title={L.languages}
+                bgColor={ORANGE}
+                items={data.languages.map(
+                  (l) => `${l.name}${l.level ? ` — ${l.level.replace(/_/g, " ")}` : ""}`
+                )}
+                bulletColor={PURPLE_DARK}
+              />
+            )}
+            {data.interests.length > 0 && (
+              <SkillsBox
+                title={L.interests}
+                bgColor={PURPLE_DARK}
+                items={data.interests}
+                bulletColor={YELLOW_ORANGE}
+              />
+            )}
+          </div>
         )}
       </div>
     </div>
@@ -278,123 +243,253 @@ export default function ColorfulWarmBlocksTemplate({
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function SectionTitle({
-  children,
-  accentColor: _accentColor,
-}: {
-  children: React.ReactNode;
-  accentColor: string;
-}) {
+/**
+ * Petite icône "fleur/soleil" stylisée (étoile à 8 branches).
+ */
+function FlowerIcon() {
   return (
-    <h2
-      className="uppercase mb-3 inline-block"
-      style={{
-        fontSize: "16pt",
-        fontWeight: 700,
-        color: TEXT_DARK,
-        textDecoration: "underline",
-        textDecorationThickness: "2px",
-        textUnderlineOffset: "4px",
-        textDecorationColor: ORANGE,
-      }}
+    <svg
+      width="38"
+      height="38"
+      viewBox="0 0 40 40"
+      className="absolute -top-1 -left-1"
+      aria-hidden="true"
     >
-      {children}
-    </h2>
+      <g fill={TEXT_DARK}>
+        {/* 8 pétales en forme d'amande autour du centre */}
+        {Array.from({ length: 8 }).map((_, i) => {
+          const angle = (i * Math.PI) / 4;
+          const cx = 20 + Math.cos(angle) * 11;
+          const cy = 20 + Math.sin(angle) * 11;
+          return (
+            <ellipse
+              key={i}
+              cx={cx}
+              cy={cy}
+              rx="3"
+              ry="6"
+              transform={`rotate(${(i * 45) + 90} ${cx} ${cy})`}
+            />
+          );
+        })}
+        <circle cx="20" cy="20" r="3" />
+      </g>
+    </svg>
   );
 }
 
 /**
- * Bloc coloré avec : zone date à gauche (autre couleur) + contenu à droite.
- * Reproduit la structure des cartes du PPT (groupe date + groupe principal).
+ * Photo + signature manuscrite + ligne rouge décorative.
+ */
+function PhotoWithDecorations({
+  photoUrl,
+  fullName,
+}: {
+  photoUrl?: string;
+  fullName: string;
+}) {
+  return (
+    <div className="relative shrink-0" style={{ width: "78mm", height: "70mm" }}>
+      {/* Petite ligne rouge en haut à droite */}
+      <div
+        className="absolute"
+        style={{
+          top: "6mm",
+          right: "-3mm",
+          width: "20mm",
+          height: "2px",
+          backgroundColor: RED,
+          transform: "rotate(-12deg)",
+        }}
+        aria-hidden="true"
+      />
+
+      {/* Photo en forme "blob" organique via clip-path */}
+      <div
+        className="overflow-hidden bg-gray-200"
+        style={{
+          width: "65mm",
+          height: "65mm",
+          marginLeft: "auto",
+          clipPath:
+            "polygon(50% 0%, 80% 5%, 95% 25%, 100% 50%, 92% 78%, 70% 95%, 40% 100%, 12% 88%, 0% 60%, 5% 28%, 22% 8%)",
+        }}
+      >
+        {photoUrl ? (
+          <img src={photoUrl} alt={fullName} className="w-full h-full object-cover" />
+        ) : (
+          <div
+            className="w-full h-full flex items-center justify-center text-3xl font-bold text-white"
+            style={{ backgroundColor: TEXT_DARK }}
+          >
+            {getInitials(fullName)}
+          </div>
+        )}
+      </div>
+
+      {/* Signature manuscrite (font Caveat) en bas-droite */}
+      <div
+        className="absolute"
+        style={{
+          bottom: "-2mm",
+          right: "-5mm",
+          fontFamily: "'Caveat', cursive",
+          fontSize: "20pt",
+          color: TEXT_DARK,
+          transform: "rotate(-8deg)",
+        }}
+      >
+        {firstName(fullName)}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Section avec un bandeau orange vertical à gauche contenant le label
+ * écrit verticalement (tourné -90°).
+ */
+function SectionWithVerticalLabel({
+  label,
+  labelBg,
+  className,
+  children,
+}: {
+  label: string;
+  labelBg: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={`flex items-stretch gap-2 ${className ?? ""}`}>
+      {/* Bandeau vertical avec label rotated */}
+      <div
+        className="shrink-0 flex items-center justify-center"
+        style={{
+          width: "16mm",
+          backgroundColor: labelBg,
+          minHeight: "60mm",
+        }}
+      >
+        <div
+          className="uppercase whitespace-nowrap"
+          style={{
+            fontSize: "13pt",
+            fontWeight: 700,
+            color: TEXT_DARK,
+            letterSpacing: "0.15em",
+            transform: "rotate(-90deg)",
+            transformOrigin: "center",
+          }}
+        >
+          {label}
+        </div>
+      </div>
+      {/* Contenu de la section */}
+      <div className="flex-1">{children}</div>
+    </div>
+  );
+}
+
+/**
+ * Bloc coloré avec titre souligné, sous-titre, date, et bullets de description.
  */
 function ColorBlock({
   bgColor,
-  dateBgColor,
-  date,
   title,
   subtitle,
-  description,
+  date,
+  bullets,
 }: {
   bgColor: string;
-  dateBgColor: string;
-  date?: string;
   title: string;
   subtitle?: string;
-  description?: string;
+  date?: string;
+  bullets?: string[];
 }) {
   return (
-    <article className="flex" style={{ minHeight: "30mm" }}>
-      {/* Bandeau date à gauche */}
+    <article
+      className="px-4 py-3 h-full"
+      style={{ backgroundColor: bgColor }}
+    >
+      <h3
+        className="uppercase"
+        style={{
+          fontSize: "12pt",
+          fontWeight: 700,
+          color: TEXT_DARK,
+          letterSpacing: "0.01em",
+          textDecoration: "underline",
+          textDecorationThickness: "1px",
+          textUnderlineOffset: "3px",
+        }}
+      >
+        {title}
+      </h3>
       {date && (
-        <div
-          className="shrink-0 px-3 py-3 flex items-center justify-center text-center"
-          style={{
-            backgroundColor: dateBgColor,
-            width: "30mm",
-            color: TEXT_DARK,
-            fontSize: "10pt",
-            fontWeight: 700,
-            lineHeight: "1.2",
-          }}
+        <p
+          className="mt-0.5"
+          style={{ fontSize: "9pt", fontWeight: 600, color: TEXT_DARK }}
         >
-          {date}
-        </div>
+          {date.replace(/\n/g, " — ")}
+        </p>
       )}
-      {/* Contenu principal */}
-      <div className="flex-1 px-5 py-3" style={{ backgroundColor: bgColor }}>
-        <h3
-          className="uppercase"
-          style={{
-            fontSize: "14pt",
-            fontWeight: 700,
-            color: TEXT_DARK,
-            letterSpacing: "0.01em",
-            textDecoration: "underline",
-            textDecorationThickness: "1px",
-            textUnderlineOffset: "3px",
-          }}
+      {subtitle && (
+        <p
+          className="mt-1.5 italic"
+          style={{ fontSize: "9.5pt", color: TEXT_DARK }}
         >
-          {title}
-        </h3>
-        {subtitle && (
-          <p
-            className="uppercase mt-1 mb-2"
-            style={{
-              fontSize: "10pt",
-              fontWeight: 600,
-              color: TEXT_DARK,
-              letterSpacing: "0.05em",
-            }}
-          >
-            {subtitle}
-          </p>
-        )}
-        {description && (
-          <ul className="space-y-1" style={{ fontSize: "9.5pt", color: TEXT_DARK }}>
-            {description.split("\n").map((line, j) => (
-              <li key={j} className="flex gap-2">
-                <span style={{ color: TEXT_DARK }}>•</span>
-                <span>{line}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+          {subtitle}
+        </p>
+      )}
+      {bullets && bullets.length > 0 && bullets.some(Boolean) && (
+        <ul className="mt-1.5 space-y-0.5" style={{ fontSize: "9pt", color: TEXT_DARK }}>
+          {bullets.filter(Boolean).map((line, i) => (
+            <li key={i} className="flex gap-1.5">
+              <span style={{ color: TEXT_DARK, fontWeight: 700 }}>•</span>
+              <span>{line}</span>
+            </li>
+          ))}
+        </ul>
+      )}
     </article>
   );
 }
 
 function SkillsBox({
+  title,
   bgColor,
-  children,
+  items,
+  bulletColor,
 }: {
+  title: string;
   bgColor: string;
-  children: React.ReactNode;
+  items: string[];
+  bulletColor: string;
 }) {
   return (
-    <div className="px-5 py-4" style={{ backgroundColor: bgColor }}>
-      <ul className="space-y-1.5" style={{ fontSize: "10pt", color: TEXT_DARK }}>
-        {children}
+    <div className="px-4 py-3" style={{ backgroundColor: bgColor }}>
+      <h3
+        className="uppercase mb-2"
+        style={{
+          fontSize: "12pt",
+          fontWeight: 700,
+          color: TEXT_DARK,
+          letterSpacing: "0.05em",
+          textDecoration: "underline",
+          textDecorationThickness: "1px",
+          textUnderlineOffset: "3px",
+        }}
+      >
+        {title}
+      </h3>
+      <ul className="space-y-1" style={{ fontSize: "10pt", color: TEXT_DARK }}>
+        {items.map((s, i) => (
+          <li key={i} className="flex gap-2 items-baseline">
+            <span style={{ color: bulletColor, fontWeight: 700 }}>•</span>
+            <span>{s}</span>
+          </li>
+        ))}
       </ul>
     </div>
   );
@@ -413,13 +508,31 @@ function getInitials(fullName: string): string {
     .toUpperCase();
 }
 
+function firstName(fullName: string): string {
+  return (fullName || "Votre nom").split(/\s+/)[0] || "Votre prénom";
+}
+
+function splitNameForDisplay(fullName: string): React.ReactNode {
+  const parts = (fullName || "Votre nom").trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return (
+      <>
+        {parts[0]}
+        <br />
+        {parts.slice(1).join(" ")}
+      </>
+    );
+  }
+  return parts[0];
+}
+
 function formatDateRange(start?: string, end?: string, current?: boolean): string {
   const s = formatYearOrMonth(start);
   const e = current ? "Aujourd'hui" : formatYearOrMonth(end);
   if (!s && !e) return "";
   if (!s) return e;
   if (!e) return s;
-  return `${s}\n${e}`;
+  return `${s} - ${e}`;
 }
 
 function formatYearOrMonth(d?: string): string {
@@ -432,4 +545,12 @@ function formatYearOrMonth(d?: string): string {
     return year;
   }
   return d;
+}
+
+function chunkPairs<T>(arr: T[]): T[][] {
+  const result: T[][] = [];
+  for (let i = 0; i < arr.length; i += 2) {
+    result.push(arr.slice(i, i + 2));
+  }
+  return result;
 }
