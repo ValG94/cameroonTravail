@@ -70,6 +70,16 @@ export const CV_TEMPLATES: Record<string, CvTemplateMeta> = {
     Component: lazy(() => import("./editorial_creative/Template")),
     defaultAccent: "#7dd3fc",
   },
+  professional_modern_white: {
+    slug: "professional_modern_white",
+    nom: "White Professional Modern",
+    description:
+      "CV professionnel moderne en blanc avec photo dans cadre courbé et accent orange. Layout 2 colonnes : identité, About, Skills à gauche ; Education et Experience à droite. Adapté aux profils marketing, management et créatifs.",
+    categorie: "moderne",
+    thumbnail: "/cv-templates/professional_modern_white.svg",
+    Component: lazy(() => import("./professional_modern_white/Template")),
+    defaultAccent: "#f97316",
+  },
   executive_curved: {
     slug: "executive_curved",
     nom: "Exécutif",

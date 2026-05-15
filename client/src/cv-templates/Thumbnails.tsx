@@ -178,6 +178,64 @@ function ExecutiveCurvedThumb({ className = "" }: ThumbProps) {
   );
 }
 
+// ─── professional_modern_white ────────────────────────────────────────────────
+function ProfessionalModernWhiteThumb({ className = "" }: ThumbProps) {
+  return (
+    <div className={`bg-white w-full h-full p-2 flex gap-1.5 ${className}`}>
+      {/* Colonne gauche : photo + identité + sections */}
+      <div className="w-[40%] space-y-1.5">
+        {/* Photo en cadre courbé */}
+        <div className="relative">
+          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-orange-400 rounded-sm" />
+          <div
+            className="relative bg-gray-300 w-full aspect-square"
+            style={{
+              borderTopLeftRadius: "50%",
+              borderBottomRightRadius: "50%",
+            }}
+          />
+        </div>
+        <div className="space-y-0.5">
+          <div className="h-2 bg-gray-900 rounded w-3/4" />
+          <div className="h-1 bg-gray-500 rounded w-1/2" />
+        </div>
+        <div className="border-t border-gray-700 pt-0.5 mt-1.5">
+          <div className="h-1 bg-gray-700 rounded w-1/3 mb-0.5" />
+          <div className={`h-0.5 ${PLACEHOLDER_LINES} rounded`} />
+          <div className={`h-0.5 ${PLACEHOLDER_LINES} rounded w-5/6`} />
+        </div>
+      </div>
+      {/* Séparateur vertical */}
+      <div className="w-px bg-gray-300 my-2" />
+      {/* Colonne droite : Education + Experience */}
+      <div className="flex-1 space-y-2">
+        <div>
+          <div className="h-1.5 bg-gray-900 rounded w-1/2 mb-0.5" />
+          <div className="border-b border-gray-700 mb-1" />
+          <div className="flex gap-1 items-start">
+            <div className="w-1 h-1 bg-orange-400 rounded-full mt-0.5" />
+            <div className="flex-1 space-y-0.5">
+              <div className="h-1 bg-gray-700 rounded w-3/4" />
+              <div className={`h-0.5 ${PLACEHOLDER_LINE_LIGHT} rounded w-1/2`} />
+            </div>
+          </div>
+        </div>
+        <div>
+          <div className="h-1.5 bg-gray-900 rounded w-1/2 mb-0.5" />
+          <div className="border-b border-gray-700 mb-1" />
+          <div className="flex gap-1 items-start">
+            <div className="w-1 h-1 bg-orange-400 rounded-full mt-0.5" />
+            <div className="flex-1 space-y-0.5">
+              <div className="h-1 bg-gray-700 rounded w-3/4" />
+              <div className={`h-0.5 ${PLACEHOLDER_LINE_LIGHT} rounded w-1/2`} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Map slug → composant ─────────────────────────────────────────────────────
 const THUMBS: Record<string, (props: ThumbProps) => React.ReactElement> = {
   modern_sidebar_dark: ModernSidebarDarkThumb,
@@ -185,6 +243,7 @@ const THUMBS: Record<string, (props: ThumbProps) => React.ReactElement> = {
   minimal_centered: MinimalCenteredThumb,
   editorial_creative: EditorialCreativeThumb,
   executive_curved: ExecutiveCurvedThumb,
+  professional_modern_white: ProfessionalModernWhiteThumb,
 };
 
 export function TemplateThumbnail({ slug, className }: { slug: string; className?: string }) {
