@@ -119,6 +119,16 @@ export const CV_TEMPLATES: Record<string, CvTemplateMeta> = {
     Component: lazy(() => import("./executive_curved/Template")),
     defaultAccent: "#4a5568",
   },
+  pink_red_blobs: {
+    slug: "pink_red_blobs",
+    nom: "Rose et Rouge",
+    description:
+      "CV professionnel moderne avec blob rouge en haut-droite contenant la photo et blob rose pâle en bas-gauche. Texte en rouge sur fond off-white avec séparateur pointillé. Adapté aux profils événementiel, communication, marketing et chef de projet.",
+    categorie: "creatif",
+    thumbnail: "/cv-templates/pink_red_blobs.svg",
+    Component: lazy(() => import("./pink_red_blobs/Template")),
+    defaultAccent: "#C41212",
+  },
 };
 
 export const getTemplate = (slug: string): CvTemplateMeta | undefined => CV_TEMPLATES[slug];

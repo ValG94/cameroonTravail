@@ -434,6 +434,86 @@ function SportOrangeDarkThumb({ className = "" }: ThumbProps) {
   );
 }
 
+// ─── pink_red_blobs ───────────────────────────────────────────────────────────
+function PinkRedBlobsThumb({ className = "" }: ThumbProps) {
+  const RED = "#C41212";
+  const PINK = "#f7cdd0";
+  const BG = "#F8F8F8";
+  return (
+    <div
+      className={`relative w-full h-full overflow-hidden ${className}`}
+      style={{ backgroundColor: BG }}
+    >
+      {/* Blob rouge top-right */}
+      <div
+        className="absolute"
+        style={{
+          top: "8%",
+          right: "5%",
+          width: "38%",
+          height: "42%",
+          backgroundColor: RED,
+          borderRadius: "50% 50% 50% 50% / 45% 45% 55% 55%",
+        }}
+      />
+      {/* Blob rose pâle bottom-left */}
+      <div
+        className="absolute"
+        style={{
+          bottom: "-8%",
+          left: "-10%",
+          width: "45%",
+          height: "38%",
+          backgroundColor: PINK,
+          borderRadius: "50% 50% 60% 40% / 55% 45% 50% 50%",
+          transform: "rotate(-30deg)",
+        }}
+      />
+      {/* Contenu par-dessus */}
+      <div className="relative p-2.5 flex flex-col h-full">
+        {/* Nom */}
+        <div className="space-y-0.5 mb-1">
+          <div className="h-2 rounded w-1/2" style={{ backgroundColor: RED }} />
+          <div className="h-2 rounded w-2/3" style={{ backgroundColor: RED }} />
+        </div>
+        <div className="h-1 rounded w-1/3 mb-2" style={{ backgroundColor: RED, opacity: 0.85 }} />
+
+        {/* 2 colonnes avec séparateur pointillé */}
+        <div className="flex-1 flex gap-1.5 mt-auto relative">
+          <div
+            aria-hidden="true"
+            className="absolute top-0 bottom-0"
+            style={{
+              left: "44%",
+              borderLeft: `1px dashed ${RED}`,
+            }}
+          />
+          {/* Col gauche */}
+          <div className="w-[42%] space-y-1">
+            <div className="h-1 rounded w-3/4" style={{ backgroundColor: RED }} />
+            <div className="h-px rounded w-full" style={{ backgroundColor: RED, opacity: 0.6 }} />
+            <div className="h-px rounded w-5/6" style={{ backgroundColor: RED, opacity: 0.6 }} />
+            <div className="h-px rounded w-2/3" style={{ backgroundColor: RED, opacity: 0.6 }} />
+            <div className="border-t border-dashed mt-1" style={{ borderColor: RED }} />
+            <div className="h-1 rounded w-3/4 mt-1" style={{ backgroundColor: RED }} />
+            <div className="h-px rounded w-full" style={{ backgroundColor: RED, opacity: 0.6 }} />
+            <div className="h-px rounded w-4/5" style={{ backgroundColor: RED, opacity: 0.6 }} />
+          </div>
+          {/* Col droite */}
+          <div className="flex-1 space-y-1 pl-1.5">
+            <div className="h-1 rounded w-full" style={{ backgroundColor: RED }} />
+            <div className="h-px rounded w-3/4" style={{ backgroundColor: RED, opacity: 0.6 }} />
+            <div className="h-px rounded w-full" style={{ backgroundColor: RED, opacity: 0.6 }} />
+            <div className="h-px rounded w-5/6" style={{ backgroundColor: RED, opacity: 0.6 }} />
+            <div className="h-1 rounded w-2/3 mt-1" style={{ backgroundColor: RED }} />
+            <div className="h-px rounded w-full" style={{ backgroundColor: RED, opacity: 0.6 }} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Map slug → composant ─────────────────────────────────────────────────────
 const THUMBS: Record<string, (props: ThumbProps) => React.ReactElement> = {
   modern_sidebar_dark: ModernSidebarDarkThumb,
@@ -445,6 +525,7 @@ const THUMBS: Record<string, (props: ThumbProps) => React.ReactElement> = {
   colorful_warm_blocks: ColorfulWarmBlocksThumb,
   developer_dark_sidebar: DeveloperDarkSidebarThumb,
   sport_orange_dark: SportOrangeDarkThumb,
+  pink_red_blobs: PinkRedBlobsThumb,
 };
 
 export function TemplateThumbnail({ slug, className }: { slug: string; className?: string }) {
