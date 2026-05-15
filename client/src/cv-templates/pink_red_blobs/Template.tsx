@@ -136,14 +136,18 @@ export default function PinkRedBlobsTemplate({
       </div>
 
       {/* ─── Blob rose pâle ondulé bottom-left (image11.svg, rot -60°) ─ */}
+      {/* Position et taille exactes du PPT :
+         - Position du coin supérieur gauche (avant rotation) : (-1.54cm, 22.37cm)
+         - Taille : largeur 9.36cm × hauteur 14.07cm
+         - Rotation : -60° autour du centre */}
       <div
         className="absolute"
         style={{
-          left: "-15mm",
-          top: "224mm",
-          width: "94mm",
-          height: "141mm",
-          transform: "rotate(-59.76deg)",
+          left: "-15.4mm",
+          top: "223.7mm",
+          width: "93.6mm",
+          height: "140.7mm",
+          transform: "rotate(-60deg)",
           transformOrigin: "center center",
         }}
         aria-hidden="true"
