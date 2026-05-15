@@ -175,10 +175,16 @@ export default function ModernSidebarDarkTemplate({
         {data.education.length > 0 && (
           <section className="mb-6">
             <CenteredTitle>{L.education}</CenteredTitle>
-            <div className="space-y-1" style={{ fontSize: "10pt" }}>
+            <div
+              className="mx-auto space-y-1"
+              style={{ fontSize: "10pt", maxWidth: "130mm" }}
+            >
               {data.education.map((ed, i) => (
-                <div key={i} className="flex gap-3 justify-center">
-                  <span style={{ color: TEXT_LIGHT, minWidth: "40px" }}>
+                <div key={i} className="flex gap-3">
+                  <span
+                    className="font-medium"
+                    style={{ color: TEXT_DARK, width: "40px", flexShrink: 0 }}
+                  >
                     {formatYear(ed.startDate) || formatYear(ed.endDate)}
                   </span>
                   <span style={{ color: TEXT_DARK }}>
