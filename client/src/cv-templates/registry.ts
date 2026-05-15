@@ -70,6 +70,16 @@ export const CV_TEMPLATES: Record<string, CvTemplateMeta> = {
     Component: lazy(() => import("./editorial_creative/Template")),
     defaultAccent: "#7dd3fc",
   },
+  developer_dark_sidebar: {
+    slug: "developer_dark_sidebar",
+    nom: "Développeur Noir & Blanc",
+    description:
+      "CV simple et moderne en noir et blanc avec photo grande sidebar gauche, identité forte à droite et touches bleu pétrole. Adapté aux profils tech, développeurs, ingénieurs et data.",
+    categorie: "moderne",
+    thumbnail: "/cv-templates/developer_dark_sidebar.svg",
+    Component: lazy(() => import("./developer_dark_sidebar/Template")),
+    defaultAccent: "#5C7C8F",
+  },
   colorful_warm_blocks: {
     slug: "colorful_warm_blocks",
     nom: "Vif Coloré Crème",
