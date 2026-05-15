@@ -3,7 +3,7 @@ import type { CvSectionLabels } from "../registry";
 
 const TEXT_DARK = "#1a1a1a";
 const TEXT_LIGHT = "#5a5a5a";
-const ORANGE = "#FDBE26"; // safran/jaune-orange exact du PPT
+const ORANGE = "#FE8010"; // orange vif exact du PPT
 const SIDEBAR_BG = "#0a0a0a";
 
 const DEFAULT_LABELS: Required<CvSectionLabels> = {
@@ -62,11 +62,11 @@ export default function SportOrangeDarkTemplate({
     >
       {/* ─── Sidebar gauche : bloc orange (haut) + bloc noir (bas) ── */}
       <aside className="w-[88mm] shrink-0 relative overflow-hidden">
-        {/* Bloc ORANGE en haut (cadre photo + nom) */}
+        {/* Bloc ORANGE en haut avec dégradé qui s'éclaircit vers bas-droite */}
         <div
           className="absolute top-0 left-0 right-0"
           style={{
-            backgroundColor: orange,
+            background: `linear-gradient(135deg, ${orange} 0%, ${orange} 40%, ${lighten(orange, 0.18)} 100%)`,
             height: "115mm",
           }}
           aria-hidden="true"
@@ -366,6 +366,17 @@ function RightItem({
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Éclaircit un hex en mixant avec du blanc (0 = pure, 1 = blanc). */
+function lighten(hex: string, weightWhite: number): string {
+  const m = hex.match(/^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i);
+  if (!m) return hex;
+  const r = parseInt(m[1], 16);
+  const g = parseInt(m[2], 16);
+  const b = parseInt(m[3], 16);
+  const f = (c: number) => Math.round(c * (1 - weightWhite) + 255 * weightWhite);
+  return `rgb(${f(r)}, ${f(g)}, ${f(b)})`;
+}
 
 function getInitials(fullName: string): string {
   if (!fullName) return "?";

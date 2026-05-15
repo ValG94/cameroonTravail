@@ -381,7 +381,7 @@ function SportOrangeDarkThumb({ className = "" }: ThumbProps) {
             className="w-full bg-gray-700"
             style={{
               height: "32px",
-              border: "2px solid #FDBE26",
+              border: "2px solid #FE8010",
             }}
           />
           {/* Nom */}
@@ -391,12 +391,12 @@ function SportOrangeDarkThumb({ className = "" }: ThumbProps) {
           </div>
           {/* Sections sidebar avec lignes orange */}
           <div className="space-y-0.5 pt-1">
-            <div className="h-0.5 rounded w-1/2" style={{ backgroundColor: "#FDBE26" }} />
+            <div className="h-0.5 rounded w-1/2" style={{ backgroundColor: "#FE8010" }} />
             <div className="h-px bg-white/40 rounded w-full" />
             <div className="h-px bg-white/40 rounded w-3/4" />
           </div>
           <div className="space-y-0.5 pt-1">
-            <div className="h-0.5 rounded w-1/2" style={{ backgroundColor: "#FDBE26" }} />
+            <div className="h-0.5 rounded w-1/2" style={{ backgroundColor: "#FE8010" }} />
             <div className="h-px bg-white/40 rounded w-full" />
             <div className="h-px bg-white/40 rounded w-2/3" />
           </div>
@@ -410,7 +410,7 @@ function SportOrangeDarkThumb({ className = "" }: ThumbProps) {
               className="h-1.5 rounded w-2/3 pb-0.5"
               style={{ backgroundColor: "#1a1a1a" }}
             />
-            <div className="h-px mt-0.5" style={{ backgroundColor: "#FDBE26" }} />
+            <div className="h-px mt-0.5" style={{ backgroundColor: "#FE8010" }} />
           </div>
           <div className="space-y-0.5">
             <div className="h-1 bg-gray-900 rounded w-3/4" />
@@ -422,7 +422,7 @@ function SportOrangeDarkThumb({ className = "" }: ThumbProps) {
               className="h-1.5 rounded w-1/2 pb-0.5"
               style={{ backgroundColor: "#1a1a1a" }}
             />
-            <div className="h-px mt-0.5" style={{ backgroundColor: "#FDBE26" }} />
+            <div className="h-px mt-0.5" style={{ backgroundColor: "#FE8010" }} />
           </div>
           <div className="space-y-0.5">
             <div className="h-1 bg-gray-900 rounded w-3/4" />

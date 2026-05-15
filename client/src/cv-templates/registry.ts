@@ -78,7 +78,7 @@ export const CV_TEMPLATES: Record<string, CvTemplateMeta> = {
     categorie: "moderne",
     thumbnail: "/cv-templates/sport_orange_dark.svg",
     Component: lazy(() => import("./sport_orange_dark/Template")),
-    defaultAccent: "#FDBE26",
+    defaultAccent: "#FE8010",
   },
   developer_dark_sidebar: {
     slug: "developer_dark_sidebar",
