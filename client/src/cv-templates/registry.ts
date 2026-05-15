@@ -70,6 +70,16 @@ export const CV_TEMPLATES: Record<string, CvTemplateMeta> = {
     Component: lazy(() => import("./editorial_creative/Template")),
     defaultAccent: "#7dd3fc",
   },
+  colorful_warm_blocks: {
+    slug: "colorful_warm_blocks",
+    nom: "Vif Coloré Crème",
+    description:
+      "CV vif et coloré sur fond crème avec blocs violet, orange et jaune alternés. Photo, identité forte et sections en cartes contrastées. Adapté aux profils créatifs, jeunes diplômés et reconversion.",
+    categorie: "creatif",
+    thumbnail: "/cv-templates/colorful_warm_blocks.svg",
+    Component: lazy(() => import("./colorful_warm_blocks/Template")),
+    defaultAccent: "#D4AFE9",
+  },
   professional_modern_white: {
     slug: "professional_modern_white",
     nom: "White Professional Modern",

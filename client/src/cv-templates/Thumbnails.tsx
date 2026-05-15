@@ -236,6 +236,78 @@ function ProfessionalModernWhiteThumb({ className = "" }: ThumbProps) {
   );
 }
 
+// ─── colorful_warm_blocks ─────────────────────────────────────────────────────
+function ColorfulWarmBlocksThumb({ className = "" }: ThumbProps) {
+  return (
+    <div
+      className={`w-full h-full p-2 ${className}`}
+      style={{ backgroundColor: "#ECE8E1" }}
+    >
+      {/* Header : nom + petite photo */}
+      <div className="flex gap-1.5 mb-2">
+        <div className="flex-1 space-y-1">
+          <div className="h-2 bg-gray-900 rounded w-full" />
+          <div className="h-1 bg-gray-700 rounded w-2/3" />
+          <div className="h-0.5 bg-gray-500 rounded w-3/4 mt-1" />
+        </div>
+        <div
+          className="w-8 h-10 bg-gray-900 shrink-0"
+          style={{ borderRadius: "1px" }}
+        />
+      </div>
+      {/* Bloc formation 1 : violet pastel + orange date */}
+      <div className="flex mb-1.5" style={{ height: "12px" }}>
+        <div className="w-1/4 bg-orange-400" />
+        <div
+          className="flex-1 px-1 py-0.5"
+          style={{ backgroundColor: "#D4AFE9" }}
+        >
+          <div className="h-1 bg-gray-900 rounded w-2/3" />
+        </div>
+      </div>
+      {/* Bloc formation 2 : orange + violet date */}
+      <div className="flex mb-1.5" style={{ height: "12px" }}>
+        <div className="w-1/4" style={{ backgroundColor: "#BB98CE" }} />
+        <div
+          className="flex-1 px-1 py-0.5"
+          style={{ backgroundColor: "#F4AE31" }}
+        >
+          <div className="h-1 bg-gray-900 rounded w-2/3" />
+        </div>
+      </div>
+      {/* Bloc expérience : violet foncé + orange date */}
+      <div className="flex mb-1.5" style={{ height: "12px" }}>
+        <div className="w-1/4 bg-orange-400" />
+        <div
+          className="flex-1 px-1 py-0.5"
+          style={{ backgroundColor: "#BB98CE" }}
+        >
+          <div className="h-1 bg-white rounded w-2/3" />
+        </div>
+      </div>
+      {/* Compétences en grille */}
+      <div className="grid grid-cols-2 gap-1 mt-2">
+        <div
+          className="h-3"
+          style={{ backgroundColor: "#D4AFE9" }}
+        />
+        <div
+          className="h-3"
+          style={{ backgroundColor: "#FAB844" }}
+        />
+        <div
+          className="h-3"
+          style={{ backgroundColor: "#F4AE31" }}
+        />
+        <div
+          className="h-3"
+          style={{ backgroundColor: "#BB98CE" }}
+        />
+      </div>
+    </div>
+  );
+}
+
 // ─── Map slug → composant ─────────────────────────────────────────────────────
 const THUMBS: Record<string, (props: ThumbProps) => React.ReactElement> = {
   modern_sidebar_dark: ModernSidebarDarkThumb,
@@ -244,6 +316,7 @@ const THUMBS: Record<string, (props: ThumbProps) => React.ReactElement> = {
   editorial_creative: EditorialCreativeThumb,
   executive_curved: ExecutiveCurvedThumb,
   professional_modern_white: ProfessionalModernWhiteThumb,
+  colorful_warm_blocks: ColorfulWarmBlocksThumb,
 };
 
 export function TemplateThumbnail({ slug, className }: { slug: string; className?: string }) {
