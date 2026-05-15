@@ -136,17 +136,19 @@ export default function PinkRedBlobsTemplate({
       </div>
 
       {/* ─── Blob rose pâle ondulé bottom-left (image11.svg, rot -60°) ─ */}
-      {/* On agrandit la boîte englobante par rapport au PPT (93.6×140.7mm)
-         et on la décale plus bas-gauche pour que ses coins débordent
-         hors de la page (comme la vague rouge en haut), de sorte que
-         seule la courbe arrondie reste visible dans le coin bas-gauche. */}
+      {/* On agrandit fortement la boîte englobante par rapport au PPT
+         (93.6×140.7mm → 250×375mm) et on la décale pour que :
+         - les 4 coins du bounding box rotaté tombent hors de la feuille
+           (sharp angles cachés)
+         - seule la courbe arrondie soit visible côté bas-gauche,
+           avec la pointe atteignant ~x=175mm comme dans le PPT. */}
       <div
         className="absolute"
         style={{
-          left: "-30mm",
-          top: "230mm",
-          width: "130mm",
-          height: "195mm",
+          left: "-70mm",
+          top: "190mm",
+          width: "250mm",
+          height: "375mm",
           transform: "rotate(-60deg)",
           transformOrigin: "center center",
         }}
