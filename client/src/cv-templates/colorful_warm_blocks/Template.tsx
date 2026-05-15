@@ -433,9 +433,6 @@ function ColorBlock({
           fontWeight: 700,
           color: TEXT_DARK,
           letterSpacing: "0.01em",
-          textDecoration: "underline",
-          textDecorationThickness: "1px",
-          textUnderlineOffset: "3px",
         }}
       >
         {title}
@@ -491,9 +488,6 @@ function SkillsBox({
             fontWeight: 700,
             color: TEXT_DARK,
             letterSpacing: "0.05em",
-            textDecoration: "underline",
-            textDecorationThickness: "1px",
-            textUnderlineOffset: "3px",
           }}
         >
           {title}
