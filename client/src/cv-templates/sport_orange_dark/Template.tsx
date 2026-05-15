@@ -60,38 +60,72 @@ export default function SportOrangeDarkTemplate({
         color: TEXT_DARK,
       }}
     >
-      {/* ─── Sidebar gauche noire avec background image grisée ────── */}
-      <aside
-        className="w-[88mm] shrink-0 relative overflow-hidden"
-        style={{ backgroundColor: SIDEBAR_BG }}
-      >
-        {/* Image background grisée */}
+      {/* ─── Sidebar gauche : bloc orange (haut) + bloc noir (bas) ── */}
+      <aside className="w-[88mm] shrink-0 relative overflow-hidden">
+        {/* Bloc ORANGE en haut (cadre photo + nom) */}
         <div
-          className="absolute inset-0 pointer-events-none"
+          className="absolute top-0 left-0 right-0"
           style={{
-            backgroundImage: "url(/cv-templates/sport-bg.png)",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            opacity: 0.18,
-            filter: "grayscale(100%)",
+            backgroundColor: orange,
+            height: "115mm",
           }}
           aria-hidden="true"
         />
 
-        {/* Contenu sidebar par-dessus */}
-        <div className="relative z-10 px-[10mm] py-[12mm]">
-          {/* Photo dans cadre orange */}
-          <PhotoFramed photoUrl={data.photoUrl} fullName={data.fullName} orange={orange} />
+        {/* Bloc NOIR en bas avec image background grisée */}
+        <div
+          className="absolute left-0 right-0 bottom-0 overflow-hidden"
+          style={{
+            backgroundColor: SIDEBAR_BG,
+            top: "115mm",
+          }}
+          aria-hidden="true"
+        >
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              backgroundImage: "url(/cv-templates/sport-bg.png)",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              opacity: 0.18,
+              filter: "grayscale(100%)",
+            }}
+          />
+        </div>
 
-          {/* Nom + sous-titre poste */}
-          <div className="mt-5 text-white">
+        {/* Contenu sidebar par-dessus les blocs */}
+        <div className="relative z-10 px-[8mm] pt-[10mm] pb-[10mm]">
+          {/* Photo (sur le bloc orange — laisse une marge orange autour) */}
+          <div
+            className="overflow-hidden mx-auto"
+            style={{
+              width: "62mm",
+              height: "78mm",
+              backgroundColor: "#1a1a1a",
+            }}
+          >
+            {data.photoUrl ? (
+              <img
+                src={data.photoUrl}
+                alt={data.fullName}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-white">
+                {getInitials(data.fullName)}
+              </div>
+            )}
+          </div>
+
+          {/* Nom — sous la photo, chevauche la transition orange/noir */}
+          <div className="mt-3 text-white">
             <h1
-              className="leading-[0.9] uppercase"
+              className="leading-[0.92] uppercase"
               style={{
-                fontSize: "44pt",
+                fontSize: "32pt",
                 fontFamily: "'League Spartan', sans-serif",
                 fontWeight: 900,
-                letterSpacing: "0.04em",
+                letterSpacing: "0.02em",
                 color: "#ffffff",
               }}
             >
@@ -99,9 +133,9 @@ export default function SportOrangeDarkTemplate({
             </h1>
             {data.title && (
               <p
-                className="mt-2 uppercase"
+                className="mt-2 uppercase text-center"
                 style={{
-                  fontSize: "12pt",
+                  fontSize: "11pt",
                   fontWeight: 600,
                   color: "#ffffff",
                   letterSpacing: "0.18em",
@@ -233,36 +267,6 @@ export default function SportOrangeDarkTemplate({
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
-
-function PhotoFramed({
-  photoUrl,
-  fullName,
-  orange,
-}: {
-  photoUrl?: string;
-  fullName: string;
-  orange: string;
-}) {
-  return (
-    <div
-      className="overflow-hidden"
-      style={{
-        width: "65mm",
-        height: "85mm",
-        border: `4px solid ${orange}`,
-        backgroundColor: "#1a1a1a",
-      }}
-    >
-      {photoUrl ? (
-        <img src={photoUrl} alt={fullName} className="w-full h-full object-cover" />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-white">
-          {getInitials(fullName)}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function SidebarSection({
   title,
