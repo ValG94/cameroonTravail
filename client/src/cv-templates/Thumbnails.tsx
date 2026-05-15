@@ -361,6 +361,79 @@ function DeveloperDarkSidebarThumb({ className = "" }: ThumbProps) {
   );
 }
 
+// ─── sport_orange_dark ───────────────────────────────────────────────────────
+function SportOrangeDarkThumb({ className = "" }: ThumbProps) {
+  return (
+    <div className={`bg-white w-full h-full flex ${className}`}>
+      {/* Sidebar noire avec photo encadrée orange */}
+      <div
+        className="w-[40%] flex flex-col"
+        style={{
+          backgroundColor: "#0a0a0a",
+          backgroundImage: "linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url(/cv-templates/sport-bg.png)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <div className="p-1.5 space-y-1.5">
+          {/* Photo encadrée orange */}
+          <div
+            className="w-full bg-gray-700"
+            style={{
+              height: "32px",
+              border: "2px solid #FDBE26",
+            }}
+          />
+          {/* Nom */}
+          <div className="space-y-0.5">
+            <div className="h-1.5 bg-white rounded w-full" />
+            <div className="h-1.5 bg-white rounded w-3/4" />
+          </div>
+          {/* Sections sidebar avec lignes orange */}
+          <div className="space-y-0.5 pt-1">
+            <div className="h-0.5 rounded w-1/2" style={{ backgroundColor: "#FDBE26" }} />
+            <div className="h-px bg-white/40 rounded w-full" />
+            <div className="h-px bg-white/40 rounded w-3/4" />
+          </div>
+          <div className="space-y-0.5 pt-1">
+            <div className="h-0.5 rounded w-1/2" style={{ backgroundColor: "#FDBE26" }} />
+            <div className="h-px bg-white/40 rounded w-full" />
+            <div className="h-px bg-white/40 rounded w-2/3" />
+          </div>
+        </div>
+      </div>
+      {/* Main blanc */}
+      <div className="flex-1 px-2 py-1.5">
+        <div className="space-y-2">
+          <div>
+            <div
+              className="h-1.5 rounded w-2/3 pb-0.5"
+              style={{ backgroundColor: "#1a1a1a" }}
+            />
+            <div className="h-px mt-0.5" style={{ backgroundColor: "#FDBE26" }} />
+          </div>
+          <div className="space-y-0.5">
+            <div className="h-1 bg-gray-900 rounded w-3/4" />
+            <div className={`h-0.5 ${PLACEHOLDER_LINE_LIGHT} rounded`} />
+            <div className={`h-0.5 ${PLACEHOLDER_LINE_LIGHT} rounded w-5/6`} />
+          </div>
+          <div>
+            <div
+              className="h-1.5 rounded w-1/2 pb-0.5"
+              style={{ backgroundColor: "#1a1a1a" }}
+            />
+            <div className="h-px mt-0.5" style={{ backgroundColor: "#FDBE26" }} />
+          </div>
+          <div className="space-y-0.5">
+            <div className="h-1 bg-gray-900 rounded w-3/4" />
+            <div className={`h-0.5 ${PLACEHOLDER_LINE_LIGHT} rounded`} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Map slug → composant ─────────────────────────────────────────────────────
 const THUMBS: Record<string, (props: ThumbProps) => React.ReactElement> = {
   modern_sidebar_dark: ModernSidebarDarkThumb,
@@ -371,6 +444,7 @@ const THUMBS: Record<string, (props: ThumbProps) => React.ReactElement> = {
   professional_modern_white: ProfessionalModernWhiteThumb,
   colorful_warm_blocks: ColorfulWarmBlocksThumb,
   developer_dark_sidebar: DeveloperDarkSidebarThumb,
+  sport_orange_dark: SportOrangeDarkThumb,
 };
 
 export function TemplateThumbnail({ slug, className }: { slug: string; className?: string }) {

@@ -70,6 +70,16 @@ export const CV_TEMPLATES: Record<string, CvTemplateMeta> = {
     Component: lazy(() => import("./editorial_creative/Template")),
     defaultAccent: "#7dd3fc",
   },
+  sport_orange_dark: {
+    slug: "sport_orange_dark",
+    nom: "Sport Orange & Noir",
+    description:
+      "CV dynamique noir et orange avec fond image sport grisé. Sidebar avec photo encadrée orange, identité forte et sections claires. Adapté aux profils sport, entraîneurs, coachs et métiers actifs.",
+    categorie: "moderne",
+    thumbnail: "/cv-templates/sport_orange_dark.svg",
+    Component: lazy(() => import("./sport_orange_dark/Template")),
+    defaultAccent: "#FDBE26",
+  },
   developer_dark_sidebar: {
     slug: "developer_dark_sidebar",
     nom: "Développeur Noir & Blanc",
