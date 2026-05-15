@@ -191,50 +191,64 @@ export default function ColorfulWarmBlocksTemplate({
           </SectionWithVerticalLabel>
         )}
 
-        {/* ─── COMPÉTENCES + INFORMATIQUE ─────────────────────────── */}
-        {(data.hardSkills.length > 0 || data.softSkills.length > 0) && (
-          <div className="grid grid-cols-2 gap-2 mb-4">
-            {data.hardSkills.length > 0 && (
-              <SkillsBox
-                title={L.hardSkills}
-                bgColor={PURPLE_LIGHT}
-                items={data.hardSkills}
-                bulletColor={ORANGE}
-              />
+        {/* ─── COMPÉTENCES (Informatique + Techniques + Langues) ──── */}
+        {(data.hardSkills.length > 0 ||
+          data.softSkills.length > 0 ||
+          data.languages.length > 0) && (
+          <SectionWithVerticalLabel
+            label="Compétences"
+            labelBg={ORANGE}
+            className="mb-4"
+          >
+            {/* Informatique + Compétences techniques en bicolonne */}
+            {(data.softSkills.length > 0 || data.hardSkills.length > 0) && (
+              <div className="grid grid-cols-2 gap-2 mb-2">
+                {data.softSkills.length > 0 && (
+                  <SkillsBox
+                    title={L.softSkills}
+                    bgColor={YELLOW_ORANGE}
+                    items={data.softSkills}
+                    bulletColor={PURPLE_DARK}
+                  />
+                )}
+                {data.hardSkills.length > 0 && (
+                  <SkillsBox
+                    title={L.hardSkills}
+                    bgColor={YELLOW_ORANGE}
+                    items={data.hardSkills}
+                    bulletColor={PURPLE_DARK}
+                  />
+                )}
+              </div>
             )}
-            {data.softSkills.length > 0 && (
-              <SkillsBox
-                title={L.softSkills}
-                bgColor={YELLOW_ORANGE}
-                items={data.softSkills}
-                bulletColor={PURPLE_DARK}
-              />
-            )}
-          </div>
-        )}
-
-        {/* ─── LANGUES + CENTRES D'INTÉRÊT ────────────────────────── */}
-        {(data.languages.length > 0 || data.interests.length > 0) && (
-          <div className="grid grid-cols-2 gap-2">
+            {/* LANGUES sur toute la largeur */}
             {data.languages.length > 0 && (
               <SkillsBox
                 title={L.languages}
-                bgColor={ORANGE}
+                bgColor={YELLOW_ORANGE}
                 items={data.languages.map(
                   (l) => `${l.name}${l.level ? ` — ${l.level.replace(/_/g, " ")}` : ""}`
                 )}
                 bulletColor={PURPLE_DARK}
               />
             )}
-            {data.interests.length > 0 && (
-              <SkillsBox
-                title={L.interests}
-                bgColor={PURPLE_DARK}
-                items={data.interests}
-                bulletColor={YELLOW_ORANGE}
-              />
-            )}
-          </div>
+          </SectionWithVerticalLabel>
+        )}
+
+        {/* ─── CENTRES D'INTÉRÊT ──────────────────────────────────── */}
+        {data.interests.length > 0 && (
+          <SectionWithVerticalLabel
+            label={L.interests}
+            labelBg={ORANGE}
+            className="mb-4"
+          >
+            <SkillsBox
+              title=""
+              bgColor={YELLOW_ORANGE}
+              items={data.interests}
+              bulletColor={PURPLE_DARK}
+            />
+          </SectionWithVerticalLabel>
         )}
       </div>
     </div>
@@ -462,27 +476,29 @@ function SkillsBox({
   items,
   bulletColor,
 }: {
-  title: string;
+  title?: string;
   bgColor: string;
   items: string[];
   bulletColor: string;
 }) {
   return (
     <div className="px-4 py-3" style={{ backgroundColor: bgColor }}>
-      <h3
-        className="uppercase mb-2"
-        style={{
-          fontSize: "12pt",
-          fontWeight: 700,
-          color: TEXT_DARK,
-          letterSpacing: "0.05em",
-          textDecoration: "underline",
-          textDecorationThickness: "1px",
-          textUnderlineOffset: "3px",
-        }}
-      >
-        {title}
-      </h3>
+      {title && (
+        <h3
+          className="uppercase mb-2"
+          style={{
+            fontSize: "12pt",
+            fontWeight: 700,
+            color: TEXT_DARK,
+            letterSpacing: "0.05em",
+            textDecoration: "underline",
+            textDecorationThickness: "1px",
+            textUnderlineOffset: "3px",
+          }}
+        >
+          {title}
+        </h3>
+      )}
       <ul className="space-y-1" style={{ fontSize: "10pt", color: TEXT_DARK }}>
         {items.map((s, i) => (
           <li key={i} className="flex gap-2 items-baseline">
