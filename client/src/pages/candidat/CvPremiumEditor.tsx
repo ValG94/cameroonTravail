@@ -16,7 +16,14 @@ import { trpc } from "@/lib/trpc";
 import { CV_TEMPLATES, type CvSectionLabels } from "@/cv-templates/registry";
 import { buildTemplateData } from "@/cv-templates/dataMapper";
 import type { ExperienceItem, EducationItem, LanguageItem } from "@/cv-templates/types";
-import { exportCvToPdf, buildCvFilename } from "@/lib/pdfExport";
+import {
+  captureElementAsCanvas,
+  canvasToPdf,
+  computeSinglePageFitFactor,
+  buildCvFilename,
+  SINGLE_PAGE_SHRINK_THRESHOLD,
+} from "@/lib/pdfExport";
+import { PdfExportDialog } from "@/components/PdfExportDialog";
 
 const DEFAULT_LABELS: Required<CvSectionLabels> = {
   contact: "Contact",
@@ -269,6 +276,14 @@ export default function CvPremiumEditor() {
   };
 
   const [exportingPdf, setExportingPdf] = useState(false);
+  // État du dialog de choix single-page vs multi-page : ouvert quand le
+  // CV nécessite un shrink trop important pour rester lisible sur une page.
+  const [pdfPreview, setPdfPreview] = useState<{
+    canvas: HTMLCanvasElement;
+    fitFactor: number;
+    filename: string;
+  } | null>(null);
+
   const handleExportPdf = async () => {
     if (exportingPdf) return;
     const node = document.getElementById("cv-render-root") as HTMLElement | null;
@@ -278,16 +293,37 @@ export default function CvPremiumEditor() {
     }
     setExportingPdf(true);
     try {
-      await exportCvToPdf({
-        element: node,
-        filename: buildCvFilename(editing?.fullName || "", slug),
-      });
-      toast.success("CV téléchargé");
+      const canvas = await captureElementAsCanvas(node);
+      const fitFactor = computeSinglePageFitFactor(canvas);
+      const filename = buildCvFilename(editing?.fullName || "", slug);
+
+      if (fitFactor >= SINGLE_PAGE_SHRINK_THRESHOLD) {
+        // CV tient sur 1 page sans déformation notable : export direct.
+        canvasToPdf(canvas, { filename, mode: "single-page" });
+        toast.success("CV téléchargé");
+      } else {
+        // Shrink trop important pour rester lisible : on laisse le candidat
+        // choisir entre rester sur 1 page (avec réduction) ou étaler.
+        setPdfPreview({ canvas, fitFactor, filename });
+      }
     } catch (e) {
       console.error("[CvPremiumEditor] export PDF a échoué:", e);
       toast.error("Échec de l'export PDF");
     } finally {
       setExportingPdf(false);
+    }
+  };
+
+  const handlePdfChoice = (mode: "single-page" | "multi-page") => {
+    if (!pdfPreview) return;
+    try {
+      canvasToPdf(pdfPreview.canvas, { filename: pdfPreview.filename, mode });
+      toast.success("CV téléchargé");
+    } catch (e) {
+      console.error("[CvPremiumEditor] export PDF a échoué:", e);
+      toast.error("Échec de l'export PDF");
+    } finally {
+      setPdfPreview(null);
     }
   };
 
@@ -671,6 +707,16 @@ export default function CvPremiumEditor() {
           </div>
         </main>
       </div>
+
+      {/* Dialog de choix pour les CVs trop longs : single-page (réduit) vs
+          multi-page (taille originale). Apparait uniquement quand le shrink
+          nécessaire dépasse le seuil de lisibilité (cf. pdfExport). */}
+      <PdfExportDialog
+        canvas={pdfPreview?.canvas ?? null}
+        fitFactor={pdfPreview?.fitFactor ?? 1}
+        onChoose={handlePdfChoice}
+        onClose={() => setPdfPreview(null)}
+      />
     </div>
   );
 }

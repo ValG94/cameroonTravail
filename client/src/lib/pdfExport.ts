@@ -1,20 +1,21 @@
 /**
- * Export d'un CV premium au format PDF.
+ * Export d'un CV au format PDF.
  *
  * Stratégie :
- *  1. html-to-image (toCanvas) capture le node DOM (#cv-render-root) en
- *     canvas haute DPI. On préfère html-to-image à html2canvas car le
- *     parser de couleur de ce dernier ne supporte pas oklch() (utilisé
- *     par Tailwind v4 dans nos CSS variables de thème).
+ *  1. html-to-image (toCanvas) capture le node DOM en canvas haute DPI.
+ *     On préfère html-to-image à html2canvas car ce dernier ne supporte
+ *     pas oklch() (utilisé par Tailwind v4 dans nos CSS variables).
  *  2. jsPDF crée un document A4 portrait (210 × 297 mm) et y embarque l'image.
- *  3. Si le CV dépasse une page A4, on slice l'image canvas en plusieurs
- *     pages successives sans recalculer la capture (1 seul rendu = ressources
- *     et temps optimisés).
+ *  3. Deux modes d'embedding :
+ *     - "single-page" : redimensionne l'image pour qu'elle tienne sur une
+ *       seule page A4 (shrink proportionnel). Recommandé pour les CVs car
+ *       les ATS et recruteurs préfèrent un CV sur 1 page.
+ *     - "multi-page"  : slice l'image en plusieurs pages de hauteur A4.
+ *       À utiliser si le shrink-to-fit rendrait le texte illisible.
  *
  * Limites assumées :
- *  - Le PDF généré est une image rasterisée (pas de texte sélectionnable),
- *    acceptable pour un CV destiné à l'impression / candidature.
- *  - Pour du texte sélectionnable : à terme, passer par un backend Puppeteer.
+ *  - PDF rasterisé (pas de texte sélectionnable). OK pour candidatures.
+ *  - Pour texte sélectionnable : à terme, passer par un backend Puppeteer.
  */
 
 import { toCanvas } from "html-to-image";
@@ -24,42 +25,68 @@ import { jsPDF } from "jspdf";
 const A4_WIDTH_MM = 210;
 const A4_HEIGHT_MM = 297;
 
-/** Marge haut/bas par défaut, en mm. Évite les coupures collées au bord
- *  de la feuille sur les CV multi-pages (effet visuel disgracieux). */
+/** Marge haut/bas par défaut, en mm. Pour ne pas que le contenu colle
+ *  pile au bord du papier (effet de césure disgracieux). */
 const DEFAULT_MARGIN_MM = 6;
 
-interface ExportOptions {
-  /** Élément DOM à exporter. À fournir directement plutôt qu'un sélecteur
-   *  pour éviter les dépendances implicites au DOM global. */
-  element: HTMLElement;
-  /** Nom du fichier généré (sans extension). */
-  filename: string;
-  /** Résolution de capture (1 = identique écran, 2 = retina). Défaut 2. */
-  scale?: number;
-  /** Marge top + bottom en mm sur chaque page PDF. Défaut 6mm. */
-  marginMm?: number;
-}
+/** Sous ce facteur de shrink, on considère que le CV serait trop réduit
+ *  pour rester lisible (texte < ~85% de sa taille originale). À utiliser
+ *  côté caller pour déclencher un dialog de choix utilisateur. */
+export const SINGLE_PAGE_SHRINK_THRESHOLD = 0.85;
 
-export async function exportCvToPdf({
-  element,
-  filename,
-  scale = 2,
-  marginMm = DEFAULT_MARGIN_MM,
-}: ExportOptions): Promise<void> {
+export type FitMode = "single-page" | "multi-page";
+
+// ─── Capture ──────────────────────────────────────────────────────────────────
+
+/** Capture un élément DOM en canvas haute DPI. À utiliser quand on a besoin
+ *  d'inspecter le canvas avant de générer le PDF (pour calcul du shrink,
+ *  preview, etc.). Pour le cas simple, préférer exportCvToPdf(). */
+export async function captureElementAsCanvas(
+  element: HTMLElement,
+  scale = 2
+): Promise<HTMLCanvasElement> {
   if (!element) throw new Error("Élément CV introuvable");
-
-  // Capture du DOM en canvas haute DPI.
-  // pixelRatio: scale → équivalent du scale html2canvas (haute résolution)
-  // cacheBust: true → contourne le cache navigateur des images (URL signée
-  //   Supabase notamment) pour éviter les CORS-tainted canvas
-  // skipFonts: false → embarque les Google Fonts dans la capture
-  const canvas = await toCanvas(element, {
+  return await toCanvas(element, {
     pixelRatio: scale,
     cacheBust: true,
     skipFonts: false,
     backgroundColor: undefined,
   });
+}
 
+// ─── Calculs ──────────────────────────────────────────────────────────────────
+
+/** Calcule la hauteur naturelle du CV en mm si on conserve la largeur A4. */
+export function getNaturalHeightMm(canvas: HTMLCanvasElement): number {
+  return (canvas.height * A4_WIDTH_MM) / canvas.width;
+}
+
+/** Retourne le facteur de shrink (0 < f ≤ 1) pour faire tenir le CV sur
+ *  une seule page A4 avec marges. f = 1 → tient déjà ; f = 0.7 → doit
+ *  être réduit à 70% de sa taille. */
+export function computeSinglePageFitFactor(
+  canvas: HTMLCanvasElement,
+  marginMm: number = DEFAULT_MARGIN_MM
+): number {
+  const naturalHeightMm = getNaturalHeightMm(canvas);
+  const usableHeightMm = A4_HEIGHT_MM - 2 * marginMm;
+  if (naturalHeightMm <= usableHeightMm) return 1;
+  return usableHeightMm / naturalHeightMm;
+}
+
+// ─── Génération PDF à partir d'un canvas ──────────────────────────────────────
+
+interface CanvasToPdfOptions {
+  filename: string;
+  mode: FitMode;
+  marginMm?: number;
+}
+
+/** Construit + télécharge le PDF à partir d'un canvas déjà capturé. */
+export function canvasToPdf(
+  canvas: HTMLCanvasElement,
+  { filename, mode, marginMm = DEFAULT_MARGIN_MM }: CanvasToPdfOptions
+): void {
   const pdf = new jsPDF({
     unit: "mm",
     format: "a4",
@@ -67,17 +94,44 @@ export async function exportCvToPdf({
     compress: true,
   });
 
-  // Hauteur "utile" d'une page PDF en mm (sans les marges).
+  if (mode === "single-page") {
+    embedSinglePage(pdf, canvas, marginMm);
+  } else {
+    embedMultiPage(pdf, canvas, marginMm);
+  }
+
+  pdf.save(`${filename}.pdf`);
+}
+
+/** Embed une seule page : shrink proportionnel pour faire tenir tout le
+ *  CV dans la zone utile (A4 - marges), centré horizontalement et
+ *  verticalement. Si déjà plus petit que la zone utile, embed tel quel. */
+function embedSinglePage(pdf: jsPDF, canvas: HTMLCanvasElement, marginMm: number) {
+  const usableWidthMm = A4_WIDTH_MM;
   const usableHeightMm = A4_HEIGHT_MM - 2 * marginMm;
-  // Convertit cette hauteur en pixels canvas (la largeur du canvas représente
-  // les 210mm de largeur A4 pleine — les marges sont uniquement verticales).
+  const naturalHeightMm = getNaturalHeightMm(canvas);
+
+  // Shrink uniforme pour tenir en hauteur (la largeur est déjà = A4).
+  const fitFactor = Math.min(1, usableHeightMm / naturalHeightMm);
+  const finalWidthMm = usableWidthMm * fitFactor;
+  const finalHeightMm = naturalHeightMm * fitFactor;
+  const offsetX = (A4_WIDTH_MM - finalWidthMm) / 2;
+  const offsetY = marginMm + (usableHeightMm - finalHeightMm) / 2;
+
+  const imgData = canvas.toDataURL("image/jpeg", 0.92);
+  pdf.addImage(imgData, "JPEG", offsetX, offsetY, finalWidthMm, finalHeightMm);
+}
+
+/** Embed multi-page : slice l'image en tranches de hauteur A4 (moins
+ *  les marges), une page par tranche. */
+function embedMultiPage(pdf: jsPDF, canvas: HTMLCanvasElement, marginMm: number) {
+  const usableHeightMm = A4_HEIGHT_MM - 2 * marginMm;
   const pageSliceHeightPx = (canvas.width * usableHeightMm) / A4_WIDTH_MM;
   const totalPages = Math.max(1, Math.ceil(canvas.height / pageSliceHeightPx));
 
   for (let pageIdx = 0; pageIdx < totalPages; pageIdx++) {
     if (pageIdx > 0) pdf.addPage();
 
-    // On crée un canvas off-screen par page, on y copie la tranche concernée.
     const pageCanvas = document.createElement("canvas");
     pageCanvas.width = canvas.width;
     const sliceHeightPx = Math.min(
@@ -89,8 +143,8 @@ export async function exportCvToPdf({
     if (!ctx) throw new Error("Impossible de créer le contexte canvas 2D");
     ctx.drawImage(
       canvas,
-      0, // sx
-      pageIdx * pageSliceHeightPx, // sy
+      0,
+      pageIdx * pageSliceHeightPx,
       canvas.width,
       sliceHeightPx,
       0,
@@ -101,18 +155,42 @@ export async function exportCvToPdf({
 
     const imgData = pageCanvas.toDataURL("image/jpeg", 0.92);
     const imgHeightMm = (sliceHeightPx * A4_WIDTH_MM) / canvas.width;
-    // Image placée avec offset = marginMm en haut, pleine largeur en X.
     pdf.addImage(imgData, "JPEG", 0, marginMm, A4_WIDTH_MM, imgHeightMm);
   }
-
-  pdf.save(`${filename}.pdf`);
 }
 
-/** Compose un nom de fichier propre à partir du nom du candidat + slug template. */
+// ─── API haut niveau (cas simple) ─────────────────────────────────────────────
+
+interface ExportOptions {
+  element: HTMLElement;
+  filename: string;
+  scale?: number;
+  marginMm?: number;
+  /** Défaut : "single-page" (recommandé pour CV). */
+  fitMode?: FitMode;
+}
+
+/** Capture + export en une seule étape (cas simple). Pour un contrôle
+ *  fin avec preview avant download, utiliser captureElementAsCanvas +
+ *  canvasToPdf séparément. */
+export async function exportCvToPdf({
+  element,
+  filename,
+  scale = 2,
+  marginMm = DEFAULT_MARGIN_MM,
+  fitMode = "single-page",
+}: ExportOptions): Promise<void> {
+  const canvas = await captureElementAsCanvas(element, scale);
+  canvasToPdf(canvas, { filename, mode: fitMode, marginMm });
+}
+
+// ─── Helpers nom de fichier ───────────────────────────────────────────────────
+
+/** Compose un nom de fichier propre à partir du nom + slug template. */
 export function buildCvFilename(fullName: string, templateSlug: string): string {
   const safeName = (fullName || "cv")
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "") // retire les accents
+    .replace(/[̀-ͯ]/g, "")
     .replace(/[^\w\s-]/g, "")
     .trim()
     .replace(/\s+/g, "-")
