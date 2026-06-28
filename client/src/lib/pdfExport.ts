@@ -24,6 +24,10 @@ import { jsPDF } from "jspdf";
 const A4_WIDTH_MM = 210;
 const A4_HEIGHT_MM = 297;
 
+/** Marge haut/bas par défaut, en mm. Évite les coupures collées au bord
+ *  de la feuille sur les CV multi-pages (effet visuel disgracieux). */
+const DEFAULT_MARGIN_MM = 6;
+
 interface ExportOptions {
   /** Élément DOM à exporter. À fournir directement plutôt qu'un sélecteur
    *  pour éviter les dépendances implicites au DOM global. */
@@ -32,12 +36,15 @@ interface ExportOptions {
   filename: string;
   /** Résolution de capture (1 = identique écran, 2 = retina). Défaut 2. */
   scale?: number;
+  /** Marge top + bottom en mm sur chaque page PDF. Défaut 6mm. */
+  marginMm?: number;
 }
 
 export async function exportCvToPdf({
   element,
   filename,
   scale = 2,
+  marginMm = DEFAULT_MARGIN_MM,
 }: ExportOptions): Promise<void> {
   if (!element) throw new Error("Élément CV introuvable");
 
@@ -60,10 +67,12 @@ export async function exportCvToPdf({
     compress: true,
   });
 
-  // Calcule la hauteur du CV en mm si on conserve la largeur A4 (210 mm).
-  // Aspect ratio préservé : pdfHeightMm = canvas.height × (210 / canvas.width).
-  const pdfPageHeightPx = (canvas.width * A4_HEIGHT_MM) / A4_WIDTH_MM;
-  const totalPages = Math.max(1, Math.ceil(canvas.height / pdfPageHeightPx));
+  // Hauteur "utile" d'une page PDF en mm (sans les marges).
+  const usableHeightMm = A4_HEIGHT_MM - 2 * marginMm;
+  // Convertit cette hauteur en pixels canvas (la largeur du canvas représente
+  // les 210mm de largeur A4 pleine — les marges sont uniquement verticales).
+  const pageSliceHeightPx = (canvas.width * usableHeightMm) / A4_WIDTH_MM;
+  const totalPages = Math.max(1, Math.ceil(canvas.height / pageSliceHeightPx));
 
   for (let pageIdx = 0; pageIdx < totalPages; pageIdx++) {
     if (pageIdx > 0) pdf.addPage();
@@ -71,28 +80,29 @@ export async function exportCvToPdf({
     // On crée un canvas off-screen par page, on y copie la tranche concernée.
     const pageCanvas = document.createElement("canvas");
     pageCanvas.width = canvas.width;
-    const sliceHeight = Math.min(
-      pdfPageHeightPx,
-      canvas.height - pageIdx * pdfPageHeightPx
+    const sliceHeightPx = Math.min(
+      pageSliceHeightPx,
+      canvas.height - pageIdx * pageSliceHeightPx
     );
-    pageCanvas.height = sliceHeight;
+    pageCanvas.height = sliceHeightPx;
     const ctx = pageCanvas.getContext("2d");
     if (!ctx) throw new Error("Impossible de créer le contexte canvas 2D");
     ctx.drawImage(
       canvas,
       0, // sx
-      pageIdx * pdfPageHeightPx, // sy
+      pageIdx * pageSliceHeightPx, // sy
       canvas.width,
-      sliceHeight,
+      sliceHeightPx,
       0,
       0,
       canvas.width,
-      sliceHeight
+      sliceHeightPx
     );
 
     const imgData = pageCanvas.toDataURL("image/jpeg", 0.92);
-    const imgHeightMm = (sliceHeight * A4_WIDTH_MM) / canvas.width;
-    pdf.addImage(imgData, "JPEG", 0, 0, A4_WIDTH_MM, imgHeightMm);
+    const imgHeightMm = (sliceHeightPx * A4_WIDTH_MM) / canvas.width;
+    // Image placée avec offset = marginMm en haut, pleine largeur en X.
+    pdf.addImage(imgData, "JPEG", 0, marginMm, A4_WIDTH_MM, imgHeightMm);
   }
 
   pdf.save(`${filename}.pdf`);
