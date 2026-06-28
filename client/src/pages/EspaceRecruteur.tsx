@@ -254,7 +254,7 @@ export default function EspaceRecruteur() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
             <img
-              src="/logo%20cameroonTravail.png"
+              src="/logo-cameroon-travail.webp"
               alt="Cameroon Travail"
               className="h-14 w-auto object-contain"
             />
