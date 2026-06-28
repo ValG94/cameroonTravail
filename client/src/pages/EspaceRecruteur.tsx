@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion, useInView, type Variants } from "framer-motion";
 import { trpc } from "@/lib/trpc";
-import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { SiteHeader } from "@/components/SiteHeader";
 import {
   ArrowRight,
   BarChart3,
@@ -125,7 +125,6 @@ function AnimatedCounter({ target, suffix = "", duration = 2000 }: { target: num
 // ─── Composant principal ──────────────────────────────────────────────────────
 export default function EspaceRecruteur() {
   const [, setLocation] = useLocation();
-  const { user } = useAuth();
   const [formData, setFormData] = useState({ entreprise: "", email: "", telephone: "", taille: "" });
   const [submitting, setSubmitting] = useState(false);
 
@@ -243,59 +242,14 @@ export default function EspaceRecruteur() {
   return (
     <div className="min-h-screen bg-white font-sans antialiased text-gray-900">
       {/* ╭──────────────────────────────────────────────────────────────╮ */}
-      {/* │ NAVIGATION                                                    │ */}
+      {/* │ NAVIGATION — composant partagé pour homogénéité du header     │ */}
       {/* ╰──────────────────────────────────────────────────────────────╯ */}
-      <motion.nav
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-        className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200/60"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
-            <img
-              src="/logo-cameroon-travail.webp"
-              alt="Cameroon Travail"
-              className="h-14 w-auto object-contain"
-            />
-            <span className="font-bold text-gray-900 text-lg tracking-tight hidden sm:block">Cameroon Travail</span>
-          </Link>
-          <div className="hidden md:flex items-center gap-7 text-sm font-medium text-gray-600">
-            <Link href="/" className="hover:text-emerald-700 transition-colors">Accueil</Link>
-            <Link href="/emplois" className="hover:text-emerald-700 transition-colors">Emplois</Link>
-            <Link href="/conseils" className="hover:text-emerald-700 transition-colors">Conseils</Link>
-            <a href="#tarifs" className="hover:text-emerald-700 transition-colors">Tarifs</a>
-          </div>
-          <div className="flex items-center gap-3">
-            {user ? (
-              <Button
-                onClick={() => setLocation("/employeur/dashboard")}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm shadow-sm"
-              >
-                Mon espace recruteur
-              </Button>
-            ) : (
-              <>
-                <Button variant="outline" size="sm" onClick={() => setLocation("/connexion")} className="hidden sm:flex border-gray-300">
-                  Connexion
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => setLocation("/inscription?type=employeur")}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
-                >
-                  Inscription
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-      </motion.nav>
+      <SiteHeader />
 
       {/* ╭──────────────────────────────────────────────────────────────╮ */}
       {/* │ HERO                                                          │ */}
       {/* ╰──────────────────────────────────────────────────────────────╯ */}
-      <section className="relative pt-20 min-h-[92vh] flex items-center overflow-hidden">
+      <section className="relative min-h-[80vh] flex items-center overflow-hidden">
         {/* Background image + overlay multi-couches */}
         <div className="absolute inset-0">
           <img src={IMG_HERO} alt="Recrutement au Cameroun" className="w-full h-full object-cover object-center" />

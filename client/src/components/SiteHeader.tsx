@@ -51,7 +51,7 @@ export function SiteHeader({ activePage }: SiteHeaderProps) {
         {/* Logo */}
         <div className="shrink-0">
           <img
-            src="https://d2xsxph8kpxj0f.cloudfront.net/99126893/SPbMst9fYMnn3KTn3JChUH/logocameroonTravail_ed569233.png"
+            src="/logo-cameroon-travail.webp"
             alt="Cameroon Travail"
             className="cursor-pointer object-contain site-header-logo"
             onClick={() => setLocation("/")}
