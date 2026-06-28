@@ -34,7 +34,7 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
     const resendClient = getResend();
     
     const { data, error } = await resendClient.emails.send({
-      from: "Cameroon Travail <onboarding@resend.dev>", // À remplacer par votre domaine vérifié
+      from: ENV.emailFrom,
       to: options.to,
       subject: options.subject,
       html: options.html,
