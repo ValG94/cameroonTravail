@@ -101,9 +101,17 @@ export default function EspaceRecruteur() {
       return;
     }
     setSubmitting(true);
-    // Rediriger vers l'inscription employeur avec les données pré-remplies
+    // Rediriger vers l'inscription employeur en propageant TOUS les champs
+    // saisis dans le mini-form (entreprise, email, téléphone, taille) pour
+    // pré-remplir le formulaire complet et éviter à l'utilisateur de
+    // ressaisir les mêmes infos.
+    const params = new URLSearchParams({ type: "employeur" });
+    if (formData.entreprise) params.set("entreprise", formData.entreprise);
+    if (formData.email) params.set("email", formData.email);
+    if (formData.telephone) params.set("telephone", formData.telephone);
+    if (formData.taille) params.set("taille", formData.taille);
     setTimeout(() => {
-      setLocation("/inscription?type=employeur&email=" + encodeURIComponent(formData.email) + "&entreprise=" + encodeURIComponent(formData.entreprise));
+      setLocation(`/inscription?${params.toString()}`);
     }, 500);
   }
 
@@ -212,7 +220,7 @@ export default function EspaceRecruteur() {
                   onClick={() => setLocation("/inscription?type=employeur")}
                   className="bg-green-600 hover:bg-green-700 text-white"
                 >
-                  Inscription gratuite
+                  Inscription
                 </Button>
               </>
             )}
@@ -258,7 +266,7 @@ export default function EspaceRecruteur() {
                   onClick={() => setLocation("/inscription?type=employeur")}
                   className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold text-base px-8 gap-2 shadow-lg"
                 >
-                  Commencer gratuitement
+                  Commencer maintenant
                   <ArrowRight className="w-5 h-5" />
                 </Button>
                 <Button
@@ -274,7 +282,7 @@ export default function EspaceRecruteur() {
               <div className="flex items-center gap-6 text-sm text-green-200">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-yellow-400" />
-                  Essai gratuit 30 jours
+                  Inscription en 2 minutes
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-yellow-400" />
@@ -295,7 +303,7 @@ export default function EspaceRecruteur() {
                 </div>
                 <div>
                   <h2 className="font-bold text-gray-900 text-lg">Inscription Recruteur</h2>
-                  <p className="text-xs text-gray-500">Gratuit pendant 30 jours</p>
+                  <p className="text-xs text-gray-500">Créez votre compte en quelques minutes</p>
                 </div>
               </div>
               <form onSubmit={handleInscription} className="space-y-4">
@@ -330,14 +338,15 @@ export default function EspaceRecruteur() {
                   <option value="1-10">1 à 10 employés</option>
                   <option value="11-50">11 à 50 employés</option>
                   <option value="51-200">51 à 200 employés</option>
-                  <option value="201+">Plus de 200 employés</option>
+                  <option value="201-1000">201 à 1000 employés</option>
+                  <option value="1000+">Plus de 1000 employés</option>
                 </select>
                 <Button
                   type="submit"
                   disabled={submitting}
                   className="w-full h-11 bg-green-600 hover:bg-green-700 text-white font-semibold text-base"
                 >
-                  {submitting ? "Redirection..." : "Créer mon compte gratuit"}
+                  {submitting ? "Redirection..." : "Créer mon compte"}
                 </Button>
               </form>
               <p className="text-xs text-gray-400 text-center mt-3">
@@ -414,7 +423,7 @@ export default function EspaceRecruteur() {
               </h2>
               <div className="space-y-6">
                 {[
-                  { step: "01", titre: "Créez votre compte", desc: "Inscrivez-vous gratuitement et configurez votre profil entreprise en moins de 5 minutes.", color: "bg-green-600" },
+                  { step: "01", titre: "Créez votre compte", desc: "Inscrivez-vous et configurez votre profil entreprise en moins de 5 minutes.", color: "bg-green-600" },
                   { step: "02", titre: "Publiez vos offres", desc: "Rédigez et publiez vos annonces d'emploi. Elles sont visibles par des milliers de candidats qualifiés.", color: "bg-blue-600" },
                   { step: "03", titre: "Sélectionnez les talents", desc: "Parcourez les candidatures, consultez les CV et contactez directement les profils qui vous intéressent.", color: "bg-purple-600" },
                 ].map(({ step, titre, desc, color }) => (
@@ -689,7 +698,7 @@ export default function EspaceRecruteur() {
               onClick={() => setLocation("/inscription?type=employeur")}
               className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold text-base px-10 gap-2 shadow-xl"
             >
-              Essai gratuit 30 jours
+              Commencer maintenant
               <ArrowRight className="w-5 h-5" />
             </Button>
             <Button

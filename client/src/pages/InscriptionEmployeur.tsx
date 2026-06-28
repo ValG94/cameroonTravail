@@ -13,9 +13,9 @@ import {
 import { trpc } from "@/lib/trpc";
 import { SECTEURS } from "@/lib/secteurs";
 import { Eye, EyeOff, Mail, Lock, Phone, User, Building2, MapPin } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { toast } from "sonner";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { getLoginUrl } from "@/const";
@@ -23,6 +23,7 @@ import { getLoginUrl } from "@/const";
 export default function InscriptionEmployeur() {
   const { t } = useTranslation();
   const [, setLocation] = useLocation();
+  const searchString = useSearch();
   const { user } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -42,6 +43,27 @@ export default function InscriptionEmployeur() {
     acceptTerms: false,
     newsletter: true,
   });
+
+  // Pré-remplit le formulaire à partir des query params transmis par le
+  // mini-formulaire de l'Espace Recruteur (entreprise, email, telephone,
+  // taille). Évite à l'utilisateur de ressaisir ce qu'il a déjà tapé.
+  // Se déclenche au mount uniquement (pas de re-write si l'user a édité).
+  useEffect(() => {
+    const sp = new URLSearchParams(searchString || "");
+    const entreprise = sp.get("entreprise");
+    const email = sp.get("email");
+    const telephone = sp.get("telephone");
+    const taille = sp.get("taille");
+    if (!entreprise && !email && !telephone && !taille) return;
+    setFormData((prev) => ({
+      ...prev,
+      nomEntreprise: entreprise ?? prev.nomEntreprise,
+      email: email ?? prev.email,
+      telephone: telephone ?? prev.telephone,
+      tailleEntreprise: taille ?? prev.tailleEntreprise,
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const registerMutation = trpc.auth.register.useMutation({
     onSuccess: () => {
