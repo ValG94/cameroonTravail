@@ -254,10 +254,9 @@ export default function EspaceRecruteur() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <img
-              src="/logo.png"
+              src="https://d2xsxph8kpxj0f.cloudfront.net/99126893/SPbMst9fYMnn3KTn3JChUH/logocameroonTravail_ed569233.png"
               alt="Cameroon Travail"
-              className="h-9 w-auto"
-              onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
+              className="h-10 w-auto"
             />
             <span className="font-bold text-gray-900 text-lg tracking-tight hidden sm:block">Cameroon Travail</span>
           </Link>

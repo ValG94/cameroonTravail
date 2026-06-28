@@ -12,10 +12,10 @@ import {
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
 import { SECTEURS } from "@/lib/secteurs";
-import { Eye, EyeOff, Mail, Lock, Phone, User, Building2, MapPin } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowLeft, Eye, EyeOff, Mail, Lock, Phone, User, Building2, MapPin } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation, useSearch } from "wouter";
+import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { getLoginUrl } from "@/const";
@@ -23,47 +23,35 @@ import { getLoginUrl } from "@/const";
 export default function InscriptionEmployeur() {
   const { t } = useTranslation();
   const [, setLocation] = useLocation();
-  const searchString = useSearch();
   const { user } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const [formData, setFormData] = useState({
-    nomEntreprise: "",
-    prenom: "",
-    nom: "",
-    email: "",
-    telephone: "",
-    poste: "",
-    tailleEntreprise: "",
-    secteur: "",
-    ville: "",
-    password: "",
-    confirmPassword: "",
-    acceptTerms: false,
-    newsletter: true,
+  // Lazy initializer : on lit les query params transmis par le mini-formulaire
+  // de l'Espace Recruteur (entreprise, email, telephone, taille) directement
+  // à la création du state, pour éviter toute race condition avec un useEffect
+  // qui s'exécute après le premier render (sinon le Select 'tailleEntreprise'
+  // ne reflète pas la valeur préremplie de manière fiable).
+  const [formData, setFormData] = useState(() => {
+    const sp = new URLSearchParams(
+      typeof window !== "undefined" ? window.location.search : ""
+    );
+    return {
+      nomEntreprise: sp.get("entreprise") ?? "",
+      prenom: "",
+      nom: "",
+      email: sp.get("email") ?? "",
+      telephone: sp.get("telephone") ?? "",
+      poste: "",
+      tailleEntreprise: sp.get("taille") ?? "",
+      secteur: "",
+      ville: "",
+      password: "",
+      confirmPassword: "",
+      acceptTerms: false,
+      newsletter: true,
+    };
   });
-
-  // Pré-remplit le formulaire à partir des query params transmis par le
-  // mini-formulaire de l'Espace Recruteur (entreprise, email, telephone,
-  // taille). Évite à l'utilisateur de ressaisir ce qu'il a déjà tapé.
-  // Se déclenche au mount uniquement (pas de re-write si l'user a édité).
-  useEffect(() => {
-    const sp = new URLSearchParams(searchString || "");
-    const entreprise = sp.get("entreprise");
-    const email = sp.get("email");
-    const telephone = sp.get("telephone");
-    const taille = sp.get("taille");
-    if (!entreprise && !email && !telephone && !taille) return;
-    setFormData((prev) => ({
-      ...prev,
-      nomEntreprise: entreprise ?? prev.nomEntreprise,
-      email: email ?? prev.email,
-      telephone: telephone ?? prev.telephone,
-      tailleEntreprise: taille ?? prev.tailleEntreprise,
-    }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const registerMutation = trpc.auth.register.useMutation({
     onSuccess: () => {
@@ -112,12 +100,29 @@ export default function InscriptionEmployeur() {
       </header>
 
       <div className="max-w-4xl mx-auto px-4">
+        {/* Bouton retour vers l'Espace Recruteur (ou history.back si l'on
+            vient d'ailleurs). Permet d'annuler l'inscription sans repartir
+            de l'accueil. */}
+        <div className="mb-4">
+          <button
+            type="button"
+            onClick={() => {
+              if (window.history.length > 1) window.history.back();
+              else setLocation("/espace-recruteur");
+            }}
+            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-emerald-700 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Retour
+          </button>
+        </div>
+
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Créer votre compte recruteur
           </h1>
           <p className="text-gray-600">
-            Rejoignez plus de 2,500 entreprises qui recrutent avec Cameroon Travail
+            Rejoignez plus de 2 500 entreprises qui recrutent avec Cameroon Travail
           </p>
         </div>
 
