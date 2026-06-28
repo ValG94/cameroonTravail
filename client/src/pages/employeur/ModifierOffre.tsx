@@ -18,25 +18,7 @@ import { Loader2, ArrowLeft } from "lucide-react";
 import { useLocation, useParams } from "wouter";
 import { regions, getVillesForRegion } from "@/../../shared/regions-villes";
 import RichTextEditor from "@/components/RichTextEditor";
-
-const secteurs = [
-  "Administration publique",
-  "Agriculture",
-  "Banque / Finance",
-  "BTP / Construction",
-  "Commerce / Vente",
-  "Communication / Marketing",
-  "Éducation / Formation",
-  "Énergie",
-  "Hôtellerie / Restauration",
-  "Industrie",
-  "Informatique / IT",
-  "Juridique",
-  "Santé",
-  "Télécommunications",
-  "Transport / Logistique",
-  "Autre"
-];
+import { SECTEURS as secteurs } from "@/lib/secteurs";
 
 const typesContrat = [
   "CDI",

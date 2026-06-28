@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
+import { SECTEURS } from "@/lib/secteurs";
 import { Eye, EyeOff, Mail, Lock, Phone, User, Building2, MapPin } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -133,13 +134,9 @@ export default function InscriptionEmployeur() {
                       <SelectValue placeholder="Sélectionner un secteur" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="technology">Technologie</SelectItem>
-                      <SelectItem value="finance">Finance</SelectItem>
-                      <SelectItem value="healthcare">Santé</SelectItem>
-                      <SelectItem value="education">Éducation</SelectItem>
-                      <SelectItem value="retail">Commerce</SelectItem>
-                      <SelectItem value="manufacturing">Industrie</SelectItem>
-                      <SelectItem value="other">Autre</SelectItem>
+                      {SECTEURS.map((s) => (
+                        <SelectItem key={s} value={s}>{s}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

@@ -13,26 +13,7 @@ import { useEffect, useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { EmployeurNav } from "@/components/EmployeurNav";
-
-const SECTEURS = [
-  "Agriculture / Agroalimentaire",
-  "Banque / Finance / Assurance",
-  "BTP / Construction",
-  "Commerce / Distribution",
-  "Communication / Marketing",
-  "Éducation / Formation",
-  "Énergie / Environnement",
-  "Hôtellerie / Restauration / Tourisme",
-  "Industrie / Production",
-  "Informatique / Télécoms",
-  "Logistique / Transport",
-  "Médias / Presse",
-  "ONG / Associations",
-  "Santé / Pharmacie",
-  "Services aux entreprises",
-  "Secteur Public / Administration",
-  "Autre",
-];
+import { SECTEURS } from "@/lib/secteurs";
 
 const TAILLES = [
   { value: "1-10", label: "1 à 10 employés (TPE)" },
