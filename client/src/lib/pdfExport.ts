@@ -2,13 +2,14 @@
  * Export d'un CV premium au format PDF.
  *
  * Stratégie :
- *  1. html2canvas capture le node DOM (#cv-render-root) en image bitmap à
- *     haute DPI (scale 2) → l'identité graphique des templates (blobs SVG,
- *     polices custom, masques, dégradés) est conservée pixel-perfect.
+ *  1. html-to-image (toCanvas) capture le node DOM (#cv-render-root) en
+ *     canvas haute DPI. On préfère html-to-image à html2canvas car le
+ *     parser de couleur de ce dernier ne supporte pas oklch() (utilisé
+ *     par Tailwind v4 dans nos CSS variables de thème).
  *  2. jsPDF crée un document A4 portrait (210 × 297 mm) et y embarque l'image.
  *  3. Si le CV dépasse une page A4, on slice l'image canvas en plusieurs
- *     pages successives sans recalculer la capture (1 seul rendu html2canvas
- *     = ressources et temps optimisés).
+ *     pages successives sans recalculer la capture (1 seul rendu = ressources
+ *     et temps optimisés).
  *
  * Limites assumées :
  *  - Le PDF généré est une image rasterisée (pas de texte sélectionnable),
@@ -16,7 +17,7 @@
  *  - Pour du texte sélectionnable : à terme, passer par un backend Puppeteer.
  */
 
-import html2canvas from "html2canvas";
+import { toCanvas } from "html-to-image";
 import { jsPDF } from "jspdf";
 
 /** Format A4 portrait en millimètres. */
@@ -41,18 +42,15 @@ export async function exportCvToPdf({
   if (!element) throw new Error("Élément CV introuvable");
 
   // Capture du DOM en canvas haute DPI.
-  // useCORS: true → autorise les images Supabase Storage / Google Fonts.
-  // backgroundColor: null → respecte le background de l'élément.
-  // logging: false → pas de pollution console en prod.
-  const canvas = await html2canvas(element, {
-    scale,
-    useCORS: true,
-    allowTaint: false,
-    backgroundColor: null,
-    logging: false,
-    // Évite un rendu déformé si l'élément a une scrollbar interne
-    windowWidth: element.scrollWidth,
-    windowHeight: element.scrollHeight,
+  // pixelRatio: scale → équivalent du scale html2canvas (haute résolution)
+  // cacheBust: true → contourne le cache navigateur des images (URL signée
+  //   Supabase notamment) pour éviter les CORS-tainted canvas
+  // skipFonts: false → embarque les Google Fonts dans la capture
+  const canvas = await toCanvas(element, {
+    pixelRatio: scale,
+    cacheBust: true,
+    skipFonts: false,
+    backgroundColor: undefined,
   });
 
   const pdf = new jsPDF({

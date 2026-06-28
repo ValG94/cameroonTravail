@@ -1,13 +1,28 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, User } from "lucide-react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { LanguageSelector } from "@/components/LanguageSelector";
 
 export default function ChoixInscription() {
   const { t } = useTranslation();
   const [, setLocation] = useLocation();
+  const searchString = useSearch();
+
+  // Si l'URL pré-sélectionne déjà un type de profil (ex: ?type=employeur depuis
+  // Espace Recruteur ou Choisir ce plan), on saute cet écran de choix et on
+  // redirige directement vers le bon formulaire, en préservant les autres
+  // query params (plan, email, entreprise, etc.).
+  useEffect(() => {
+    const sp = new URLSearchParams(searchString || "");
+    const type = sp.get("type");
+    if (type !== "candidat" && type !== "employeur") return;
+    sp.delete("type");
+    const rest = sp.toString();
+    setLocation(`/inscription/${type}${rest ? `?${rest}` : ""}`);
+  }, [searchString, setLocation]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-yellow-50 to-red-50">

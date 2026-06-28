@@ -99,32 +99,38 @@ export default function EmployeurDashboard() {
 
         {/* Formule actuelle */}
         {(() => {
+          // Plus de package gratuit côté recruteur : si formuleAbonnement vaut
+          // 'gratuit' (valeur historique = pas d'abonnement actif), on affiche
+          // une bannière d'incitation à souscrire, sans mentionner "Gratuit".
           const formule = employeur?.formuleAbonnement || "gratuit";
           const formuleConfig = {
             gratuit: {
-              label: "Gratuit",
+              label: "Aucune formule active",
               icon: Zap,
-              gradient: "from-gray-500 to-gray-700",
-              badgeBg: "bg-gray-100 text-gray-700",
-              description: "Publication d'offres limitée. CVthèque non incluse.",
-              ctaLabel: "Passer à la formule Pro",
+              gradient: "from-gray-700 to-gray-900",
+              badgeBg: "bg-white/20 text-white border border-white/30",
+              description: "Souscrivez une formule pour publier vos offres et accéder à la CVthèque.",
+              ctaLabel: "Choisir une formule",
               ctaVariant: "primary" as const,
             },
+            // L'ancienne enum 'professionnel' est mappée sur la nouvelle
+            // dénomination commerciale "Offre avantage" (50 000 FCFA).
             professionnel: {
-              label: "Professionnel",
+              label: "Offre avantage",
               icon: Sparkles,
               gradient: "from-orange-500 to-amber-600",
               badgeBg: "bg-orange-100 text-orange-700",
-              description: "Accès complet à la CVthèque + offres illimitées.",
+              description: "10 offres / mois + accès complet à la CVthèque.",
               ctaLabel: "Voir les formules",
               ctaVariant: "outline" as const,
             },
+            // 'entreprise' → "Offre Premium" (150 000 FCFA, offres illimitées).
             entreprise: {
-              label: "Entreprise",
+              label: "Offre Premium",
               icon: Crown,
               gradient: "from-purple-500 to-indigo-600",
               badgeBg: "bg-purple-100 text-purple-700",
-              description: "Toutes les fonctionnalités + support prioritaire et mise en avant.",
+              description: "Offres d'emploi illimitées + CVthèque + support dédié.",
               ctaLabel: "Voir les formules",
               ctaVariant: "outline" as const,
             },

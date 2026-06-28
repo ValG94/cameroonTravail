@@ -394,19 +394,16 @@ export default function CVClassique() {
   const handleDownloadPDF = async () => {
     setDownloading(true);
     try {
-      const { default: jsPDF } = await import("jspdf");
-      const { default: html2canvas } = await import("html2canvas");
-      const element = document.getElementById("cv-preview");
+      const { exportCvToPdf, buildCvFilename } = await import("@/lib/pdfExport");
+      const element = document.getElementById("cv-preview") as HTMLElement | null;
       if (!element) return;
-      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`CV_${form.prenom}_${form.nom}_Classique.pdf`);
+      await exportCvToPdf({
+        element,
+        filename: buildCvFilename(`${form.prenom} ${form.nom}`, "classique"),
+      });
       toast.success("PDF téléchargé !");
     } catch (e) {
+      console.error("[CVClassique] export PDF a échoué:", e);
       toast.error("Erreur lors de la génération du PDF");
     } finally {
       setDownloading(false);
