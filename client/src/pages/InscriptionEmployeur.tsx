@@ -100,20 +100,19 @@ export default function InscriptionEmployeur() {
       </header>
 
       <div className="max-w-4xl mx-auto px-4">
-        {/* Bouton retour vers l'Espace Recruteur (ou history.back si l'on
-            vient d'ailleurs). Permet d'annuler l'inscription sans repartir
-            de l'accueil. */}
+        {/* Bouton retour vers l'Espace Recruteur.
+            On NE fait pas history.back() : ChoixInscription est dans
+            l'historique et auto-redirige vers /inscription/employeur si
+            type=employeur, ce qui créerait une boucle. On navigue donc en
+            direct vers /espace-recruteur. */}
         <div className="mb-4">
           <button
             type="button"
-            onClick={() => {
-              if (window.history.length > 1) window.history.back();
-              else setLocation("/espace-recruteur");
-            }}
+            onClick={() => setLocation("/espace-recruteur")}
             className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-emerald-700 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Retour
+            Retour à l'Espace Recruteur
           </button>
         </div>
 

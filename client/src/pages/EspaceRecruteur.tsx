@@ -251,12 +251,12 @@ export default function EspaceRecruteur() {
         transition={{ duration: 0.4, ease: "easeOut" }}
         className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200/60"
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-3">
             <img
-              src="https://d2xsxph8kpxj0f.cloudfront.net/99126893/SPbMst9fYMnn3KTn3JChUH/logocameroonTravail_ed569233.png"
+              src="/logo%20cameroonTravail.png"
               alt="Cameroon Travail"
-              className="h-10 w-auto"
+              className="h-14 w-auto object-contain"
             />
             <span className="font-bold text-gray-900 text-lg tracking-tight hidden sm:block">Cameroon Travail</span>
           </Link>
@@ -295,7 +295,7 @@ export default function EspaceRecruteur() {
       {/* ╭──────────────────────────────────────────────────────────────╮ */}
       {/* │ HERO                                                          │ */}
       {/* ╰──────────────────────────────────────────────────────────────╯ */}
-      <section className="relative pt-16 min-h-[92vh] flex items-center overflow-hidden">
+      <section className="relative pt-20 min-h-[92vh] flex items-center overflow-hidden">
         {/* Background image + overlay multi-couches */}
         <div className="absolute inset-0">
           <img src={IMG_HERO} alt="Recrutement au Cameroun" className="w-full h-full object-cover object-center" />
