@@ -16,6 +16,7 @@ import { trpc } from "@/lib/trpc";
 import { CV_TEMPLATES, type CvSectionLabels } from "@/cv-templates/registry";
 import { buildTemplateData } from "@/cv-templates/dataMapper";
 import type { ExperienceItem, EducationItem, LanguageItem } from "@/cv-templates/types";
+import { exportCvToPdf, buildCvFilename } from "@/lib/pdfExport";
 
 const DEFAULT_LABELS: Required<CvSectionLabels> = {
   contact: "Contact",
@@ -267,6 +268,29 @@ export default function CvPremiumEditor() {
     });
   };
 
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const handleExportPdf = async () => {
+    if (exportingPdf) return;
+    const node = document.getElementById("cv-render-root") as HTMLElement | null;
+    if (!node) {
+      toast.error("Aperçu du CV introuvable");
+      return;
+    }
+    setExportingPdf(true);
+    try {
+      await exportCvToPdf({
+        element: node,
+        filename: buildCvFilename(editing?.fullName || "", slug),
+      });
+      toast.success("CV téléchargé");
+    } catch (e) {
+      console.error("[CvPremiumEditor] export PDF a échoué:", e);
+      toast.error("Échec de l'export PDF");
+    } finally {
+      setExportingPdf(false);
+    }
+  };
+
   const updateLabel = (key: keyof CvSectionLabels, value: string) => {
     setLabels({ ...labels, [key]: value });
     setIsDirty(true);
@@ -385,9 +409,11 @@ export default function CvPremiumEditor() {
             <Button
               size="sm"
               className="bg-emerald-600 hover:bg-emerald-700 text-white"
-              onClick={() => toast.info("Export PDF disponible en Phase 3")}
+              onClick={handleExportPdf}
+              disabled={exportingPdf || !editing}
             >
-              <Download className="w-4 h-4 mr-1" /> PDF
+              <Download className="w-4 h-4 mr-1" />
+              {exportingPdf ? "Génération..." : "PDF"}
             </Button>
           </div>
         </div>
