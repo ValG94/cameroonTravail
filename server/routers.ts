@@ -31,10 +31,11 @@ async function notifyAlertesForNewOffer(offreData: {
     const { alertes, candidats, users } = await import("../drizzle/schema");
     const { eq, and, or, isNull, like, sql } = await import("drizzle-orm");
 
-    // Construire l'URL de l'app
+    // URL de l'app : priorité à ENV.frontendUrl (Vercel), sinon reconstruit
+    // depuis les headers de la requête. Plus aucun fallback hardcodé.
     const proto = req?.headers?.['x-forwarded-proto'] || 'https';
-    const host = req?.headers?.host || 'cameroon-travail.manus.space';
-    const appUrl = `${proto}://${host}`;
+    const host = req?.headers?.host;
+    const appUrl = ENV.frontendUrl || (host ? `${proto}://${host}` : '');
 
     // Récupérer toutes les alertes actives avec fréquence immédiate
     const alertesActives = await dbInstance
@@ -820,8 +821,8 @@ export const appRouter = router({
         
         console.log(`[resetPassword] Token valide trouvé pour userId: ${validToken.userId}`);
         
-        // Hacher le nouveau mot de passe
-        const hashedPassword = await bcrypt.hash(input.newPassword, 10);
+        // Hacher le nouveau mot de passe — aligné sur hashPassword() (12 rounds)
+        const hashedPassword = await bcrypt.hash(input.newPassword, 12);
         
         // Mettre à jour le mot de passe
         await dbInstance
@@ -1933,6 +1934,7 @@ export const appRouter = router({
                   offreTitre: offre.titre,
                   offreId: offre.id,
                   candidatureId: 0, // ID non disponible immédiatement
+                  appUrl: ENV.frontendUrl,
                 }),
               });
             }
@@ -2204,6 +2206,7 @@ export const appRouter = router({
                     nouveauStatut: input.statut,
                     commentaire: input.commentaire,
                     offreId: candidatureComplete[0].offreId,
+                    appUrl: ENV.frontendUrl,
                   }),
                 });
               }

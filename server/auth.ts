@@ -7,7 +7,11 @@ import { getDb } from "./db";
  * Hacher un mot de passe avec bcrypt
  */
 export async function hashPassword(password: string): Promise<string> {
-  const saltRounds = 10;
+  // 12 rounds = ~150ms / hash (vs ~40ms à 10) — augmente significativement
+  // le coût d'une attaque brute-force. Les hashs déjà en BDD restent valides
+  // car bcrypt encode le coût dans le hash lui-même : verifyPassword fonctionne
+  // pour tout coût ≤ 12, le nouveau coût ne s'applique qu'aux NOUVEAUX hashs.
+  const saltRounds = 12;
   return bcrypt.hash(password, saltRounds);
 }
 

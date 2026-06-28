@@ -62,6 +62,7 @@ export function templateNouvelleCandidature(data: {
   offreTitre: string;
   offreId: number;
   candidatureId: number;
+  appUrl: string;
 }): string {
   return `
 <!DOCTYPE html>
@@ -93,7 +94,7 @@ export function templateNouvelleCandidature(data: {
       
       <p>Connectez-vous à votre espace employeur pour consulter les détails de cette candidature, télécharger le CV et prendre une décision.</p>
       
-      <a href="https://cameroon-travail.manus.space/employeur/candidatures" class="button">
+      <a href="${data.appUrl}/employeur/candidatures" class="button">
         Voir la candidature
       </a>
     </div>
@@ -176,6 +177,7 @@ export function templateChangementStatut(data: {
   nouveauStatut: string;
   commentaire?: string;
   offreId: number;
+  appUrl: string;
 }): string {
   const statutLabels: Record<string, { titre: string; couleur: string; message: string }> = {
     en_attente: {
@@ -253,7 +255,7 @@ export function templateChangementStatut(data: {
           : ""
       }
       
-      <a href="https://cameroon-travail.manus.space/candidat/candidatures" class="button">
+      <a href="${data.appUrl}/candidat/candidatures" class="button">
         Voir mes candidatures
       </a>
     </div>
