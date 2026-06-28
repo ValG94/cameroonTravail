@@ -112,3 +112,4 @@ attached_assets/
 
 # Local Claude config
 .claude/settings.local.json
+.claude/skills/
