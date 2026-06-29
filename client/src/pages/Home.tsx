@@ -90,22 +90,9 @@ const PARTNERS: PartnerSpec[] = [
   { name: "Camair-Co", label: "Camair-Co", color: "#063F24", weight: 800, fontSize: "1.05rem", letterSpacing: "-0.02em" },
 ];
 
-// Override d'images d'articles : certains articles n'ont pas d'image en BDD
-// ou ont une image qui ne reflète pas bien le sujet. On force ici l'image
-// locale appropriée pour les articles dont le slug matche les patterns
-// suivants (case-insensitive, recherche partielle).
-const ARTICLE_IMAGE_OVERRIDES: { match: RegExp; src: string }[] = [
-  { match: /entretien|interview/i, src: "/images/home/interview-scene.webp" },
-  { match: /freelance|activit[ée]/i, src: "/images/home/meeting-room.webp" },
-];
-
-function getArticleImage(article: { slug?: string; titre?: string; imageUrl?: string | null }): string | null {
-  const haystack = `${article.slug || ""} ${article.titre || ""}`;
-  for (const { match, src } of ARTICLE_IMAGE_OVERRIDES) {
-    if (match.test(haystack)) return src;
-  }
-  return article.imageUrl || null;
-}
+// Override d'images d'articles : centralisé dans lib/articleImages pour
+// garantir la cohérence card ↔ page détail.
+import { getArticleImage } from "@/lib/articleImages";
 
 // ─── Variants Framer Motion ───────────────────────────────────────────────────
 const fadeUp: Variants = {

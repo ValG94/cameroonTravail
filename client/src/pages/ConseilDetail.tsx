@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import SiteFooter from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { getArticleImage } from "@/lib/articleImages";
 import {
   ArrowLeft,
   Calendar,
@@ -177,16 +178,20 @@ export default function ConseilDetail() {
         </div>
       </div>
 
-      {/* ─── Hero image ─────────────────────────────────────────────────────── */}
-      {article.imageUrl && (
-        <div className="w-full h-72 md:h-96 overflow-hidden">
-          <img
-            src={article.imageUrl}
-            alt={article.titre}
-            className="w-full h-full object-cover"
-          />
-        </div>
-      )}
+      {/* ─── Hero image (avec override centralisé pour cohérence card↔détail) */}
+      {(() => {
+        const heroImg = getArticleImage(article);
+        if (!heroImg) return null;
+        return (
+          <div className="w-full h-72 md:h-96 overflow-hidden">
+            <img
+              src={heroImg}
+              alt={article.titre}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        );
+      })()}
 
       {/* ─── Contenu principal ──────────────────────────────────────────────── */}
       <div className="container mx-auto px-4 py-10">
@@ -301,15 +306,19 @@ export default function ConseilDetail() {
                     className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer flex flex-col"
                     onClick={() => setLocation(`/conseils/${sim.slug}`)}
                   >
-                    {sim.imageUrl && (
-                      <div className="h-40 overflow-hidden">
-                        <img
-                          src={sim.imageUrl}
-                          alt={sim.titre}
-                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                    )}
+                    {(() => {
+                      const simImg = getArticleImage(sim);
+                      if (!simImg) return null;
+                      return (
+                        <div className="h-40 overflow-hidden">
+                          <img
+                            src={simImg}
+                            alt={sim.titre}
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                          />
+                        </div>
+                      );
+                    })()}
                     <CardContent className="p-4 flex flex-col flex-1">
                       <Badge className={`${color} border-0 text-xs mb-2 w-fit`}>
                         {sim.categorie}
