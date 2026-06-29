@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { Facebook, Linkedin, Mail, MapPin, Phone, Twitter } from "lucide-react";
+import { toast } from "sonner";
 
 /**
  * Footer global du site — utilisé sur 13 pages.
@@ -52,6 +54,24 @@ const LEGAL_LINKS: LinkItem[] = [
 
 export default function SiteFooter() {
   const [, setLocation] = useLocation();
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [subscribing, setSubscribing] = useState(false);
+
+  // Newsletter : stub côté UI. À brancher quand le backend exposera
+  // une route trpc.newsletter.subscribe ou équivalent.
+  const handleNewsletterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newsletterEmail || !newsletterEmail.includes("@")) {
+      toast.error("Veuillez saisir une adresse email valide");
+      return;
+    }
+    setSubscribing(true);
+    setTimeout(() => {
+      toast.success("Merci ! Vous recevrez bientôt nos meilleures offres.");
+      setNewsletterEmail("");
+      setSubscribing(false);
+    }, 500);
+  };
 
   const handleNav = (href: string) => {
     if (href.startsWith("#")) return;
@@ -135,42 +155,59 @@ export default function SiteFooter() {
           {/* Recruteurs */}
           <FooterColumn title="Recruteurs" links={RECRUTEURS_LINKS} onNav={handleNav} />
 
-          {/* Plateforme */}
-          <FooterColumn title="Plateforme" links={PLATFORM_LINKS} onNav={handleNav} />
+          {/* À propos */}
+          <FooterColumn title="À propos" links={PLATFORM_LINKS} onNav={handleNav} />
 
-          {/* Contact */}
-          <div className="lg:col-span-2">
+          {/* Newsletter */}
+          <div className="lg:col-span-3">
             <h3
-              className="font-bold mb-4 text-sm uppercase tracking-wider"
+              className="font-bold mb-3 text-sm uppercase tracking-wider"
               style={{ color: COLORS.gold }}
             >
-              Contact
+              Newsletter
             </h3>
-            <ul className="space-y-3 text-sm text-white/80">
-              <li className="flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 mt-0.5 shrink-0" style={{ color: COLORS.gold }} />
-                <span>
-                  Douala, Cameroun
-                  <br />
-                  Yaoundé, Cameroun
-                </span>
-              </li>
-              <li className="flex items-center gap-2.5">
-                <Phone className="w-4 h-4 shrink-0" style={{ color: COLORS.gold }} />
-                <a href="tel:+237600000000" className="hover:text-white transition-colors">
-                  +237 6XX XX XX XX
-                </a>
-              </li>
-              <li className="flex items-center gap-2.5">
-                <Mail className="w-4 h-4 shrink-0" style={{ color: COLORS.gold }} />
-                <a
-                  href="mailto:contact@cameroon-travail.cm"
-                  className="hover:text-white transition-colors break-all"
-                >
-                  contact@cameroon-travail.cm
-                </a>
-              </li>
-            </ul>
+            <p className="text-sm text-white/75 mb-4 leading-relaxed">
+              Recevez nos conseils et nos meilleures offres d'emploi chaque semaine.
+            </p>
+            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-2">
+              <div className="relative flex-1">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: COLORS.gold }} />
+                <input
+                  type="email"
+                  value={newsletterEmail}
+                  onChange={(e) => setNewsletterEmail(e.target.value)}
+                  placeholder="Votre email"
+                  className="w-full h-10 pl-10 pr-3 text-sm rounded-lg border bg-white/5 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 transition-all"
+                  style={{
+                    borderColor: "rgba(255, 255, 255, 0.15)",
+                  }}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={subscribing}
+                className="h-10 px-5 text-sm font-semibold rounded-lg transition-all disabled:opacity-60"
+                style={{ backgroundColor: COLORS.emerald, color: "white" }}
+              >
+                {subscribing ? "..." : "S'abonner"}
+              </button>
+            </form>
+
+            {/* Contact rapide en-dessous */}
+            <div className="mt-5 pt-4 border-t border-white/10 space-y-1.5 text-xs text-white/70">
+              <a href="tel:+237600000000" className="flex items-center gap-2 hover:text-white transition-colors">
+                <Phone className="w-3.5 h-3.5" style={{ color: COLORS.gold }} />
+                +237 6XX XX XX XX
+              </a>
+              <a href="mailto:contact@cameroon-travail.cm" className="flex items-center gap-2 hover:text-white transition-colors break-all">
+                <Mail className="w-3.5 h-3.5 shrink-0" style={{ color: COLORS.gold }} />
+                contact@cameroon-travail.cm
+              </a>
+              <div className="flex items-center gap-2">
+                <MapPin className="w-3.5 h-3.5" style={{ color: COLORS.gold }} />
+                Douala / Yaoundé, Cameroun
+              </div>
+            </div>
           </div>
         </div>
 

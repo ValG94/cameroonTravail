@@ -35,7 +35,7 @@ const COLORS = {
 };
 
 interface SiteHeaderProps {
-  activePage?: "accueil" | "emplois" | "conseils";
+  activePage?: "accueil" | "emplois" | "conseils" | "creer-cv";
 }
 
 export function SiteHeader({ activePage }: SiteHeaderProps) {
@@ -53,6 +53,7 @@ export function SiteHeader({ activePage }: SiteHeaderProps) {
     { label: "Accueil", path: "/", key: "accueil" },
     { label: "Emplois", path: "/offres", key: "emplois" },
     { label: "Conseils", path: "/conseils", key: "conseils" },
+    { label: "Créer mon CV", path: "/candidat/cv", key: "creer-cv" },
   ];
 
   const isActive = (link: typeof navLinks[0]) =>

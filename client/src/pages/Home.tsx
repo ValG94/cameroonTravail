@@ -7,34 +7,55 @@ import { motion, useInView, type Variants } from "framer-motion";
 import {
   ArrowRight,
   BadgeCheck,
+  Bell,
   BookOpen,
   Briefcase,
   Building2,
+  Bookmark,
   Compass,
   FileText,
-  Gauge,
   GraduationCap,
+  Gauge,
   MapPin,
   Search,
-  Shield,
   Sparkles,
-  TrendingUp,
+  Upload,
   Users,
-  Zap,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 
-// ─── Palette identitaire (cohérente avec la charte Cameroon Travail) ──────────
+// ─── Palette identitaire ──────────────────────────────────────────────────────
 const COLORS = {
   deepGreen: "#063F24",
   emerald: "#0F8A4C",
   gold: "#F6C343",
+  goldDark: "#D4A11F",
   ivory: "#FAF7EF",
   charcoal: "#0B1220",
+  cream: "#FDF6E8",
 };
 
-// ─── Variants Framer Motion partagés ──────────────────────────────────────────
+// ─── Données statiques ────────────────────────────────────────────────────────
+const SECTEURS = [
+  "Tous les secteurs",
+  "Administration publique",
+  "Agriculture",
+  "Banque / Finance",
+  "BTP / Construction",
+  "Commerce / Vente",
+  "Communication / Marketing",
+  "Éducation / Formation",
+  "Informatique / IT",
+  "Santé",
+  "Transport / Logistique",
+];
+
+const RECHERCHES_POPULAIRES = ["Développeur", "Commercial", "Comptabilité", "Marketing", "Ressources humaines"];
+
+const REGIONS = ["Douala", "Yaoundé", "Bafoussam", "Garoua", "Maroua", "Bamenda", "Limbé", "Diaspora"];
+
+// ─── Variants Framer Motion ───────────────────────────────────────────────────
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 24 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
@@ -45,16 +66,8 @@ const stagger: Variants = {
   visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
 };
 
-// ─── Reveal au scroll (wrapper réutilisable) ──────────────────────────────────
-function Reveal({
-  children,
-  delay = 0,
-  className = "",
-}: {
-  children: React.ReactNode;
-  delay?: number;
-  className?: string;
-}) {
+// ─── Reveal au scroll ─────────────────────────────────────────────────────────
+function Reveal({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
   return (
@@ -62,13 +75,7 @@ function Reveal({
       ref={ref}
       initial="hidden"
       animate={inView ? "visible" : "hidden"}
-      variants={{
-        ...fadeUp,
-        visible: {
-          ...fadeUp.visible,
-          transition: { duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] },
-        },
-      }}
+      variants={{ ...fadeUp, visible: { ...fadeUp.visible, transition: { duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] } } }}
       className={className}
     >
       {children}
@@ -76,16 +83,8 @@ function Reveal({
   );
 }
 
-// ─── Compteur animé au scroll ─────────────────────────────────────────────────
-function AnimatedCounter({
-  target,
-  suffix = "",
-  duration = 1800,
-}: {
-  target: number;
-  suffix?: string;
-  duration?: number;
-}) {
+// ─── Compteur animé ───────────────────────────────────────────────────────────
+function AnimatedCounter({ target, suffix = "", duration = 1800 }: { target: number; suffix?: string; duration?: number }) {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
   const started = useRef(false);
@@ -112,29 +111,27 @@ function AnimatedCounter({
     return () => observer.disconnect();
   }, [target, duration]);
 
-  return (
-    <span ref={ref}>
-      {count.toLocaleString("fr-FR")}
-      {suffix}
-    </span>
-  );
+  return <span ref={ref}>{count.toLocaleString("fr-FR")}{suffix}</span>;
 }
 
 // ─── Composant principal ──────────────────────────────────────────────────────
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
+  const [mode, setMode] = useState<"candidat" | "recruteur">("candidat");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchVille, setSearchVille] = useState("");
+  const [searchSecteur, setSearchSecteur] = useState("Tous les secteurs");
 
-  // Données dynamiques préservées (mêmes appels tRPC qu'avant la refonte)
-  const { data: latestJobs } = trpc.jobs.getLatest.useQuery({ limit: 6 });
+  // Données dynamiques préservées
+  const { data: latestJobs } = trpc.jobs.getLatest.useQuery({ limit: 4 });
   const { data: latestArticles } = trpc.conseils.getAll.useQuery({ limit: 3, offset: 0 });
 
   const handleSearch = () => {
     const params = new URLSearchParams();
     if (searchQuery) params.set("q", searchQuery);
     if (searchVille) params.set("ville", searchVille);
+    if (searchSecteur && searchSecteur !== "Tous les secteurs") params.set("secteur", searchSecteur);
     setLocation(`/offres?${params.toString()}`);
   };
 
@@ -142,10 +139,7 @@ export default function Home() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <div
-            className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto"
-            style={{ borderColor: COLORS.emerald }}
-          />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderColor: COLORS.emerald }} />
           <p className="mt-4 text-gray-600">Chargement…</p>
         </div>
       </div>
@@ -157,487 +151,422 @@ export default function Home() {
       <SiteHeader activePage="accueil" />
 
       {/* ╭──────────────────────────────────────────────────────────────╮ */}
-      {/* │ HERO — vert profond + halo or + topographie SVG              │ */}
+      {/* │ HERO — fond carte Cameroun + tabs + recherche + quick actions │ */}
       {/* ╰──────────────────────────────────────────────────────────────╯ */}
-      <section
-        className="relative overflow-hidden"
-        style={{ backgroundColor: COLORS.deepGreen }}
-      >
-        {/* Topographie SVG décorative en fond */}
-        <svg
-          className="absolute inset-0 w-full h-full opacity-[0.07] pointer-events-none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <defs>
-            <pattern
-              id="topographic"
-              x="0"
-              y="0"
-              width="80"
-              height="80"
-              patternUnits="userSpaceOnUse"
-            >
-              <circle cx="40" cy="40" r="36" stroke="#F6C343" strokeWidth="0.5" fill="none" />
-              <circle cx="40" cy="40" r="24" stroke="#F6C343" strokeWidth="0.5" fill="none" />
-              <circle cx="40" cy="40" r="12" stroke="#F6C343" strokeWidth="0.5" fill="none" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#topographic)" />
-        </svg>
+      <section className="relative overflow-hidden">
+        {/* Background image hero (carte Cameroun + skyline + or) */}
+        <div className="absolute inset-0">
+          <img
+            src="/images/home/hero-bg.webp"
+            alt=""
+            aria-hidden="true"
+            className="w-full h-full object-cover object-center"
+          />
+          {/* Overlay dégradé pour lisibilité du texte à gauche */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `linear-gradient(90deg, ${COLORS.deepGreen}F2 0%, ${COLORS.deepGreen}D9 35%, ${COLORS.deepGreen}66 60%, transparent 100%)`,
+            }}
+          />
+        </div>
 
-        {/* Halos lumineux animés */}
-        <motion.div
-          aria-hidden="true"
-          className="absolute -top-32 -right-20 w-[40rem] h-[40rem] rounded-full blur-[120px]"
-          style={{ backgroundColor: COLORS.gold, opacity: 0.18 }}
-          animate={{ scale: [1, 1.1, 1], opacity: [0.15, 0.22, 0.15] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          aria-hidden="true"
-          className="absolute bottom-0 -left-20 w-96 h-96 rounded-full blur-[100px]"
-          style={{ backgroundColor: COLORS.emerald, opacity: 0.3 }}
-          animate={{ scale: [1, 1.15, 1], opacity: [0.25, 0.35, 0.25] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        />
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-24 lg:pt-16 lg:pb-32">
-          <div className="grid lg:grid-cols-[1.15fr_1fr] gap-12 lg:gap-16 items-center">
-            {/* ─── Colonne gauche : titre + recherche + CTAs ──────── */}
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={stagger}
-              className="text-white"
-            >
-              {/* Badge institutionnel */}
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16 lg:pt-14 lg:pb-20">
+          <div className="grid lg:grid-cols-[1.5fr_1fr] gap-8 items-start">
+            {/* ─── Colonne gauche : tout le contenu actif ────────── */}
+            <motion.div initial="hidden" animate="visible" variants={stagger} className="text-white space-y-6">
+              {/* Badge */}
               <motion.div
                 variants={fadeUp}
-                className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium mb-6 backdrop-blur-md border"
+                className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium backdrop-blur-md border"
                 style={{
                   backgroundColor: "rgba(246, 195, 67, 0.12)",
                   borderColor: "rgba(246, 195, 67, 0.30)",
                   color: COLORS.gold,
                 }}
               >
-                <BadgeCheck className="w-3.5 h-3.5" />
-                Plateforme nationale de l'emploi au Cameroun
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: COLORS.gold }} />
+                  <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: COLORS.gold }} />
+                </span>
+                La plateforme n°1 de l'emploi au Cameroun
               </motion.div>
 
+              {/* Titre */}
               <motion.h1
                 variants={fadeUp}
-                className="text-4xl sm:text-5xl lg:text-[3.6rem] font-extrabold leading-[1.05] tracking-tight mb-6"
+                className="text-3xl sm:text-4xl lg:text-5xl xl:text-[3.2rem] font-extrabold leading-[1.08] tracking-tight"
                 style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}
               >
-                Le marché de l'emploi camerounais,
-                <span
-                  className="block mt-2"
-                  style={{
-                    background: `linear-gradient(135deg, ${COLORS.gold} 0%, #FFE390 100%)`,
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                  }}
-                >
-                  enfin connecté aux bons talents.
-                </span>
+                Le marché de l'emploi
+                <br />
+                camerounais, enfin connecté
+                <br />
+                aux bons talents.
               </motion.h1>
 
-              <motion.p
-                variants={fadeUp}
-                className="text-lg text-white/85 mb-8 max-w-xl leading-relaxed"
-              >
-                Trouvez un emploi, créez un CV professionnel, postulez plus vite. Recruteurs : publiez vos offres et identifiez les meilleurs profils.
+              {/* Sous-titre */}
+              <motion.p variants={fadeUp} className="text-base sm:text-lg text-white/85 max-w-2xl leading-relaxed">
+                Des milliers d'offres d'emploi, des profils qualifiés,
+                <br className="hidden sm:block" />
+                et des opportunités dans toutes les régions du Cameroun.
               </motion.p>
 
-              {/* Moteur de recherche unifié */}
-              <motion.div variants={fadeUp} className="relative mb-6">
-                {/* Halo */}
-                <div
-                  aria-hidden="true"
-                  className="absolute -inset-1 rounded-2xl blur-xl opacity-40"
+              {/* TABS Candidat / Recruteur */}
+              <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-2 pt-1 max-w-2xl">
+                <button
+                  onClick={() => setMode("candidat")}
+                  className="flex-1 flex items-center gap-3 px-5 py-3.5 rounded-xl text-left transition-all"
                   style={{
-                    background: `linear-gradient(135deg, ${COLORS.gold} 0%, ${COLORS.emerald} 100%)`,
+                    backgroundColor: mode === "candidat" ? COLORS.deepGreen : "rgba(255,255,255,0.08)",
+                    border: `1.5px solid ${mode === "candidat" ? COLORS.gold : "rgba(255,255,255,0.15)"}`,
+                    boxShadow: mode === "candidat" ? "0 8px 24px rgba(0,0,0,0.25)" : "none",
                   }}
-                />
-                <div className="relative bg-white rounded-2xl shadow-2xl p-3 sm:p-4 flex flex-col sm:flex-row gap-2.5">
-                  <div className="relative flex-1 min-w-0">
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                      placeholder="Métier, compétence, entreprise…"
-                      className="w-full pl-10 pr-3 py-3 sm:py-3.5 text-sm border-0 focus:outline-none text-gray-900 placeholder:text-gray-400 bg-transparent"
-                    />
-                  </div>
-                  <div className="hidden sm:block w-px bg-gray-200 mx-1" />
-                  <div className="relative sm:max-w-[180px] sm:w-[180px]">
-                    <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      type="text"
-                      value={searchVille}
-                      onChange={(e) => setSearchVille(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                      placeholder="Ville, région"
-                      className="w-full pl-10 pr-3 py-3 sm:py-3.5 text-sm border-0 focus:outline-none text-gray-900 placeholder:text-gray-400 bg-transparent"
-                    />
-                  </div>
-                  <Button
-                    onClick={handleSearch}
-                    className="h-auto sm:h-12 px-6 font-semibold text-white shadow-md transition-all"
-                    style={{ backgroundColor: COLORS.emerald }}
-                  >
-                    <Search className="w-4 h-4 mr-2" />
-                    Rechercher
-                  </Button>
-                </div>
-              </motion.div>
-
-              <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-3 text-sm text-white/70">
-                <span>Suggestions :</span>
-                {["Comptable", "Développeur", "Marketing", "Logistique"].map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => {
-                      setSearchQuery(s);
-                      setTimeout(handleSearch, 50);
+                >
+                  <div
+                    className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                    style={{
+                      backgroundColor: mode === "candidat" ? COLORS.gold : "rgba(255,255,255,0.10)",
+                      color: mode === "candidat" ? COLORS.charcoal : "white",
                     }}
-                    className="px-3 py-1 rounded-full border border-white/15 hover:border-white/40 hover:bg-white/5 transition-all"
                   >
-                    {s}
-                  </button>
-                ))}
+                    <Users className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-bold text-white text-sm">Je cherche un emploi</div>
+                    {mode === "candidat" && (
+                      <div className="text-xs text-white/70 truncate">Trouvez l'opportunité qui vous correspond</div>
+                    )}
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setMode("recruteur")}
+                  className="flex-1 flex items-center gap-3 px-5 py-3.5 rounded-xl text-left transition-all"
+                  style={{
+                    backgroundColor: mode === "recruteur" ? COLORS.deepGreen : "rgba(255,255,255,0.08)",
+                    border: `1.5px solid ${mode === "recruteur" ? COLORS.gold : "rgba(255,255,255,0.15)"}`,
+                    boxShadow: mode === "recruteur" ? "0 8px 24px rgba(0,0,0,0.25)" : "none",
+                  }}
+                >
+                  <div
+                    className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                    style={{
+                      backgroundColor: mode === "recruteur" ? COLORS.gold : "rgba(255,255,255,0.10)",
+                      color: mode === "recruteur" ? COLORS.charcoal : "white",
+                    }}
+                  >
+                    <Building2 className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-bold text-white text-sm">Je recrute</div>
+                    {mode === "recruteur" && (
+                      <div className="text-xs text-white/70 truncate">Publiez vos offres et trouvez des candidats</div>
+                    )}
+                  </div>
+                </button>
               </motion.div>
 
-              {/* CTA double parcours */}
-              <motion.div variants={fadeUp} className="flex flex-wrap gap-3 mt-8">
-                <Button
-                  size="lg"
-                  onClick={() =>
-                    user ? setLocation("/candidat/dashboard") : setLocation("/inscription?type=candidat")
-                  }
-                  className="text-base px-6 h-12 gap-2 shadow-xl transition-all font-semibold text-white"
-                  style={{ backgroundColor: COLORS.gold, color: COLORS.charcoal }}
-                >
-                  <Users className="w-4 h-4" />
-                  Je cherche un emploi
-                </Button>
-                <Button
-                  size="lg"
-                  onClick={() => setLocation("/espace-recruteur")}
-                  variant="outline"
-                  className="text-base px-6 h-12 gap-2 border-white/30 bg-white/5 text-white hover:bg-white/15 backdrop-blur-md transition-all"
-                >
-                  <Building2 className="w-4 h-4" />
-                  Je recrute
-                </Button>
+              {/* CARD blanche : recherche + recherches populaires */}
+              {mode === "candidat" ? (
+                <motion.div variants={fadeUp} className="bg-white rounded-2xl shadow-2xl p-4 sm:p-5 max-w-2xl">
+                  <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr_1fr_auto] gap-2.5">
+                    <div className="relative">
+                      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                        placeholder="Métier, compétence, entreprise…"
+                        className="w-full h-11 pl-10 pr-3 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-gray-900 placeholder:text-gray-400"
+                      />
+                    </div>
+                    <div className="relative">
+                      <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text"
+                        value={searchVille}
+                        onChange={(e) => setSearchVille(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                        placeholder="Ville, région…"
+                        className="w-full h-11 pl-10 pr-3 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-gray-900 placeholder:text-gray-400"
+                      />
+                    </div>
+                    <select
+                      value={searchSecteur}
+                      onChange={(e) => setSearchSecteur(e.target.value)}
+                      className="h-11 px-3 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-gray-700"
+                    >
+                      {SECTEURS.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                    <Button
+                      onClick={handleSearch}
+                      className="h-11 px-6 font-semibold gap-2 shadow-md transition-all"
+                      style={{ backgroundColor: COLORS.gold, color: COLORS.charcoal }}
+                    >
+                      <Search className="w-4 h-4" />
+                      Rechercher
+                    </Button>
+                  </div>
+
+                  {/* Recherches populaires */}
+                  <div className="flex flex-wrap items-center gap-2 mt-3.5 pt-3.5 border-t border-gray-100">
+                    <span className="text-xs font-medium text-gray-500">Recherches populaires :</span>
+                    {RECHERCHES_POPULAIRES.map((tag) => (
+                      <button
+                        key={tag}
+                        onClick={() => {
+                          setSearchQuery(tag);
+                          setTimeout(handleSearch, 50);
+                        }}
+                        className="text-xs px-2.5 py-1 rounded-full border border-gray-200 text-gray-700 hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div variants={fadeUp} className="bg-white rounded-2xl shadow-2xl p-5 max-w-2xl">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <div className="flex-1">
+                      <h3 className="font-bold text-gray-900 mb-1">Publiez votre offre d'emploi</h3>
+                      <p className="text-sm text-gray-600">Atteignez des milliers de candidats qualifiés dès aujourd'hui.</p>
+                    </div>
+                    <Button
+                      onClick={() => setLocation("/espace-recruteur")}
+                      className="font-semibold gap-2 shrink-0"
+                      style={{ backgroundColor: COLORS.gold, color: COLORS.charcoal }}
+                    >
+                      Espace recruteur
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Quick actions : 4 boutons rapides */}
+              <motion.div variants={fadeUp} className="bg-white rounded-2xl shadow-xl p-4 max-w-2xl">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                  {[
+                    { icon: FileText, label: "Créer mon CV", subtitle: "professionnel", path: user ? "/candidat/cv" : "/inscription?type=candidat" },
+                    { icon: Upload, label: "Déposer mon CV", subtitle: "", path: user ? "/deposer-cv" : "/inscription?type=candidat" },
+                    { icon: Bell, label: "Alertes emploi", subtitle: "", path: user ? "/candidat/alertes" : "/inscription?type=candidat", iconColor: COLORS.emerald },
+                    { icon: GraduationCap, label: "Conseils carrière", subtitle: "", path: "/conseils" },
+                  ].map(({ icon: Icon, label, subtitle, path, iconColor }, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setLocation(path)}
+                      className="group flex flex-col items-start gap-2 p-3 rounded-xl hover:bg-gray-50 transition-colors text-left"
+                    >
+                      <div
+                        className="w-9 h-9 rounded-lg flex items-center justify-center"
+                        style={{
+                          backgroundColor: iconColor ? `${iconColor}1A` : "rgba(15, 138, 76, 0.10)",
+                          color: iconColor || COLORS.emerald,
+                        }}
+                      >
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div className="text-xs leading-tight">
+                        <div className="font-semibold text-gray-900 group-hover:text-emerald-700 transition-colors">
+                          {label}
+                        </div>
+                        {subtitle && <div className="text-gray-500">{subtitle}</div>}
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </motion.div>
             </motion.div>
 
-            {/* ─── Colonne droite : carte centrale + mini-cards flottantes ──── */}
+            {/* ─── Colonne droite : social proof flottant ────────── */}
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="relative hidden lg:block"
+              transition={{ duration: 0.7, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="hidden lg:block relative h-full"
             >
-              {/* Carte centrale : matching */}
-              <div className="relative">
-                <div
-                  aria-hidden="true"
-                  className="absolute -inset-2 rounded-3xl blur-2xl opacity-50"
-                  style={{
-                    background: `linear-gradient(135deg, ${COLORS.gold} 0%, ${COLORS.emerald} 100%)`,
-                  }}
-                />
-                <div className="relative bg-white rounded-3xl p-6 shadow-2xl border border-white/40">
-                  <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-100">
+              <div className="absolute top-32 right-0 bg-white rounded-2xl shadow-2xl p-5 max-w-[260px]">
+                {/* Avatars stack */}
+                <div className="flex -space-x-2 mb-3">
+                  {[
+                    "from-emerald-500 to-emerald-700",
+                    "from-amber-400 to-amber-600",
+                    "from-rose-400 to-rose-600",
+                    "from-blue-400 to-blue-600",
+                  ].map((c) => (
                     <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white"
-                      style={{ backgroundColor: COLORS.emerald }}
-                    >
-                      <Compass className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="text-xs uppercase tracking-wider font-semibold" style={{ color: COLORS.emerald }}>
-                        Matching CV
-                      </div>
-                      <div className="text-sm font-bold text-gray-900">Ingénieur Data, Douala</div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    {[
-                      { label: "Compétences techniques", value: 92, color: COLORS.emerald },
-                      { label: "Expérience requise", value: 85, color: COLORS.emerald },
-                      { label: "Localisation", value: 100, color: COLORS.gold },
-                    ].map((m) => (
-                      <div key={m.label}>
-                        <div className="flex justify-between text-xs mb-1.5">
-                          <span className="text-gray-600">{m.label}</span>
-                          <span className="font-bold text-gray-900">{m.value}%</span>
-                        </div>
-                        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${m.value}%` }}
-                            transition={{ duration: 1.2, delay: 0.8, ease: "easeOut" }}
-                            className="h-full rounded-full"
-                            style={{ backgroundColor: m.color }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between text-xs">
-                    <span className="font-semibold" style={{ color: COLORS.emerald }}>
-                      Profil compatible à 92 %
-                    </span>
-                    <ArrowRight className="w-4 h-4" style={{ color: COLORS.emerald }} />
+                      key={c}
+                      className={`w-8 h-8 rounded-full bg-gradient-to-br ${c} border-2 border-white`}
+                    />
+                  ))}
+                  <div
+                    className="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-bold text-white"
+                    style={{ backgroundColor: COLORS.deepGreen }}
+                  >
+                    +
                   </div>
                 </div>
-              </div>
-
-              {/* Mini-card flottante : nouvelle offre */}
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.8 }}
-                className="absolute -top-8 -left-12 bg-white rounded-2xl shadow-xl p-3 pr-4 flex items-center gap-3 border border-gray-100 max-w-[260px]"
-              >
-                <div
-                  className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-                  style={{ backgroundColor: "rgba(246, 195, 67, 0.18)" }}
+                <div className="text-lg font-extrabold text-gray-900 leading-tight">
+                  50 000+ candidats
+                </div>
+                <div className="text-sm text-gray-600 mb-3">nous font confiance</div>
+                <button
+                  onClick={() => setLocation("/inscription?type=candidat")}
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold hover:gap-2 transition-all"
+                  style={{ color: COLORS.emerald }}
                 >
-                  <Briefcase className="w-4 h-4" style={{ color: "#A37200" }} />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-xs font-bold text-gray-900 truncate">Chef de projet IT</div>
-                  <div className="text-[11px] text-gray-500 truncate">MTN Cameroun · Yaoundé</div>
-                </div>
-              </motion.div>
-
-              {/* Mini-card flottante : candidats actifs */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 1 }}
-                className="absolute -bottom-6 -right-6 bg-white rounded-2xl shadow-xl p-3.5 border border-gray-100"
-              >
-                <div className="flex items-center gap-2 mb-1.5">
-                  <div className="flex -space-x-1.5">
-                    {[
-                      "from-emerald-500 to-emerald-700",
-                      "from-amber-400 to-amber-600",
-                      "from-rose-500 to-rose-700",
-                    ].map((c) => (
-                      <div
-                        key={c}
-                        className={`w-6 h-6 rounded-full bg-gradient-to-br ${c} border-2 border-white`}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-xs font-bold text-gray-900">+3 200</span>
-                </div>
-                <div className="text-[11px] text-gray-500">candidats actifs ce mois</div>
-              </motion.div>
+                  Rejoignez-les
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </motion.div>
           </div>
         </div>
       </section>
 
       {/* ╭──────────────────────────────────────────────────────────────╮ */}
-      {/* │ STATS                                                         │ */}
+      {/* │ STATS — barre carte sous le hero                              │ */}
       {/* ╰──────────────────────────────────────────────────────────────╯ */}
-      <section className="bg-white py-16 border-b border-gray-100">
+      <section className="bg-white py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[
-              { value: 10000, suffix: "+", label: "Offres d'emploi", icon: Briefcase, bg: "rgba(15, 138, 76, 0.10)", color: COLORS.emerald },
-              { value: 2500, suffix: "+", label: "Entreprises partenaires", icon: Building2, bg: "rgba(246, 195, 67, 0.18)", color: "#A37200" },
-              { value: 50000, suffix: "+", label: "Candidats inscrits", icon: Users, bg: "rgba(15, 138, 76, 0.10)", color: COLORS.emerald },
-              { value: 95, suffix: "%", label: "Satisfaction recruteurs", icon: Sparkles, bg: "rgba(246, 195, 67, 0.18)", color: "#A37200" },
-            ].map(({ value, suffix, label, icon: Icon, bg, color }, i) => (
-              <Reveal key={label} delay={i * 0.08}>
-                <div className="text-center">
-                  <div
-                    className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4"
-                    style={{ backgroundColor: bg }}
-                  >
-                    <Icon className="w-5 h-5" style={{ color }} />
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm py-8 px-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              {[
+                { value: 10000, suffix: "+", label: "Offres d'emploi", icon: Briefcase, bg: "rgba(15, 138, 76, 0.10)", color: COLORS.emerald },
+                { value: 2500, suffix: "+", label: "Entreprises actives", icon: Building2, bg: "rgba(246, 195, 67, 0.18)", color: COLORS.goldDark },
+                { value: 50000, suffix: "+", label: "Candidats inscrits", icon: Users, bg: "rgba(15, 138, 76, 0.10)", color: COLORS.emerald },
+                { value: 98, suffix: "%", label: "De satisfaction", icon: Sparkles, bg: "rgba(246, 195, 67, 0.18)", color: COLORS.goldDark },
+              ].map(({ value, suffix, label, icon: Icon, bg, color }, i) => (
+                <Reveal key={label} delay={i * 0.06}>
+                  <div className="text-center">
+                    <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl mb-2.5" style={{ backgroundColor: bg }}>
+                      <Icon className="w-4.5 h-4.5" style={{ color }} />
+                    </div>
+                    <div className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight" style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+                      <AnimatedCounter target={value} suffix={suffix} />
+                    </div>
+                    <div className="text-xs sm:text-sm text-gray-500">{label}</div>
                   </div>
-                  <div
-                    className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight mb-1"
-                    style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}
-                  >
-                    <AnimatedCounter target={value} suffix={suffix} />
-                  </div>
-                  <div className="text-sm text-gray-500">{label}</div>
-                </div>
-              </Reveal>
-            ))}
+                </Reveal>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* ╭──────────────────────────────────────────────────────────────╮ */}
-      {/* │ DEUX PARCOURS, UNE PLATEFORME                                 │ */}
+      {/* │ DEUX PARCOURS — vraies photos candidate / recruteur           │ */}
       {/* ╰──────────────────────────────────────────────────────────────╯ */}
-      <section className="py-24" style={{ backgroundColor: COLORS.ivory }}>
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Reveal className="text-center max-w-2xl mx-auto mb-14">
-            <div
-              className="inline-block text-xs font-semibold uppercase tracking-widest mb-3"
-              style={{ color: COLORS.emerald }}
-            >
+          <Reveal className="text-center max-w-2xl mx-auto mb-12">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight" style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}>
               Deux parcours, une plateforme
-            </div>
-            <h2
-              className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight"
-              style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}
-            >
-              Que vous cherchiez un emploi ou les meilleurs talents,
-              <br />
-              vous êtes au bon endroit.
             </h2>
+            <p className="text-gray-500 mt-3">
+              Cameroon Travail accompagne candidats et recruteurs à chaque étape.
+            </p>
           </Reveal>
 
-          <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
-            {/* Carte CANDIDAT */}
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* CANDIDAT — photo femme + texte */}
             <Reveal>
               <motion.div
-                whileHover={{ y: -6 }}
+                whileHover={{ y: -4 }}
                 transition={{ duration: 0.25 }}
-                className="group relative h-full rounded-3xl p-8 lg:p-10 overflow-hidden border bg-white"
-                style={{ borderColor: "rgba(15, 23, 42, 0.10)" }}
+                className="relative rounded-3xl overflow-hidden shadow-sm border h-full"
+                style={{ backgroundColor: "rgba(15, 138, 76, 0.04)", borderColor: "rgba(15, 138, 76, 0.18)" }}
               >
-                {/* Bandeau d'accent vert */}
-                <div
-                  aria-hidden="true"
-                  className="absolute top-0 left-0 right-0 h-1.5"
-                  style={{ backgroundColor: COLORS.emerald }}
-                />
-                {/* Halo de hover */}
-                <div
-                  aria-hidden="true"
-                  className="absolute -top-32 -right-32 w-64 h-64 rounded-full blur-3xl opacity-0 group-hover:opacity-30 transition-opacity duration-500"
-                  style={{ backgroundColor: COLORS.emerald }}
-                />
-
-                <div className="relative">
-                  <div
-                    className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-6 text-white"
-                    style={{ backgroundColor: COLORS.emerald }}
-                  >
-                    <Users className="w-7 h-7" />
-                  </div>
-                  <h3
-                    className="text-2xl font-extrabold mb-2"
-                    style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}
-                  >
-                    Candidats
-                  </h3>
-                  <p className="text-gray-600 mb-6 leading-relaxed">
-                    Construisez un profil solide, créez un CV professionnel et postulez aux opportunités qui vous correspondent vraiment.
-                  </p>
-
-                  <ul className="space-y-3 mb-8">
-                    {[
-                      "Recherche d'offres avec filtres avancés",
-                      "Profil candidat complet et structuré",
-                      "CV professionnel téléchargeable en PDF",
-                      "Alertes personnalisées par email",
-                    ].map((it) => (
-                      <li key={it} className="flex items-start gap-3 text-sm text-gray-700">
-                        <BadgeCheck className="w-4 h-4 mt-0.5 shrink-0" style={{ color: COLORS.emerald }} />
-                        {it}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-[1.2fr_1fr] h-full min-h-[360px]">
+                  <div className="p-7 lg:p-9 flex flex-col">
+                    <h3 className="text-2xl font-extrabold mb-3" style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+                      Vous êtes candidat ?
+                    </h3>
+                    <p className="text-gray-600 text-sm leading-relaxed mb-5">
+                      Trouvez l'opportunité qui correspond à votre profil et construisez votre carrière.
+                    </p>
+                    <ul className="space-y-2.5 mb-6 flex-1">
+                      {[
+                        "Recherchez des offres d'emploi qualifiées",
+                        "Créez un profil complet et visible",
+                        "Générez un CV professionnel",
+                        "Recevez des alertes personnalisées",
+                      ].map((it) => (
+                        <li key={it} className="flex items-start gap-2.5 text-sm text-gray-700">
+                          <BadgeCheck className="w-4 h-4 mt-0.5 shrink-0" style={{ color: COLORS.emerald }} />
+                          {it}
+                        </li>
+                      ))}
+                    </ul>
                     <Button
-                      onClick={() => setLocation("/inscription?type=candidat")}
-                      className="font-semibold text-white shadow-md"
-                      style={{ backgroundColor: COLORS.emerald }}
+                      onClick={() => setLocation("/offres")}
+                      className="self-start font-semibold gap-2 shadow-md"
+                      style={{ backgroundColor: COLORS.gold, color: COLORS.charcoal }}
                     >
-                      Créer mon compte
-                      <ArrowRight className="w-4 h-4 ml-1.5" />
+                      Découvrir les offres
+                      <ArrowRight className="w-4 h-4" />
                     </Button>
-                    <Button variant="outline" onClick={() => setLocation("/offres")}>
-                      Voir les offres
-                    </Button>
+                  </div>
+                  <div className="relative">
+                    <img
+                      src="/images/home/person-candidate.webp"
+                      alt="Candidate"
+                      className="absolute inset-0 w-full h-full object-cover object-center"
+                    />
                   </div>
                 </div>
               </motion.div>
             </Reveal>
 
-            {/* Carte RECRUTEUR */}
+            {/* RECRUTEUR — photo homme + texte */}
             <Reveal delay={0.1}>
               <motion.div
-                whileHover={{ y: -6 }}
+                whileHover={{ y: -4 }}
                 transition={{ duration: 0.25 }}
-                className="group relative h-full rounded-3xl p-8 lg:p-10 overflow-hidden border bg-white"
-                style={{ borderColor: "rgba(15, 23, 42, 0.10)" }}
+                className="relative rounded-3xl overflow-hidden shadow-sm border h-full"
+                style={{ backgroundColor: COLORS.cream, borderColor: "rgba(246, 195, 67, 0.40)" }}
               >
-                <div
-                  aria-hidden="true"
-                  className="absolute top-0 left-0 right-0 h-1.5"
-                  style={{ backgroundColor: COLORS.gold }}
-                />
-                <div
-                  aria-hidden="true"
-                  className="absolute -top-32 -right-32 w-64 h-64 rounded-full blur-3xl opacity-0 group-hover:opacity-25 transition-opacity duration-500"
-                  style={{ backgroundColor: COLORS.gold }}
-                />
-
-                <div className="relative">
-                  <div
-                    className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-6"
-                    style={{ backgroundColor: COLORS.gold, color: COLORS.charcoal }}
-                  >
-                    <Building2 className="w-7 h-7" />
-                  </div>
-                  <h3
-                    className="text-2xl font-extrabold mb-2"
-                    style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}
-                  >
-                    Recruteurs
-                  </h3>
-                  <p className="text-gray-600 mb-6 leading-relaxed">
-                    Publiez vos offres, recevez des candidatures structurées et identifiez les profils les plus pertinents en quelques clics.
-                  </p>
-
-                  <ul className="space-y-3 mb-8">
-                    {[
-                      "Publication d'offres en moins de 5 minutes",
-                      "Accès à une CVthèque qualifiée",
-                      "Outils de gestion des candidatures",
-                      "Conseiller dédié pour vous accompagner",
-                    ].map((it) => (
-                      <li key={it} className="flex items-start gap-3 text-sm text-gray-700">
-                        <BadgeCheck className="w-4 h-4 mt-0.5 shrink-0" style={{ color: "#A37200" }} />
-                        {it}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-[1.2fr_1fr] h-full min-h-[360px]">
+                  <div className="p-7 lg:p-9 flex flex-col">
+                    <h3 className="text-2xl font-extrabold mb-3" style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+                      Vous êtes recruteur ?
+                    </h3>
+                    <p className="text-gray-600 text-sm leading-relaxed mb-5">
+                      Trouvez les meilleurs talents et simplifiez votre processus de recrutement.
+                    </p>
+                    <ul className="space-y-2.5 mb-6 flex-1">
+                      {[
+                        "Publiez vos offres en quelques minutes",
+                        "Recevez des candidatures ciblées",
+                        "Accédez à des profils qualifiés",
+                        "Gérez vos recrutements facilement",
+                      ].map((it) => (
+                        <li key={it} className="flex items-start gap-2.5 text-sm text-gray-700">
+                          <BadgeCheck className="w-4 h-4 mt-0.5 shrink-0" style={{ color: COLORS.goldDark }} />
+                          {it}
+                        </li>
+                      ))}
+                    </ul>
                     <Button
                       onClick={() => setLocation("/espace-recruteur")}
-                      className="font-semibold shadow-md"
-                      style={{ backgroundColor: COLORS.charcoal, color: "#fff" }}
+                      className="self-start font-semibold gap-2 shadow-md"
+                      style={{ backgroundColor: COLORS.gold, color: COLORS.charcoal }}
                     >
-                      Espace recruteur
-                      <ArrowRight className="w-4 h-4 ml-1.5" />
-                    </Button>
-                    <Button variant="outline" onClick={() => setLocation("/inscription?type=employeur")}>
                       Publier une offre
+                      <ArrowRight className="w-4 h-4" />
                     </Button>
+                  </div>
+                  <div className="relative">
+                    <img
+                      src="/images/home/person-recruteur.webp"
+                      alt="Recruteur"
+                      className="absolute inset-0 w-full h-full object-cover object-center"
+                    />
                   </div>
                 </div>
               </motion.div>
@@ -647,35 +576,22 @@ export default function Home() {
       </section>
 
       {/* ╭──────────────────────────────────────────────────────────────╮ */}
-      {/* │ DERNIÈRES OFFRES                                              │ */}
+      {/* │ DERNIÈRES OFFRES — 4 cards en ligne                           │ */}
       {/* ╰──────────────────────────────────────────────────────────────╯ */}
-      <section className="py-24 bg-white">
+      <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Reveal className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-12">
-            <div>
-              <div
-                className="inline-block text-xs font-semibold uppercase tracking-widest mb-3"
-                style={{ color: COLORS.emerald }}
-              >
-                Offres récentes
-              </div>
-              <h2
-                className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight"
-                style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}
-              >
-                Les dernières opportunités
-                <br />
-                publiées sur la plateforme.
-              </h2>
-            </div>
-            <Button
-              variant="outline"
+          <Reveal className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight" style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+              Dernières offres d'emploi
+            </h2>
+            <button
               onClick={() => setLocation("/offres")}
-              className="self-start sm:self-end gap-2 border-gray-300"
+              className="self-start sm:self-end text-sm font-semibold inline-flex items-center gap-1.5 hover:gap-2 transition-all"
+              style={{ color: COLORS.emerald }}
             >
               Voir toutes les offres
               <ArrowRight className="w-4 h-4" />
-            </Button>
+            </button>
           </Reveal>
 
           {latestJobs && latestJobs.length > 0 ? (
@@ -684,75 +600,58 @@ export default function Home() {
               whileInView="visible"
               viewport={{ once: true, margin: "-80px" }}
               variants={stagger}
-              className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
+              className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4"
             >
-              {latestJobs.slice(0, 6).map((job) => (
+              {latestJobs.slice(0, 4).map((job) => (
                 <motion.button
                   key={job.id}
                   variants={fadeUp}
                   whileHover={{ y: -4 }}
                   onClick={() => setLocation(`/offre/${job.id}`)}
-                  className="group text-left rounded-3xl p-6 border bg-white hover:shadow-xl transition-all flex flex-col"
+                  className="group text-left rounded-2xl p-5 border bg-white hover:shadow-xl transition-all flex flex-col"
                   style={{ borderColor: "rgba(15, 23, 42, 0.10)" }}
                 >
-                  <div className="flex items-start justify-between gap-3 mb-4">
-                    <span
-                      className="inline-block text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full"
-                      style={{
-                        backgroundColor:
-                          job.typeOffre === "public"
-                            ? "rgba(15, 138, 76, 0.12)"
-                            : "rgba(214, 40, 40, 0.10)",
-                        color: job.typeOffre === "public" ? COLORS.emerald : "#B91C1C",
-                      }}
-                    >
-                      {job.typeOffre === "public" ? "Emploi public" : "Emploi privé"}
-                    </span>
-                    {(job as any).createdAt && (
-                      <span className="text-[11px] text-gray-400">
-                        {formatRelativeDate((job as any).createdAt)}
-                      </span>
-                    )}
+                  <div className="flex items-start justify-between gap-2 mb-3.5">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0" style={{ backgroundColor: COLORS.emerald }}>
+                      {(job.titre || "?").split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase()}
+                    </div>
+                    <Bookmark className="w-4 h-4 text-gray-300 hover:text-amber-500 transition-colors" />
                   </div>
 
-                  <h3
-                    className="font-extrabold text-lg leading-snug mb-1.5 line-clamp-2 group-hover:underline decoration-2"
-                    style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}
-                  >
-                    {job.titre}
-                  </h3>
+                  <h3 className="font-bold text-gray-900 leading-snug line-clamp-2 mb-1">{job.titre}</h3>
                   {job.secteur && (
-                    <p className="text-sm font-medium mb-3" style={{ color: COLORS.emerald }}>
-                      {job.secteur}
+                    <p className="text-xs text-gray-500 mb-3">{job.secteur}</p>
+                  )}
+
+                  <span className="inline-block self-start text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded mb-3" style={{ backgroundColor: "rgba(15, 138, 76, 0.10)", color: COLORS.emerald }}>
+                    CDI
+                  </span>
+
+                  {job.salaire && (
+                    <p className="text-sm font-bold text-gray-900 mb-3">
+                      {job.salaire} FCFA
                     </p>
                   )}
 
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-gray-600 mb-5">
-                    {job.ville && (
-                      <span className="inline-flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5" />
-                        {job.ville}
+                  {/* Skills tags placeholder (à brancher quand le backend les expose) */}
+                  <div className="flex flex-wrap gap-1.5 mb-4">
+                    {(job.secteur ? [job.secteur.split(" ")[0]] : ["Plein temps"]).slice(0, 3).map((s) => (
+                      <span key={s} className="text-[10px] px-2 py-0.5 rounded bg-gray-100 text-gray-600">
+                        {s}
                       </span>
-                    )}
-                    {job.salaire && (
-                      <span className="inline-flex items-center gap-1.5 font-semibold text-gray-900">
-                        {job.salaire} FCFA
-                      </span>
-                    )}
+                    ))}
                   </div>
 
-                  <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
-                    <span className="text-sm font-semibold inline-flex items-center gap-1.5 group-hover:gap-2 transition-all" style={{ color: COLORS.emerald }}>
-                      Voir l'offre
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </span>
+                  <div className="mt-auto pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">
+                    <span>Il y a 2 heures</span>
+                    <MapPin className="w-3 h-3" />
                   </div>
                 </motion.button>
               ))}
             </motion.div>
           ) : (
-            <div className="text-center py-16 text-gray-400">
-              <Briefcase className="w-12 h-12 mx-auto mb-3 opacity-40" />
+            <div className="text-center py-12 text-gray-400">
+              <Briefcase className="w-10 h-10 mx-auto mb-3 opacity-40" />
               <p>Aucune offre disponible pour le moment.</p>
             </div>
           )}
@@ -760,161 +659,83 @@ export default function Home() {
       </section>
 
       {/* ╭──────────────────────────────────────────────────────────────╮ */}
-      {/* │ CV PROFESSIONNEL                                              │ */}
+      {/* │ CV PROFESSIONNEL — fond vert + cv-stack à droite              │ */}
       {/* ╰──────────────────────────────────────────────────────────────╯ */}
-      <section
-        className="relative py-24 overflow-hidden text-white"
-        style={{ backgroundColor: COLORS.deepGreen }}
-      >
-        {/* Topographie en fond */}
-        <svg
-          className="absolute inset-0 w-full h-full opacity-[0.05] pointer-events-none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <rect width="100%" height="100%" fill="url(#topographic)" />
-        </svg>
-
+      <section className="py-16 relative overflow-hidden text-white" style={{ backgroundColor: COLORS.deepGreen }}>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-[1.1fr_1fr] gap-12 lg:gap-16 items-center">
+          <div className="grid lg:grid-cols-[1fr_1.1fr] gap-8 lg:gap-10 items-center">
             <Reveal>
-              <div
-                className="inline-block text-xs font-semibold uppercase tracking-widest mb-3"
-                style={{ color: COLORS.gold }}
+              <span
+                className="inline-block text-[11px] font-bold uppercase tracking-widest px-2.5 py-1 rounded mb-4"
+                style={{ backgroundColor: COLORS.gold, color: COLORS.charcoal }}
               >
-                CV Professionnel
-              </div>
-              <h2
-                className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight mb-6 leading-[1.1]"
-                style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}
-              >
-                Un CV professionnel peut faire
+                Nouveau
+              </span>
+              <h2 className="text-3xl sm:text-4xl lg:text-[2.6rem] font-extrabold tracking-tight mb-4 leading-tight" style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+                Créez un CV professionnel
                 <br />
-                <span
-                  style={{
-                    background: `linear-gradient(135deg, ${COLORS.gold} 0%, #FFE390 100%)`,
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                  }}
-                >
-                  toute la différence.
-                </span>
+                qui vous démarque
               </h2>
-              <p className="text-lg text-white/85 mb-8 leading-relaxed max-w-xl">
-                Choisissez un modèle, complétez vos informations et téléchargez votre CV en PDF, prêt à envoyer. Adapté au marché camerounais.
+              <p className="text-white/80 mb-6 max-w-lg leading-relaxed">
+                Choisissez parmi nos modèles premium, remplissez vos informations et téléchargez un CV prêt à convaincre.
               </p>
 
-              <div className="grid sm:grid-cols-2 gap-3 mb-8 max-w-xl">
+              <div className="grid sm:grid-cols-3 gap-3 mb-7 max-w-xl">
                 {[
-                  { icon: GraduationCap, label: "10 modèles premium" },
-                  { icon: FileText, label: "Téléchargement PDF" },
-                  { icon: Shield, label: "Données sécurisées" },
-                  { icon: Zap, label: "Modifiable à volonté" },
+                  { icon: GraduationCap, label: "Modèles professionnels" },
+                  { icon: FileText, label: "PDF haute qualité" },
+                  { icon: Sparkles, label: "Optimisé pour les recruteurs" },
                 ].map(({ icon: Icon, label }) => (
-                  <div key={label} className="flex items-center gap-2.5 text-sm text-white/90">
-                    <Icon className="w-4 h-4" style={{ color: COLORS.gold }} />
+                  <div key={label} className="flex items-center gap-2 text-xs text-white/90">
+                    <Icon className="w-3.5 h-3.5 shrink-0" style={{ color: COLORS.gold }} />
                     {label}
                   </div>
                 ))}
               </div>
 
-              <div className="flex flex-wrap items-center gap-4">
+              <div className="flex flex-wrap items-center gap-3">
                 <Button
                   size="lg"
-                  onClick={() =>
-                    user ? setLocation("/candidat/cv") : setLocation("/inscription?type=candidat")
-                  }
-                  className="text-base px-7 h-12 gap-2 shadow-xl font-semibold"
+                  onClick={() => (user ? setLocation("/candidat/cv") : setLocation("/inscription?type=candidat"))}
+                  className="font-semibold gap-2 shadow-xl h-11 px-6"
                   style={{ backgroundColor: COLORS.gold, color: COLORS.charcoal }}
                 >
-                  Créer mon CV professionnel
+                  Créer mon CV maintenant
                   <ArrowRight className="w-4 h-4" />
                 </Button>
-                <div className="text-sm text-white/70">
-                  À partir de <strong className="text-white">1 000 FCFA</strong> par modèle
-                </div>
+                <span
+                  className="text-xs font-semibold px-3 py-2 rounded-lg border"
+                  style={{ borderColor: "rgba(246, 195, 67, 0.4)", color: COLORS.gold }}
+                >
+                  1000 FCFA — Paiement unique
+                </span>
               </div>
             </Reveal>
 
-            {/* Mockup de stack de CVs */}
-            <Reveal delay={0.15}>
-              <div className="relative h-[420px] hidden sm:block">
-                {[
-                  { offsetX: 0, offsetY: 0, rotate: -6, accent: COLORS.gold, opacity: 1, zIndex: 30, label: "Moderne" },
-                  { offsetX: 50, offsetY: 30, rotate: 3, accent: "#E53935", opacity: 0.92, zIndex: 20, label: "Créatif" },
-                  { offsetX: 100, offsetY: 60, rotate: 10, accent: COLORS.charcoal, opacity: 0.82, zIndex: 10, label: "Executive" },
-                ].map((card, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, y: 30, rotate: 0 }}
-                    whileInView={{ opacity: card.opacity, y: 0, rotate: card.rotate }}
-                    viewport={{ once: true, margin: "-80px" }}
-                    transition={{ duration: 0.6, delay: 0.2 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                    className="absolute rounded-2xl bg-white shadow-2xl overflow-hidden"
-                    style={{
-                      top: `${card.offsetY}px`,
-                      left: `${card.offsetX}px`,
-                      width: "210px",
-                      height: "297px",
-                      zIndex: card.zIndex,
-                    }}
-                  >
-                    {/* Mini-template */}
-                    <div className="h-12 flex items-center px-3" style={{ backgroundColor: card.accent }}>
-                      <div className="w-7 h-7 rounded-full bg-white/30" />
-                      <div className="ml-2.5 space-y-1">
-                        <div className="h-1.5 w-16 bg-white/70 rounded" />
-                        <div className="h-1 w-10 bg-white/40 rounded" />
-                      </div>
-                    </div>
-                    <div className="p-3 space-y-2">
-                      <div className="h-1 w-12 rounded" style={{ backgroundColor: card.accent }} />
-                      <div className="h-1 w-full bg-gray-200 rounded" />
-                      <div className="h-1 w-4/5 bg-gray-200 rounded" />
-                      <div className="h-1 w-3/4 bg-gray-200 rounded" />
-                      <div className="pt-2 h-1 w-10 rounded" style={{ backgroundColor: card.accent }} />
-                      <div className="h-1 w-full bg-gray-200 rounded" />
-                      <div className="h-1 w-2/3 bg-gray-200 rounded" />
-                      <div className="pt-2 grid grid-cols-2 gap-1">
-                        {[1, 2, 3, 4].map((j) => (
-                          <div key={j} className="h-1 bg-gray-200 rounded" />
-                        ))}
-                      </div>
-                    </div>
-                    <div className="absolute bottom-2 right-2 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded text-white" style={{ backgroundColor: card.accent }}>
-                      {card.label}
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+            {/* Image cv-stack */}
+            <Reveal delay={0.15} className="relative">
+              <motion.img
+                src="/images/home/cv-stack.webp"
+                alt="Modèles de CV professionnels"
+                className="w-full h-auto rounded-2xl"
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.3 }}
+              />
             </Reveal>
           </div>
         </div>
       </section>
 
       {/* ╭──────────────────────────────────────────────────────────────╮ */}
-      {/* │ POURQUOI CAMEROON TRAVAIL — 4 piliers                         │ */}
+      {/* │ POURQUOI CHOISIR — 4 piliers                                  │ */}
       {/* ╰──────────────────────────────────────────────────────────────╯ */}
-      <section className="py-24 bg-white">
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Reveal className="text-center max-w-2xl mx-auto mb-14">
-            <div
-              className="inline-block text-xs font-semibold uppercase tracking-widest mb-3"
-              style={{ color: COLORS.emerald }}
-            >
-              Pourquoi Cameroon Travail
-            </div>
-            <h2
-              className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight"
-              style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}
-            >
-              La plateforme pensée pour
-              <br />
-              le marché de l'emploi camerounais.
+          <Reveal className="text-center max-w-2xl mx-auto mb-12">
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight" style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+              Pourquoi choisir Cameroon Travail ?
             </h2>
           </Reveal>
-
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -923,47 +744,19 @@ export default function Home() {
             className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6"
           >
             {[
-              {
-                icon: MapPin,
-                titre: "Offres locales qualifiées",
-                desc: "Annonces vérifiées, ancrées dans les réalités du marché camerounais et de la diaspora.",
-              },
-              {
-                icon: BadgeCheck,
-                titre: "Profil candidat complet",
-                desc: "Mettez en avant vos compétences, expériences, formations et CV professionnel.",
-              },
-              {
-                icon: Gauge,
-                titre: "Matching intelligent",
-                desc: "Nos algorithmes rapprochent vos critères des offres et profils les plus pertinents.",
-              },
-              {
-                icon: Building2,
-                titre: "Recrutement simplifié",
-                desc: "Outils pensés pour les entreprises camerounaises : suivi, CVthèque, conseiller dédié.",
-              },
+              { icon: MapPin, titre: "Offres locales et qualifiées", desc: "Des milliers d'offres vérifiées dans toutes les régions du Cameroun." },
+              { icon: BadgeCheck, titre: "Profils candidats complets", desc: "Mettez en valeur vos compétences et augmentez votre visibilité." },
+              { icon: Gauge, titre: "Matching intelligent", desc: "Trouvez les opportunités qui correspondent vraiment à votre profil." },
+              { icon: Compass, titre: "Recrutement simplifié", desc: "Des outils puissants pour trouver et gérer vos talents efficacement." },
             ].map(({ icon: Icon, titre, desc }) => (
-              <motion.div
-                key={titre}
-                variants={fadeUp}
-                whileHover={{ y: -4 }}
-                className="rounded-3xl p-6 border bg-white"
-                style={{ borderColor: "rgba(15, 23, 42, 0.10)" }}
-              >
-                <div
-                  className="inline-flex items-center justify-center w-11 h-11 rounded-xl mb-4 text-white"
-                  style={{ backgroundColor: COLORS.emerald }}
-                >
-                  <Icon className="w-5 h-5" />
+              <motion.div key={titre} variants={fadeUp} className="text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4" style={{ backgroundColor: "rgba(15, 138, 76, 0.10)" }}>
+                  <Icon className="w-5 h-5" style={{ color: COLORS.emerald }} />
                 </div>
-                <h3
-                  className="font-bold text-lg mb-2"
-                  style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}
-                >
+                <h3 className="font-bold text-base mb-2" style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}>
                   {titre}
                 </h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{desc}</p>
+                <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -971,33 +764,22 @@ export default function Home() {
       </section>
 
       {/* ╭──────────────────────────────────────────────────────────────╮ */}
-      {/* │ CONSEILS EMPLOI — éditorial premium                           │ */}
+      {/* │ CONSEILS — 3 articles éditoriaux                              │ */}
       {/* ╰──────────────────────────────────────────────────────────────╯ */}
-      <section className="py-24" style={{ backgroundColor: COLORS.ivory }}>
+      <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Reveal className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-12">
-            <div>
-              <div
-                className="inline-block text-xs font-semibold uppercase tracking-widest mb-3"
-                style={{ color: COLORS.emerald }}
-              >
-                Magazine
-              </div>
-              <h2
-                className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight"
-                style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}
-              >
-                Conseils carrière & recrutement
-              </h2>
-            </div>
-            <Button
-              variant="outline"
+          <Reveal className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight" style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+              Conseils pour booster votre carrière
+            </h2>
+            <button
               onClick={() => setLocation("/conseils")}
-              className="self-start sm:self-end gap-2 border-gray-300"
+              className="self-start sm:self-end text-sm font-semibold inline-flex items-center gap-1.5 hover:gap-2 transition-all"
+              style={{ color: COLORS.emerald }}
             >
-              Tous les articles
+              Voir tous les conseils
               <ArrowRight className="w-4 h-4" />
-            </Button>
+            </button>
           </Reveal>
 
           {latestArticles && latestArticles.articles.length > 0 ? (
@@ -1006,20 +788,18 @@ export default function Home() {
               whileInView="visible"
               viewport={{ once: true, margin: "-80px" }}
               variants={stagger}
-              className="grid lg:grid-cols-[1.4fr_1fr_1fr] gap-6"
+              className="grid md:grid-cols-3 gap-6"
             >
-              {latestArticles.articles.slice(0, 3).map((article, i) => (
+              {latestArticles.articles.slice(0, 3).map((article) => (
                 <motion.button
                   key={article.id}
                   variants={fadeUp}
                   whileHover={{ y: -4 }}
                   onClick={() => setLocation(`/conseils/${article.slug}`)}
-                  className={`group text-left rounded-3xl overflow-hidden bg-white border hover:shadow-xl transition-shadow flex flex-col ${
-                    i === 0 ? "lg:row-span-2" : ""
-                  }`}
+                  className="group text-left rounded-2xl overflow-hidden bg-white border hover:shadow-xl transition-shadow flex flex-col"
                   style={{ borderColor: "rgba(15, 23, 42, 0.10)" }}
                 >
-                  <div className={`relative overflow-hidden ${i === 0 ? "h-64 lg:h-80" : "h-44"}`}>
+                  <div className="relative h-48 overflow-hidden">
                     {article.imageUrl ? (
                       <img
                         src={article.imageUrl}
@@ -1027,46 +807,34 @@ export default function Home() {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     ) : (
-                      <div
-                        className="w-full h-full flex items-center justify-center"
-                        style={{ backgroundColor: COLORS.ivory }}
-                      >
+                      <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: COLORS.ivory }}>
                         <BookOpen className="w-10 h-10 text-gray-300" />
                       </div>
                     )}
+                    {article.categorie && (
+                      <span
+                        className="absolute bottom-3 left-3 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full text-white shadow-md"
+                        style={{ backgroundColor: COLORS.emerald }}
+                      >
+                        {article.categorie}
+                      </span>
+                    )}
                   </div>
-                  <div className="p-5 lg:p-6 flex-1 flex flex-col">
-                    <div className="flex items-center gap-2 mb-2">
-                      {article.categorie && (
-                        <span
-                          className="text-[11px] font-bold uppercase tracking-wider"
-                          style={{ color: COLORS.emerald }}
-                        >
-                          {article.categorie}
-                        </span>
-                      )}
+                  <div className="p-5 flex-1 flex flex-col">
+                    <div className="flex items-center gap-2 mb-2 text-[11px] text-gray-400">
+                      <span>{formatDate((article as { datePublication?: string | Date }).datePublication)}</span>
                       {article.tempsLecture && (
                         <>
-                          <span className="text-[11px] text-gray-300">•</span>
-                          <span className="text-[11px] text-gray-400">
-                            {article.tempsLecture} min de lecture
-                          </span>
+                          <span>•</span>
+                          <span>{article.tempsLecture} min</span>
                         </>
                       )}
                     </div>
-                    <h3
-                      className={`font-extrabold mb-2 leading-snug ${
-                        i === 0 ? "text-xl lg:text-2xl" : "text-base"
-                      }`}
-                      style={{
-                        color: COLORS.deepGreen,
-                        fontFamily: "'Manrope', 'Inter', sans-serif",
-                      }}
-                    >
+                    <h3 className="font-bold text-gray-900 mb-2 leading-snug line-clamp-2" style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
                       {article.titre}
                     </h3>
                     {article.description && (
-                      <p className="text-sm text-gray-600 mb-4 line-clamp-3 flex-1 leading-relaxed">
+                      <p className="text-sm text-gray-600 line-clamp-2 mb-4 flex-1 leading-relaxed">
                         {article.description}
                       </p>
                     )}
@@ -1091,53 +859,41 @@ export default function Home() {
       </section>
 
       {/* ╭──────────────────────────────────────────────────────────────╮ */}
-      {/* │ CONFIANCE / TERRITOIRE                                        │ */}
+      {/* │ PENSÉ POUR LE CAMEROUN — badges régions                       │ */}
       {/* ╰──────────────────────────────────────────────────────────────╯ */}
-      <section className="py-16 bg-white border-y border-gray-100">
+      <section className="py-16" style={{ backgroundColor: COLORS.ivory }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Reveal className="text-center">
-            <div
-              className="inline-block text-xs font-semibold uppercase tracking-widest mb-3"
-              style={{ color: COLORS.emerald }}
-            >
-              Pensé pour le Cameroun
+          <Reveal className="grid md:grid-cols-2 gap-10 items-center">
+            <div>
+              <h3 className="text-2xl sm:text-3xl font-extrabold mb-3 tracking-tight" style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+                Pensé pour les talents
+                <br />
+                et les entreprises du Cameroun
+              </h3>
+              <p className="text-gray-600">
+                Présent dans toutes les régions et au service de l'emploi local.
+              </p>
             </div>
-            <h3
-              className="text-xl sm:text-2xl font-bold mb-7 max-w-2xl mx-auto"
-              style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}
-            >
-              Une plateforme au service de tous les talents et les entreprises du territoire.
-            </h3>
-            <div className="flex flex-wrap items-center justify-center gap-2.5">
-              {["Douala", "Yaoundé", "Bafoussam", "Garoua", "Bamenda", "Maroua", "Limbé", "Diaspora"].map(
-                (ville) => (
-                  <span
-                    key={ville}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium border bg-white"
-                    style={{
-                      borderColor: "rgba(15, 23, 42, 0.10)",
-                      color: COLORS.deepGreen,
-                    }}
-                  >
-                    <MapPin className="w-3.5 h-3.5" style={{ color: COLORS.emerald }} />
-                    {ville}
-                  </span>
-                )
-              )}
+            <div className="flex flex-wrap gap-2.5 justify-end">
+              {REGIONS.map((ville) => (
+                <span
+                  key={ville}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium border bg-white"
+                  style={{ borderColor: "rgba(15, 23, 42, 0.10)", color: COLORS.deepGreen }}
+                >
+                  <MapPin className="w-3.5 h-3.5" style={{ color: COLORS.emerald }} />
+                  {ville}
+                </span>
+              ))}
             </div>
           </Reveal>
         </div>
       </section>
 
       {/* ╭──────────────────────────────────────────────────────────────╮ */}
-      {/* │ CTA FINAL — vert profond + accent or                          │ */}
+      {/* │ CTA FINAL — vert + accent or                                  │ */}
       {/* ╰──────────────────────────────────────────────────────────────╯ */}
-      <section
-        className="relative py-24 overflow-hidden text-white"
-        style={{
-          background: `linear-gradient(135deg, ${COLORS.deepGreen} 0%, #0A2818 100%)`,
-        }}
-      >
+      <section className="relative py-20 overflow-hidden text-white" style={{ background: `linear-gradient(135deg, ${COLORS.deepGreen} 0%, #0A2818 100%)` }}>
         <motion.div
           aria-hidden="true"
           className="absolute -top-32 right-1/4 w-[36rem] h-[36rem] rounded-full blur-[120px]"
@@ -1145,56 +901,38 @@ export default function Home() {
           animate={{ scale: [1, 1.1, 1] }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         />
-        <motion.div
+        {/* Skyline silhouette en fond droit */}
+        <div
+          className="absolute right-0 bottom-0 w-1/2 h-3/4 pointer-events-none opacity-25"
+          style={{
+            backgroundImage: "url(/images/home/hero-bg-alt.webp)",
+            backgroundSize: "cover",
+            backgroundPosition: "right bottom",
+            maskImage: "linear-gradient(to left, black 30%, transparent 100%)",
+            WebkitMaskImage: "linear-gradient(to left, black 30%, transparent 100%)",
+          }}
           aria-hidden="true"
-          className="absolute bottom-0 left-1/4 w-96 h-96 rounded-full blur-[100px]"
-          style={{ backgroundColor: COLORS.emerald, opacity: 0.3 }}
-          animate={{ scale: [1, 1.2, 1] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
         />
-
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Reveal>
-            <div
-              className="inline-block text-xs font-semibold uppercase tracking-widest mb-3"
-              style={{ color: COLORS.gold }}
-            >
-              Votre prochaine étape
-            </div>
-            <h2
-              className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-6 tracking-tight leading-[1.1]"
-              style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}
-            >
-              Votre prochaine{" "}
-              <span
-                style={{
-                  background: `linear-gradient(135deg, ${COLORS.gold} 0%, #FFE390 100%)`,
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                opportunité
-              </span>{" "}
-              commence ici.
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-5 tracking-tight leading-tight" style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+              Votre prochaine opportunité commence ici.
             </h2>
           </Reveal>
           <Reveal delay={0.1}>
-            <p className="text-lg text-white/80 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Rejoignez la plateforme qui connecte les meilleurs talents aux entreprises camerounaises et internationales.
+            <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto leading-relaxed">
+              Rejoignez des milliers de candidats et d'entreprises qui construisent ensemble le futur du travail au Cameroun.
             </p>
           </Reveal>
           <Reveal delay={0.2} className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button
               size="lg"
-              onClick={() =>
-                user ? setLocation("/candidat/dashboard") : setLocation("/inscription?type=candidat")
-              }
+              onClick={() => (user ? setLocation("/candidat/dashboard") : setLocation("/inscription?type=candidat"))}
               className="text-base px-7 h-12 gap-2 shadow-xl font-semibold"
               style={{ backgroundColor: COLORS.gold, color: COLORS.charcoal }}
             >
               <Users className="w-4 h-4" />
-              Créer mon compte candidat
+              Je cherche un emploi
             </Button>
             <Button
               size="lg"
@@ -1203,7 +941,7 @@ export default function Home() {
               className="text-base px-7 h-12 gap-2 border-white/30 bg-white/5 text-white hover:bg-white/15 backdrop-blur-md"
             >
               <Building2 className="w-4 h-4" />
-              Publier une offre
+              Je suis recruteur
             </Button>
           </Reveal>
         </div>
@@ -1216,15 +954,9 @@ export default function Home() {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatRelativeDate(input: string | Date): string {
+function formatDate(input?: string | Date | null): string {
+  if (!input) return "";
   const d = input instanceof Date ? input : new Date(input);
   if (isNaN(d.getTime())) return "";
-  const diffMs = Date.now() - d.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  if (diffDays === 0) return "aujourd'hui";
-  if (diffDays === 1) return "hier";
-  if (diffDays < 7) return `il y a ${diffDays} j`;
-  if (diffDays < 30) return `il y a ${Math.floor(diffDays / 7)} sem.`;
-  if (diffDays < 365) return `il y a ${Math.floor(diffDays / 30)} mois`;
-  return `il y a ${Math.floor(diffDays / 365)} an${Math.floor(diffDays / 365) > 1 ? "s" : ""}`;
+  return d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 }
