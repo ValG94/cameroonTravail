@@ -17,7 +17,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
-import { LanguageSelector } from "@/components/LanguageSelector";
+import { SiteHeader } from "@/components/SiteHeader";
 import { getLoginUrl } from "@/const";
 
 export default function InscriptionEmployeur() {
@@ -86,20 +86,11 @@ export default function InscriptionEmployeur() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur-sm mb-8">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <button onClick={() => setLocation("/")} className="flex items-center gap-3">
-              <img src="https://d2xsxph8kpxj0f.cloudfront.net/99126893/SPbMst9fYMnn3KTn3JChUH/logocameroonTravail_ed569233.png" alt="Cameroon Travail" className="h-12" />
-            </button>
-            <LanguageSelector />
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header partagé pour cohérence inter-pages */}
+      <SiteHeader />
 
-      <div className="max-w-4xl mx-auto px-4">
+      <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Bouton retour vers l'Espace Recruteur.
             On NE fait pas history.back() : ChoixInscription est dans
             l'historique et auto-redirige vers /inscription/employeur si

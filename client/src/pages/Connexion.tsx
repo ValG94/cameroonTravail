@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { SiteHeader } from "@/components/SiteHeader";
 
 const REMEMBER_EMAIL_KEY = "ct_remember_email";
 
@@ -88,16 +89,11 @@ export default function Connexion() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50">
+      <SiteHeader />
+      <div className="flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
-          <img
-            src="https://d2xsxph8kpxj0f.cloudfront.net/99126893/SPbMst9fYMnn3KTn3JChUH/logocameroonTravail_ed569233.png"
-            alt="Cameroon Travail"
-            className="h-16 w-auto"
-          />
-        </div>
-        <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
+        <h2 className="text-center text-3xl font-bold text-gray-900">
           {t("auth.login")}
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
@@ -238,6 +234,7 @@ export default function Connexion() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

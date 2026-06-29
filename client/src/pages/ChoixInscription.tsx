@@ -4,7 +4,7 @@ import { Briefcase, User } from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useSearch } from "wouter";
-import { LanguageSelector } from "@/components/LanguageSelector";
+import { SiteHeader } from "@/components/SiteHeader";
 
 export default function ChoixInscription() {
   const { t } = useTranslation();
@@ -26,17 +26,8 @@ export default function ChoixInscription() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-yellow-50 to-red-50">
-      {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <button onClick={() => setLocation("/")} className="flex items-center gap-3">
-              <img src="https://d2xsxph8kpxj0f.cloudfront.net/99126893/SPbMst9fYMnn3KTn3JChUH/logocameroonTravail_ed569233.png" alt="Cameroon Travail" className="h-12" />
-            </button>
-            <LanguageSelector />
-          </div>
-        </div>
-      </header>
+      {/* Header partagé pour cohérence inter-pages */}
+      <SiteHeader />
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-16">

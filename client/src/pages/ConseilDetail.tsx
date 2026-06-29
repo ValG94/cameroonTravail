@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import SiteFooter from "@/components/SiteFooter";
+import { SiteHeader } from "@/components/SiteHeader";
 import {
   ArrowLeft,
   Calendar,
@@ -160,24 +161,8 @@ export default function ConseilDetail() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* ─── Header ─────────────────────────────────────────────────────────── */}
-      <header className="border-b bg-white/90 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-6">
-            <img
-              src="https://d2xsxph8kpxj0f.cloudfront.net/99126893/SPbMst9fYMnn3KTn3JChUH/logocameroonTravail_ed569233.png"
-              alt="Cameroon Travail"
-              className="h-12 cursor-pointer"
-              onClick={() => setLocation("/")}
-            />
-            <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
-              <button onClick={() => setLocation("/")} className="hover:text-green-700 transition-colors">Accueil</button>
-              <button onClick={() => setLocation("/offres")} className="hover:text-green-700 transition-colors">Emplois</button>
-              <button onClick={() => setLocation("/conseils")} className="text-green-700 font-semibold border-b-2 border-green-700 pb-0.5">Conseils</button>
-            </nav>
-          </div>
-        </div>
-      </header>
+      {/* ─── Header (composant partagé) ─────────────────────────────────────── */}
+      <SiteHeader activePage="conseils" />
 
       {/* ─── Breadcrumb ─────────────────────────────────────────────────────── */}
       <div className="bg-gray-50 border-b">
