@@ -13,7 +13,10 @@ import { toast } from "sonner";
  */
 
 const COLORS = {
-  deepGreen: "#063F24",
+  /** Vert encore plus sombre que la palette globale, pour donner du
+   *  poids au footer et le distinguer du CTA final (qui utilise déjà
+   *  le deepGreen #063F24). */
+  deepGreen: "#021307",
   emerald: "#0F8A4C",
   gold: "#F6C343",
 };
@@ -169,24 +172,25 @@ export default function SiteFooter() {
             <p className="text-sm text-white/75 mb-4 leading-relaxed">
               Recevez nos conseils et nos meilleures offres d'emploi chaque semaine.
             </p>
-            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-2">
-              <div className="relative flex-1">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: COLORS.gold }} />
+            {/* Newsletter input + bouton TOUJOURS sur la même ligne
+                (la colonne fait lg:col-span-3 → environ 25% de la grille
+                ce qui suffit pour faire tenir input + bouton inline). */}
+            <form onSubmit={handleNewsletterSubmit} className="flex flex-row gap-2">
+              <div className="relative flex-1 min-w-0">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: COLORS.gold }} />
                 <input
                   type="email"
                   value={newsletterEmail}
                   onChange={(e) => setNewsletterEmail(e.target.value)}
                   placeholder="Votre email"
                   className="w-full h-10 pl-10 pr-3 text-sm rounded-lg border bg-white/5 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 transition-all"
-                  style={{
-                    borderColor: "rgba(255, 255, 255, 0.15)",
-                  }}
+                  style={{ borderColor: "rgba(255, 255, 255, 0.15)" }}
                 />
               </div>
               <button
                 type="submit"
                 disabled={subscribing}
-                className="h-10 px-5 text-sm font-semibold rounded-lg transition-all disabled:opacity-60"
+                className="h-10 px-4 sm:px-5 text-sm font-semibold rounded-lg transition-all disabled:opacity-60 shrink-0 whitespace-nowrap"
                 style={{ backgroundColor: COLORS.emerald, color: "white" }}
               >
                 {subscribing ? "..." : "S'abonner"}

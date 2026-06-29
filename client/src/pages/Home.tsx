@@ -55,6 +55,58 @@ const RECHERCHES_POPULAIRES = ["Développeur", "Commercial", "Comptabilité", "M
 
 const REGIONS = ["Douala", "Yaoundé", "Bafoussam", "Garoua", "Maroua", "Bamenda", "Limbé", "Diaspora"];
 
+// Partenaires : logos texte stylisés (PAS d'images officielles). Chaque
+// logo est rendu en CSS pur avec une typographie/couleur qui évoque la
+// marque. Si on obtient les vrais logos plus tard, on peut switcher pour
+// des <img src="/images/partners/xxx.svg" />.
+interface PartnerSpec {
+  name: string;
+  /** Texte affiché (peut différer du name). */
+  label: string;
+  /** Sous-texte optionnel (ex: 'OF AFRICA' pour BOA). */
+  sub?: string;
+  /** Couleur d'accent (text-color). */
+  color: string;
+  /** Style typographique. */
+  weight: 700 | 800 | 900;
+  /** Famille de police (par défaut Manrope). */
+  font?: string;
+  /** Italique ? */
+  italic?: boolean;
+  /** Tracking. */
+  letterSpacing?: string;
+  /** Taille du label (par défaut 1.25rem). */
+  fontSize?: string;
+}
+
+const PARTNERS: PartnerSpec[] = [
+  { name: "MTN", label: "MTN", color: "#FFCC00", weight: 900, fontSize: "1.5rem", letterSpacing: "-0.02em" },
+  { name: "TotalEnergies", label: "TotalEnergies", color: "#ED0000", weight: 800, fontSize: "1.05rem", letterSpacing: "-0.03em" },
+  { name: "Orange", label: "orange", color: "#FF7900", weight: 900, fontSize: "1.4rem", letterSpacing: "-0.04em" },
+  { name: "Afriland", label: "Afriland", sub: "First Bank", color: "#C8102E", weight: 800, fontSize: "1rem" },
+  { name: "SABC", label: "SABC", color: "#6B7280", weight: 800, fontSize: "1.35rem", letterSpacing: "0.05em" },
+  { name: "BOA", label: "BOA", sub: "OF AFRICA", color: "#0B5E3C", weight: 900, fontSize: "1.35rem" },
+  { name: "Eneo", label: "eneo", color: "#0F8A4C", weight: 800, fontSize: "1.5rem", italic: true, letterSpacing: "-0.03em" },
+  { name: "Camair-Co", label: "Camair-Co", color: "#063F24", weight: 800, fontSize: "1.05rem", letterSpacing: "-0.02em" },
+];
+
+// Override d'images d'articles : certains articles n'ont pas d'image en BDD
+// ou ont une image qui ne reflète pas bien le sujet. On force ici l'image
+// locale appropriée pour les articles dont le slug matche les patterns
+// suivants (case-insensitive, recherche partielle).
+const ARTICLE_IMAGE_OVERRIDES: { match: RegExp; src: string }[] = [
+  { match: /entretien|interview/i, src: "/images/home/interview-scene.webp" },
+  { match: /freelance|activit[ée]/i, src: "/images/home/meeting-room.webp" },
+];
+
+function getArticleImage(article: { slug?: string; titre?: string; imageUrl?: string | null }): string | null {
+  const haystack = `${article.slug || ""} ${article.titre || ""}`;
+  for (const { match, src } of ARTICLE_IMAGE_OVERRIDES) {
+    if (match.test(haystack)) return src;
+  }
+  return article.imageUrl || null;
+}
+
 // ─── Variants Framer Motion ───────────────────────────────────────────────────
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 24 },
@@ -790,7 +842,9 @@ export default function Home() {
               variants={stagger}
               className="grid md:grid-cols-3 gap-6"
             >
-              {latestArticles.articles.slice(0, 3).map((article) => (
+              {latestArticles.articles.slice(0, 3).map((article) => {
+                const imgSrc = getArticleImage(article);
+                return (
                 <motion.button
                   key={article.id}
                   variants={fadeUp}
@@ -800,9 +854,9 @@ export default function Home() {
                   style={{ borderColor: "rgba(15, 23, 42, 0.10)" }}
                 >
                   <div className="relative h-48 overflow-hidden">
-                    {article.imageUrl ? (
+                    {imgSrc ? (
                       <img
-                        src={article.imageUrl}
+                        src={imgSrc}
                         alt={article.titre}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
@@ -847,7 +901,8 @@ export default function Home() {
                     </span>
                   </div>
                 </motion.button>
-              ))}
+                );
+              })}
             </motion.div>
           ) : (
             <div className="text-center py-12 text-gray-400">
@@ -859,31 +914,27 @@ export default function Home() {
       </section>
 
       {/* ╭──────────────────────────────────────────────────────────────╮ */}
-      {/* │ PENSÉ POUR LE CAMEROUN — badges régions                       │ */}
+      {/* │ PARTENAIRES — logos texte stylisés                            │ */}
       {/* ╰──────────────────────────────────────────────────────────────╯ */}
-      <section className="py-16" style={{ backgroundColor: COLORS.ivory }}>
+      <section className="py-14" style={{ backgroundColor: COLORS.ivory }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Reveal className="grid md:grid-cols-2 gap-10 items-center">
+          <Reveal className="grid lg:grid-cols-[1fr_2.2fr] gap-8 lg:gap-12 items-center">
             <div>
-              <h3 className="text-2xl sm:text-3xl font-extrabold mb-3 tracking-tight" style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}>
-                Pensé pour les talents
+              <h3
+                className="text-xl sm:text-2xl font-extrabold mb-2 tracking-tight leading-snug"
+                style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}
+              >
+                Fiers de travailler
                 <br />
-                et les entreprises du Cameroun
+                avec les meilleurs au Cameroun
               </h3>
-              <p className="text-gray-600">
-                Présent dans toutes les régions et au service de l'emploi local.
+              <p className="text-sm text-gray-500 leading-relaxed">
+                Ils nous font confiance pour leurs recrutements chaque jour.
               </p>
             </div>
-            <div className="flex flex-wrap gap-2.5 justify-end">
-              {REGIONS.map((ville) => (
-                <span
-                  key={ville}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium border bg-white"
-                  style={{ borderColor: "rgba(15, 23, 42, 0.10)", color: COLORS.deepGreen }}
-                >
-                  <MapPin className="w-3.5 h-3.5" style={{ color: COLORS.emerald }} />
-                  {ville}
-                </span>
+            <div className="flex flex-wrap items-center justify-center lg:justify-end gap-x-8 gap-y-5">
+              {PARTNERS.map((p) => (
+                <PartnerLogo key={p.name} {...p} />
               ))}
             </div>
           </Reveal>
@@ -891,27 +942,31 @@ export default function Home() {
       </section>
 
       {/* ╭──────────────────────────────────────────────────────────────╮ */}
-      {/* │ CTA FINAL — vert + accent or                                  │ */}
+      {/* │ CTA FINAL — skyline hero-bg-alt en background complet         │ */}
       {/* ╰──────────────────────────────────────────────────────────────╯ */}
-      <section className="relative py-20 overflow-hidden text-white" style={{ background: `linear-gradient(135deg, ${COLORS.deepGreen} 0%, #0A2818 100%)` }}>
+      <section className="relative py-20 overflow-hidden text-white">
+        {/* Image background pleine largeur */}
+        <div className="absolute inset-0">
+          <img
+            src="/images/home/hero-bg-alt.webp"
+            alt=""
+            aria-hidden="true"
+            className="w-full h-full object-cover object-center"
+          />
+          {/* Overlay dégradé pour lisibilité du texte centré */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `linear-gradient(90deg, ${COLORS.deepGreen}F2 0%, ${COLORS.deepGreen}D9 40%, ${COLORS.deepGreen}80 100%)`,
+            }}
+          />
+        </div>
         <motion.div
           aria-hidden="true"
           className="absolute -top-32 right-1/4 w-[36rem] h-[36rem] rounded-full blur-[120px]"
-          style={{ backgroundColor: COLORS.gold, opacity: 0.15 }}
+          style={{ backgroundColor: COLORS.gold, opacity: 0.12 }}
           animate={{ scale: [1, 1.1, 1] }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        />
-        {/* Skyline silhouette en fond droit */}
-        <div
-          className="absolute right-0 bottom-0 w-1/2 h-3/4 pointer-events-none opacity-25"
-          style={{
-            backgroundImage: "url(/images/home/hero-bg-alt.webp)",
-            backgroundSize: "cover",
-            backgroundPosition: "right bottom",
-            maskImage: "linear-gradient(to left, black 30%, transparent 100%)",
-            WebkitMaskImage: "linear-gradient(to left, black 30%, transparent 100%)",
-          }}
-          aria-hidden="true"
         />
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Reveal>
@@ -959,4 +1014,41 @@ function formatDate(input?: string | Date | null): string {
   const d = input instanceof Date ? input : new Date(input);
   if (isNaN(d.getTime())) return "";
   return d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+}
+
+/** Logo partenaire en texte stylisé. Pas d'image officielle utilisée :
+ *  juste de la typographie + couleur de marque pour évoquer le branding.
+ *  À remplacer par <img src="/images/partners/xxx.svg" /> si on obtient
+ *  les vrais logos avec accord des partenaires. */
+function PartnerLogo({ label, sub, color, weight, font, italic, letterSpacing, fontSize }: PartnerSpec) {
+  return (
+    <div className="flex flex-col items-center select-none" aria-label={label}>
+      <span
+        style={{
+          color,
+          fontWeight: weight,
+          fontFamily: font || "'Manrope', 'Inter', sans-serif",
+          fontStyle: italic ? "italic" : "normal",
+          letterSpacing: letterSpacing || "normal",
+          fontSize: fontSize || "1.25rem",
+          lineHeight: 1,
+        }}
+      >
+        {label}
+      </span>
+      {sub && (
+        <span
+          className="mt-0.5"
+          style={{
+            color,
+            fontSize: "0.55rem",
+            fontWeight: 700,
+            letterSpacing: "0.08em",
+          }}
+        >
+          {sub}
+        </span>
+      )}
+    </div>
+  );
 }
