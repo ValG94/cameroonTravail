@@ -218,25 +218,41 @@ export default function EspaceRecruteur() {
       {/* │ 1. HERO RECRUTEUR                                              │ */}
       {/* ╰───────────────────────────────────────────────────────────────╯ */}
       <section className="relative overflow-hidden">
-        {/* Background image + overlay */}
+        {/* Background image + dégradé "fenêtre" pour laisser le couple visible
+            au milieu (entre le texte à gauche et le formulaire à droite). */}
         <div className="absolute inset-0">
           <img
             src={IMG_HERO}
             alt=""
             aria-hidden="true"
-            className="w-full h-full object-cover object-center"
+            className="w-full h-full object-cover"
+            style={{ objectPosition: "center center" }}
           />
+          {/* Voile dégradé : très dark sur 0-30% (texte lisible) → quasi
+              transparent sur 38-65% (le couple respire) → léger voile à
+              droite sous le formulaire blanc. */}
           <div
             className="absolute inset-0"
             style={{
               background:
-                "linear-gradient(90deg, rgba(3, 52, 30, 0.94) 0%, rgba(5, 76, 43, 0.82) 45%, rgba(5, 76, 43, 0.58) 100%)",
+                "linear-gradient(90deg, rgba(3, 52, 30, 0.95) 0%, rgba(5, 76, 43, 0.86) 26%, rgba(5, 76, 43, 0.32) 40%, rgba(5, 76, 43, 0.10) 55%, rgba(5, 76, 43, 0.06) 100%)",
+            }}
+          />
+          {/* Voile haut→bas TRÈS subtil pour ne pas surcharger la moitié
+              droite (où le formulaire blanc apporte déjà du contraste). */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(3, 52, 30, 0.10) 0%, transparent 30%, transparent 70%, rgba(3, 52, 30, 0.15) 100%)",
             }}
           />
         </div>
 
         <div className="relative max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20">
-          <div className="grid lg:grid-cols-[52%_44%] gap-10 lg:gap-16 items-center">
+          {/* Grille 54%/40% : laisse une zone tampon de 6% + gap-12 au milieu
+              pour que le couple sur la photo reste visible entre texte et form. */}
+          <div className="grid lg:grid-cols-[54%_40%] gap-8 lg:gap-12 items-center">
             {/* ─── Colonne gauche : texte + CTAs ─────────────────── */}
             <motion.div initial="hidden" animate="visible" variants={stagger} className="text-white">
               {/* Badge */}
@@ -336,7 +352,7 @@ export default function EspaceRecruteur() {
               initial={{ opacity: 0, y: 30, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              className="relative w-full max-w-[460px] mx-auto lg:mx-0 lg:ml-auto"
+              className="relative w-full max-w-[420px] mx-auto lg:mx-0 lg:ml-auto"
             >
               {/* Halo */}
               <div
