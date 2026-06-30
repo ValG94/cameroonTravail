@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { SiteHeader } from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
+import { getArticleImage } from "@/lib/articleImages";
 import {
   ArrowRight,
   BarChart3,
@@ -27,11 +28,11 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-// ─── Assets ───────────────────────────────────────────────────────────────────
-const IMG_HERO = "https://d2xsxph8kpxj0f.cloudfront.net/99126893/SPbMst9fYMnn3KTn3JChUH/recruiter-hero-bg-UbPNn3iRDnvEjfQK2Dr3Do.webp";
-const IMG_HANDSHAKE = "https://d2xsxph8kpxj0f.cloudfront.net/99126893/SPbMst9fYMnn3KTn3JChUH/recruiter-handshake-ZiUCtkpYcmVsZBGwiehpyg.webp";
-const IMG_TEAM = "https://d2xsxph8kpxj0f.cloudfront.net/99126893/SPbMst9fYMnn3KTn3JChUH/recruiter-team-iEyrGz97yfDfjAUo4GYxdx.webp";
-const IMG_INTERVIEW = "https://d2xsxph8kpxj0f.cloudfront.net/99126893/SPbMst9fYMnn3KTn3JChUH/recruiter-interview-2Dnmn7yGihgQnmEfmVU2qd.webp";
+// ─── Assets locaux (ChatGPT-generated, convertis en WebP) ─────────────────────
+const IMG_HERO = "/images/recruteur/hero-bg.webp";
+const IMG_HANDSHAKE = "/images/recruteur/cta-team.webp";
+const IMG_TEAM = "/images/recruteur/step-meeting.webp";
+const IMG_INTERVIEW = "/images/recruteur/step-interview.webp";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function parseFonctionnalites(raw: string | null): string[] {
@@ -360,8 +361,8 @@ export default function EspaceRecruteur() {
                     </div>
                   </div>
                   <div>
-                    <h2 className="font-bold text-gray-900 text-lg">Inscription Recruteur</h2>
-                    <p className="text-xs text-gray-500">Créez votre compte en quelques minutes</p>
+                    <h2 className="font-bold text-gray-900 text-lg">Créez votre compte recruteur</h2>
+                    <p className="text-xs text-gray-500">Rejoignez plus de 2 500 entreprises qui recrutent déjà.</p>
                   </div>
                 </div>
                 <form onSubmit={handleInscription} className="space-y-3.5">
@@ -380,13 +381,25 @@ export default function EspaceRecruteur() {
                     className="h-11 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
                     required
                   />
-                  <Input
-                    type="tel"
-                    placeholder="Téléphone (+237...)"
-                    value={formData.telephone}
-                    onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
-                    className="h-11 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
-                  />
+                  {/* Téléphone avec sélecteur drapeau 🇨🇲 +237 (visuel fixe :
+                      Cameroun uniquement pour l'instant — adaptable si on
+                      ajoute d'autres pays plus tard). */}
+                  <div className="flex h-11 rounded-md border border-gray-200 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 overflow-hidden">
+                    <div
+                      className="flex items-center gap-1.5 px-3 bg-gray-50 border-r border-gray-200 text-sm font-medium text-gray-700 shrink-0"
+                      aria-label="Indicatif Cameroun"
+                    >
+                      <span className="text-base leading-none" aria-hidden="true">🇨🇲</span>
+                      <span>+237</span>
+                    </div>
+                    <input
+                      type="tel"
+                      placeholder="Téléphone"
+                      value={formData.telephone}
+                      onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
+                      className="flex-1 min-w-0 px-3 text-sm bg-white focus:outline-none text-gray-900 placeholder:text-gray-400"
+                    />
+                  </div>
                   <select
                     value={formData.taille}
                     onChange={(e) => setFormData({ ...formData, taille: e.target.value })}
@@ -620,14 +633,16 @@ export default function EspaceRecruteur() {
               variants={stagger}
               className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
             >
-              {articles.map((article) => (
+              {articles.map((article) => {
+                const imgSrc = getArticleImage(article);
+                return (
                 <motion.div key={article.id} variants={fadeUp} {...cardLift}>
                   <Link href={`/conseils/${article.slug}`}>
                     <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer group h-full">
-                      {article.imageUrl ? (
+                      {imgSrc ? (
                         <div className="overflow-hidden h-48">
                           <img
-                            src={article.imageUrl}
+                            src={imgSrc}
                             alt={article.titre}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
@@ -658,7 +673,8 @@ export default function EspaceRecruteur() {
                     </div>
                   </Link>
                 </motion.div>
-              ))}
+                );
+              })}
             </motion.div>
             <Reveal className="text-center mt-10" delay={0.3}>
               <Button
