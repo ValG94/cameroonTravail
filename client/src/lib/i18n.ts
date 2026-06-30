@@ -1257,6 +1257,17 @@ const fr = {
           b4Title: "Support réactif",
           b4Desc: "Notre équipe vous accompagne",
         },
+        // Bénéfices spécifiques Offre Avantage (bandeau dark green)
+        advantageBenefits: {
+          b1Title: "Plus de visibilité",
+          b1Desc: "Vos offres sont mises en avant.",
+          b2Title: "Talents qualifiés",
+          b2Desc: "Accédez aux meilleurs profils.",
+          b3Title: "Gain de temps",
+          b3Desc: "Outils de suivi avancés.",
+          b4Title: "Accompagnement",
+          b4Desc: "Support prioritaire.",
+        },
       },
       mySubscriptions: {
         title: "Mes souscriptions",
@@ -2574,6 +2585,16 @@ const en = {
           b3Desc: "Cancel anytime",
           b4Title: "Responsive support",
           b4Desc: "Our team is here to help",
+        },
+        advantageBenefits: {
+          b1Title: "More visibility",
+          b1Desc: "Your jobs are highlighted.",
+          b2Title: "Qualified talents",
+          b2Desc: "Access the best profiles.",
+          b3Title: "Time savings",
+          b3Desc: "Advanced tracking tools.",
+          b4Title: "Dedicated support",
+          b4Desc: "Priority assistance.",
         },
       },
       mySubscriptions: {
