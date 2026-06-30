@@ -15,6 +15,7 @@ import {
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { regions, getVillesForRegion } from "@/../../shared/regions-villes";
 import RichTextEditor from "@/components/RichTextEditor";
@@ -30,6 +31,7 @@ const typesContrat = [
 ];
 
 export default function EmployeurPublier() {
+  const { t } = useTranslation();
   const [location, setLocation] = useLocation();
   const [villesSuggestions, setVillesSuggestions] = useState<string[]>([]);
   
@@ -66,7 +68,7 @@ export default function EmployeurPublier() {
 
   const createMutation = trpc.jobs.create.useMutation({
     onSuccess: () => {
-      toast.success("Offre publiée avec succès");
+      toast.success(t("bo.employerPostJob.publishedToast"));
       setLocation("/employeur/offres");
     },
     onError: (error) => {
@@ -103,7 +105,7 @@ export default function EmployeurPublier() {
         setVillesSuggestions(getVillesForRegion(offreToDuplicate.region));
       }
       
-      toast.info("Offre dupliquée - Modifiez les informations avant de publier");
+      toast.info(t("bo.employerPostJob.duplicatedToast"));
     }
   }, [offreToDuplicate]);
 
@@ -111,22 +113,22 @@ export default function EmployeurPublier() {
     e.preventDefault();
 
     if (!formData.titre || formData.titre.length < 5) {
-      toast.error("Le titre doit contenir au moins 5 caractères");
+      toast.error(t("bo.employerPostJob.errTitleTooShort"));
       return;
     }
 
     if (!formData.description || formData.description.length < 50) {
-      toast.error("La description doit contenir au moins 50 caractères");
+      toast.error(t("bo.employerPostJob.errDescTooShort"));
       return;
     }
 
     if (!formData.typeContrat) {
-      toast.error("Veuillez sélectionner un type de contrat");
+      toast.error(t("bo.employerPostJob.errContractRequired"));
       return;
     }
 
     if (!formData.ville || !formData.region || !formData.secteur) {
-      toast.error("Veuillez remplir tous les champs obligatoires");
+      toast.error(t("bo.employerPostJob.errAllRequired"));
       return;
     }
 
@@ -153,9 +155,9 @@ export default function EmployeurPublier() {
       
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Publier une offre d'emploi</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t("bo.employerPostJob.title")}</h1>
           <p className="text-gray-600 mt-2">
-            Remplissez le formulaire ci-dessous pour publier votre offre
+            {t("bo.employerPostJob.subtitle")}
           </p>
         </div>
 
@@ -164,26 +166,26 @@ export default function EmployeurPublier() {
             {/* Informations générales */}
             <Card>
               <CardHeader>
-                <CardTitle>Informations générales</CardTitle>
+                <CardTitle>{t("bo.employerPostJob.sectionGeneralTitle")}</CardTitle>
                 <CardDescription>
-                  Décrivez le poste que vous proposez
+                  {t("bo.employerPostJob.sectionGeneralDesc")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="titre">Titre du poste *</Label>
+                  <Label htmlFor="titre">{t("bo.employerPostJob.titleLabel")} *</Label>
                   <Input
                     id="titre"
                     value={formData.titre}
                     onChange={(e) => handleChange("titre", e.target.value)}
-                    placeholder="Ex: Développeur Full Stack"
+                    placeholder={t("bo.employerPostJob.titlePh")}
                     required
                   />
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="typeOffre">Type d'offre *</Label>
+                    <Label htmlFor="typeOffre">{t("bo.employerPostJob.typeOffer")} *</Label>
                     <Select
                       value={formData.typeOffre}
                       onValueChange={(value) => handleChange("typeOffre", value)}
@@ -192,20 +194,20 @@ export default function EmployeurPublier() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="prive">Emploi Privé</SelectItem>
-                        <SelectItem value="public">Emploi Public</SelectItem>
+                        <SelectItem value="prive">{t("bo.employerPostJob.offerPrivate")}</SelectItem>
+                        <SelectItem value="public">{t("bo.employerPostJob.offerPublic")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="secteur">Secteur d'activité *</Label>
+                    <Label htmlFor="secteur">{t("bo.employerPostJob.sector")} *</Label>
                     <Select
                       value={formData.secteur}
                       onValueChange={(value) => handleChange("secteur", value)}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner un secteur" />
+                        <SelectValue placeholder={t("bo.employerPostJob.sectorPh")} />
                       </SelectTrigger>
                       <SelectContent>
                         {secteurs.map((s) => (
@@ -219,34 +221,34 @@ export default function EmployeurPublier() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="metier">Métier / Fonction</Label>
+                  <Label htmlFor="metier">{t("bo.employerPostJob.job")}</Label>
                   <Input
                     id="metier"
                     value={formData.metier}
                     onChange={(e) => handleChange("metier", e.target.value)}
-                    placeholder="Ex: Développement web"
+                    placeholder={t("bo.employerPostJob.jobPh")}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description du poste *</Label>
+                  <Label htmlFor="description">{t("bo.employerPostJob.descLabel")} *</Label>
                   <RichTextEditor
                     value={formData.description}
                     onChange={(value) => handleChange("description", value)}
-                    placeholder="D\u00e9crivez le poste, le contexte, les responsabilit\u00e9s..."
+                    placeholder={t("bo.employerPostJob.descPh")}
                     minHeight="180px"
                   />
                   <p className="text-xs text-gray-500">
-                    Minimum 50 caract\u00e8res. Utilisez la barre d'outils pour mettre en forme votre texte.
+                    {t("bo.employerPostJob.descHelp")}
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="missions">Missions principales</Label>
+                  <Label htmlFor="missions">{t("bo.employerPostJob.missions")}</Label>
                   <RichTextEditor
                     value={formData.missions}
                     onChange={(value) => handleChange("missions", value)}
-                    placeholder="Listez les principales missions du poste..."
+                    placeholder={t("bo.employerPostJob.missionsPh")}
                     minHeight="150px"
                   />
                 </div>
@@ -256,40 +258,40 @@ export default function EmployeurPublier() {
             {/* Profil recherché */}
             <Card>
               <CardHeader>
-                <CardTitle>Profil recherché</CardTitle>
+                <CardTitle>{t("bo.employerPostJob.sectionProfileTitle")}</CardTitle>
                 <CardDescription>
-                  Définissez les compétences et qualifications requises
+                  {t("bo.employerPostJob.sectionProfileDesc")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="competencesRequises">Comp\u00e9tences requises</Label>
+                    <Label htmlFor="competencesRequises">{t("bo.employerPostJob.skills")}</Label>
                     <RichTextEditor
                       value={formData.competencesRequises}
                       onChange={(value) => handleChange("competencesRequises", value)}
-                      placeholder="Listez les comp\u00e9tences techniques et comportementales attendues..."
+                      placeholder={t("bo.employerPostJob.skillsPh")}
                       minHeight="150px"
                     />
                   </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="experienceRequise">Expérience requise</Label>
+                    <Label htmlFor="experienceRequise">{t("bo.employerPostJob.experience")}</Label>
                     <Input
                       id="experienceRequise"
                       value={formData.experienceRequise}
                       onChange={(e) => handleChange("experienceRequise", e.target.value)}
-                      placeholder="Ex: 3 ans minimum"
+                      placeholder={t("bo.employerPostJob.experiencePh")}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="niveauEtude">Niveau d'études</Label>
+                    <Label htmlFor="niveauEtude">{t("bo.employerPostJob.education")}</Label>
                     <Input
                       id="niveauEtude"
                       value={formData.niveauEtude}
                       onChange={(e) => handleChange("niveauEtude", e.target.value)}
-                      placeholder="Ex: Bac+5"
+                      placeholder={t("bo.employerPostJob.educationPh")}
                     />
                   </div>
                 </div>
@@ -299,21 +301,21 @@ export default function EmployeurPublier() {
             {/* Conditions de travail */}
             <Card>
               <CardHeader>
-                <CardTitle>Conditions de travail</CardTitle>
+                <CardTitle>{t("bo.employerPostJob.sectionConditionsTitle")}</CardTitle>
                 <CardDescription>
-                  Précisez les conditions d'emploi
+                  {t("bo.employerPostJob.sectionConditionsDesc")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="typeContrat">Type de contrat *</Label>
+                    <Label htmlFor="typeContrat">{t("bo.employerPostJob.contractType")} *</Label>
                     <Select
                       value={formData.typeContrat}
                       onValueChange={(value) => handleChange("typeContrat", value)}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="S\u00e9lectionner un type" />
+                        <SelectValue placeholder={t("bo.employerPostJob.contractTypePh")} />
                       </SelectTrigger>
                       <SelectContent>
                         {typesContrat.map((t) => (
@@ -327,12 +329,12 @@ export default function EmployeurPublier() {
 
                   {formData.typeContrat !== "CDI" && (
                     <div className="space-y-2">
-                      <Label htmlFor="dureeContrat">Dur\u00e9e du contrat</Label>
+                      <Label htmlFor="dureeContrat">{t("bo.employerPostJob.contractDuration")}</Label>
                       <Input
                         id="dureeContrat"
                         value={formData.dureeContrat}
                         onChange={(e) => handleChange("dureeContrat", e.target.value)}
-                        placeholder="Ex: 6 mois, 1 an..."
+                        placeholder={t("bo.employerPostJob.contractDurationPh")}
                       />
                     </div>
                   )}
@@ -340,17 +342,17 @@ export default function EmployeurPublier() {
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="salaire">Salaire (FCFA)</Label>
+                    <Label htmlFor="salaire">{t("bo.employerPostJob.salary")}</Label>
                     <Input
                       id="salaire"
                       value={formData.salaire}
                       onChange={(e) => handleChange("salaire", e.target.value)}
-                      placeholder="Ex: 500 000 - 700 000 FCFA"
+                      placeholder={t("bo.employerPostJob.salaryPh")}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="nombrePostes">Nombre de postes</Label>
+                    <Label htmlFor="nombrePostes">{t("bo.employerPostJob.positions")}</Label>
                     <Input
                       id="nombrePostes"
                       type="number"
@@ -362,12 +364,12 @@ export default function EmployeurPublier() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="avantages">Avantages</Label>
+                  <Label htmlFor="avantages">{t("bo.employerPostJob.benefits")}</Label>
                   <Textarea
                     id="avantages"
                     value={formData.avantages}
                     onChange={(e) => handleChange("avantages", e.target.value)}
-                    placeholder="Listez les avantages offerts (primes, assurance, formation...)"
+                    placeholder={t("bo.employerPostJob.benefitsPh")}
                     rows={3}
                     className="resize-none"
                   />
@@ -378,21 +380,21 @@ export default function EmployeurPublier() {
             {/* Localisation */}
             <Card>
               <CardHeader>
-                <CardTitle>Localisation</CardTitle>
+                <CardTitle>{t("bo.employerPostJob.sectionLocationTitle")}</CardTitle>
                 <CardDescription>
-                  Où se situe le poste ?
+                  {t("bo.employerPostJob.sectionLocationDesc")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="region">Région *</Label>
+                    <Label htmlFor="region">{t("bo.employerPostJob.region")} *</Label>
                     <Select
                       value={formData.region}
                       onValueChange={(value) => handleChange("region", value)}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner une région" />
+                        <SelectValue placeholder={t("bo.employerPostJob.regionPh")} />
                       </SelectTrigger>
                       <SelectContent>
                         {regions.map((r) => (
@@ -405,14 +407,14 @@ export default function EmployeurPublier() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="ville">Ville *</Label>
+                    <Label htmlFor="ville">{t("bo.employerPostJob.city")} *</Label>
                     {villesSuggestions.length > 0 ? (
                       <Select
                         value={formData.ville}
                         onValueChange={(value) => handleChange("ville", value)}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="S\u00e9lectionner une ville" />
+                          <SelectValue placeholder={t("bo.employerPostJob.cityPh")} />
                         </SelectTrigger>
                         <SelectContent>
                           {villesSuggestions.map((ville) => (
@@ -427,14 +429,14 @@ export default function EmployeurPublier() {
                         id="ville"
                         value={formData.ville}
                         onChange={(e) => handleChange("ville", e.target.value)}
-                        placeholder="S\u00e9lectionnez d'abord une r\u00e9gion"
+                        placeholder={t("bo.employerPostJob.cityDisabledPh")}
                         disabled={!formData.region}
                         required
                       />
                     )}
                     {!formData.region && (
                       <p className="text-xs text-gray-500">
-                        Veuillez d'abord s\u00e9lectionner une r\u00e9gion
+                        {t("bo.employerPostJob.cityHelpEmptyRegion")}
                       </p>
                     )}
                   </div>
@@ -445,15 +447,15 @@ export default function EmployeurPublier() {
             {/* Dates */}
             <Card>
               <CardHeader>
-                <CardTitle>Dates importantes</CardTitle>
+                <CardTitle>{t("bo.employerPostJob.sectionDatesTitle")}</CardTitle>
                 <CardDescription>
-                  Définissez les dates clés de l'offre
+                  {t("bo.employerPostJob.sectionDatesDesc")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="dateLimite">Date limite de candidature</Label>
+                    <Label htmlFor="dateLimite">{t("bo.employerPostJob.dateLimit")}</Label>
                     <Input
                       id="dateLimite"
                       type="date"
@@ -463,7 +465,7 @@ export default function EmployeurPublier() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="dateDebut">Date de début souhaitée</Label>
+                    <Label htmlFor="dateDebut">{t("bo.employerPostJob.dateStart")}</Label>
                     <Input
                       id="dateDebut"
                       type="date"
@@ -483,7 +485,7 @@ export default function EmployeurPublier() {
                 onClick={() => setLocation("/employeur/dashboard")}
                 disabled={createMutation.isPending}
               >
-                Annuler
+                {t("bo.employerPostJob.cancel")}
               </Button>
               <Button
                 type="submit"
@@ -492,10 +494,10 @@ export default function EmployeurPublier() {
                 {createMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Publication...
+                    {t("bo.employerPostJob.publishing")}
                   </>
                 ) : (
-                  "Publier l'offre"
+                  t("bo.employerPostJob.publishBtn")
                 )}
               </Button>
             </div>

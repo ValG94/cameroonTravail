@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
@@ -39,25 +40,26 @@ import { toast } from "sonner";
 
 type Statut = "en_attente" | "validee" | "refusee";
 
-const STATUTS: { key: Statut | "tous"; label: string }[] = [
-  { key: "en_attente", label: "En attente" },
-  { key: "validee", label: "Validées" },
-  { key: "refusee", label: "Refusées" },
-  { key: "tous", label: "Toutes" },
-];
-
-const METHOD_LABEL: Record<string, { label: string; color: string }> = {
-  orange_money: { label: "Orange Money", color: "#FF7900" },
-  mtn_momo: { label: "MTN MoMo", color: "#FFC500" },
-  autre: { label: "Autre", color: "#64748B" },
-};
-
 export default function AdminSouscriptions() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const { user, loading: authLoading } = useAuth();
   const [filter, setFilter] = useState<Statut | "tous">("en_attente");
   const [refusalTarget, setRefusalTarget] = useState<number | null>(null);
   const [refusalReason, setRefusalReason] = useState("");
+
+  const STATUTS: { key: Statut | "tous"; label: string }[] = [
+    { key: "en_attente", label: t("bo.adminSubscriptions.filterPending") },
+    { key: "validee", label: t("bo.adminSubscriptions.filterValidated") },
+    { key: "refusee", label: t("bo.adminSubscriptions.filterRefused") },
+    { key: "tous", label: t("bo.adminSubscriptions.filterAll") },
+  ];
+
+  const METHOD_LABEL: Record<string, { label: string; color: string }> = {
+    orange_money: { label: t("bo.adminSubscriptions.methodOrange"), color: "#FF7900" },
+    mtn_momo: { label: t("bo.adminSubscriptions.methodMtn"), color: "#FFC500" },
+    autre: { label: t("bo.adminSubscriptions.methodOther"), color: "#64748B" },
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -72,7 +74,7 @@ export default function AdminSouscriptions() {
 
   const validerMutation = trpc.admin.validerDemandeSouscription.useMutation({
     onSuccess: () => {
-      toast.success("Demande validée — formule activée sur le compte recruteur");
+      toast.success(t("bo.adminSubscriptions.validateToast"));
       utils.admin.listDemandesSouscription.invalidate();
     },
     onError: (e: { message?: string }) => toast.error(e.message || "Erreur"),
@@ -80,7 +82,7 @@ export default function AdminSouscriptions() {
 
   const refuserMutation = trpc.admin.refuserDemandeSouscription.useMutation({
     onSuccess: () => {
-      toast.success("Demande refusée — le recruteur sera notifié");
+      toast.success(t("bo.adminSubscriptions.refuseToast"));
       utils.admin.listDemandesSouscription.invalidate();
       setRefusalTarget(null);
       setRefusalReason("");
@@ -89,14 +91,14 @@ export default function AdminSouscriptions() {
   });
 
   const handleValider = (id: number) => {
-    if (!confirm("Confirmer la validation ? La formule sera activée immédiatement.")) return;
+    if (!confirm(t("bo.adminSubscriptions.validateConfirm"))) return;
     validerMutation.mutate({ id });
   };
 
   const handleRefuser = () => {
     if (refusalTarget === null) return;
     if (refusalReason.trim().length < 3) {
-      toast.error("Précisez la raison du refus");
+      toast.error(t("bo.adminSubscriptions.refuseDialogPrecise"));
       return;
     }
     refuserMutation.mutate({ id: refusalTarget, raison: refusalReason.trim() });
@@ -121,10 +123,10 @@ export default function AdminSouscriptions() {
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-8">
         <div className="mb-6">
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">
-            Demandes de souscription
+            {t("bo.adminSubscriptions.title")}
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Vérifiez chaque paiement Mobile Money sur le téléphone marchand, puis validez pour activer la formule recruteur.
+            {t("bo.adminSubscriptions.subtitle")}
           </p>
         </div>
 
@@ -152,14 +154,14 @@ export default function AdminSouscriptions() {
         ) : demandes.length === 0 ? (
           <Card className="border-dashed">
             <CardContent className="py-16 text-center">
-              <p className="text-slate-500">Aucune demande dans cette catégorie.</p>
+              <p className="text-slate-500">{t("bo.adminSubscriptions.empty")}</p>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-4">
             {demandes.map((d: any) => {
               const method = METHOD_LABEL[d.methodePaiement] ?? METHOD_LABEL.autre;
-              const date = new Date(d.createdAt).toLocaleString("fr-FR", {
+              const date = new Date(d.createdAt).toLocaleString(undefined, {
                 dateStyle: "short",
                 timeStyle: "short",
               });
@@ -202,21 +204,21 @@ export default function AdminSouscriptions() {
                           <div className="flex items-center justify-between gap-4">
                             <div>
                               <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider">
-                                Formule
+                                {t("bo.adminSubscriptions.formula")}
                               </div>
                               <div className="font-bold text-slate-900 mt-0.5">{d.nomFormule}</div>
                             </div>
                             <div>
                               <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider">
-                                Montant déclaré
+                                {t("bo.adminSubscriptions.declaredAmount")}
                               </div>
                               <div className="font-bold text-slate-900 mt-0.5">
-                                {Number(d.montant).toLocaleString("fr-FR")} {d.devise}
+                                {Number(d.montant).toLocaleString()} {d.devise}
                               </div>
                             </div>
                             <div className="min-w-0">
                               <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider">
-                                Référence transaction
+                                {t("bo.adminSubscriptions.reference")}
                               </div>
                               <div className="font-mono text-sm text-slate-900 mt-0.5 truncate">
                                 {d.referenceTransaction}
@@ -227,15 +229,17 @@ export default function AdminSouscriptions() {
 
                         {d.statut === "refusee" && d.raisonRefus && (
                           <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
-                            <span className="font-semibold">Raison du refus :</span> {d.raisonRefus}
+                            <span className="font-semibold">{t("bo.adminSubscriptions.refusalReason")}</span> {d.raisonRefus}
                           </div>
                         )}
                         {d.statut !== "en_attente" && d.validatorName && (
                           <div className="mt-2 text-xs text-slate-400">
-                            Traité par {d.validatorName}
-                            {d.validatedAt
-                              ? " le " + new Date(d.validatedAt).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })
-                              : ""}
+                            {t("bo.adminSubscriptions.handledBy", {
+                              name: d.validatorName,
+                              date: d.validatedAt
+                                ? new Date(d.validatedAt).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })
+                                : "—",
+                            })}
                           </div>
                         )}
                       </div>
@@ -249,7 +253,7 @@ export default function AdminSouscriptions() {
                             className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
                           >
                             <CheckCircle2 className="w-4 h-4" />
-                            Valider
+                            {t("bo.adminSubscriptions.validateBtn")}
                           </Button>
                           <Button
                             onClick={() => setRefusalTarget(d.id)}
@@ -257,7 +261,7 @@ export default function AdminSouscriptions() {
                             className="border-red-300 text-red-700 hover:bg-red-50 gap-1.5"
                           >
                             <XCircle className="w-4 h-4" />
-                            Refuser
+                            {t("bo.adminSubscriptions.refuseBtn")}
                           </Button>
                         </div>
                       )}
@@ -274,27 +278,27 @@ export default function AdminSouscriptions() {
       <Dialog open={refusalTarget !== null} onOpenChange={(open) => { if (!open) { setRefusalTarget(null); setRefusalReason(""); } }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Refuser cette demande</DialogTitle>
+            <DialogTitle>{t("bo.adminSubscriptions.refuseDialogTitle")}</DialogTitle>
             <DialogDescription>
-              Le recruteur verra la raison du refus dans son back-office. Soyez précis (paiement introuvable, montant incorrect, référence inconnue, etc.).
+              {t("bo.adminSubscriptions.refuseDialogDesc")}
             </DialogDescription>
           </DialogHeader>
           <Textarea
             value={refusalReason}
             onChange={(e) => setRefusalReason(e.target.value)}
-            placeholder="Ex : aucune transaction reçue pour cette référence sur Orange Money"
+            placeholder={t("bo.adminSubscriptions.refuseDialogPh")}
             className="min-h-[100px]"
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => { setRefusalTarget(null); setRefusalReason(""); }}>
-              Annuler
+              {t("bo.adminSubscriptions.cancelBtn")}
             </Button>
             <Button
               onClick={handleRefuser}
               disabled={refuserMutation.isPending}
               className="bg-red-600 hover:bg-red-700 text-white"
             >
-              Confirmer le refus
+              {t("bo.adminSubscriptions.refuseDialogConfirmBtn")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -304,21 +308,22 @@ export default function AdminSouscriptions() {
 }
 
 function StatutBadge({ statut }: { statut: Statut }) {
+  const { t } = useTranslation();
   if (statut === "en_attente")
     return (
       <Badge className="bg-amber-100 text-amber-800 border-amber-200 gap-1 font-semibold">
-        <Clock className="w-3 h-3" /> En attente
+        <Clock className="w-3 h-3" /> {t("bo.adminSubscriptions.statusPending")}
       </Badge>
     );
   if (statut === "validee")
     return (
       <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 gap-1 font-semibold">
-        <CheckCircle2 className="w-3 h-3" /> Validée
+        <CheckCircle2 className="w-3 h-3" /> {t("bo.adminSubscriptions.statusValidated")}
       </Badge>
     );
   return (
     <Badge className="bg-red-100 text-red-800 border-red-200 gap-1 font-semibold">
-      <XCircle className="w-3 h-3" /> Refusée
+      <XCircle className="w-3 h-3" /> {t("bo.adminSubscriptions.statusRefused")}
     </Badge>
   );
 }

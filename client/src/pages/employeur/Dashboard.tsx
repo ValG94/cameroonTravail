@@ -46,7 +46,7 @@ export default function EmployeurDashboard() {
             {t("nav.dashboard")}
           </h1>
           <p className="text-gray-600">
-            Bienvenue {employeur?.nomEntreprise || user?.name}
+            {t("bo.employerDashboard.welcome", { name: employeur?.nomEntreprise || user?.name })}
           </p>
         </div>
 
@@ -54,45 +54,45 @@ export default function EmployeurDashboard() {
         <div className="grid md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Offres actives</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("bo.employerDashboard.stats.activeJobs")}</CardTitle>
               <Briefcase className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats?.offresActives || 0}</div>
-              <p className="text-xs text-gray-500 mt-1">Offres publiées</p>
+              <p className="text-xs text-gray-500 mt-1">{t("bo.employerDashboard.stats.activeJobsDesc")}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Candidatures</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("bo.employerDashboard.stats.applications")}</CardTitle>
               <Users className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats?.candidatures || 0}</div>
-              <p className="text-xs text-gray-500 mt-1">Candidatures reçues</p>
+              <p className="text-xs text-gray-500 mt-1">{t("bo.employerDashboard.stats.applicationsDesc")}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Vues totales</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("bo.employerDashboard.stats.views")}</CardTitle>
               <Eye className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats?.vuesTotales || 0}</div>
-              <p className="text-xs text-gray-500 mt-1">Vues sur vos offres</p>
+              <p className="text-xs text-gray-500 mt-1">{t("bo.employerDashboard.stats.viewsDesc")}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Offres restantes</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("bo.employerDashboard.stats.remainingJobs")}</CardTitle>
               <TrendingUp className="h-4 w-4 text-orange-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{employeur?.nombreOffresRestantes || 0}</div>
-              <p className="text-xs text-gray-500 mt-1">Crédits offres disponibles</p>
+              <p className="text-xs text-gray-500 mt-1">{t("bo.employerDashboard.stats.remainingJobsDesc")}</p>
             </CardContent>
           </Card>
         </div>
@@ -125,13 +125,13 @@ export default function EmployeurDashboard() {
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-base" style={{ color: isEmpty ? "#7F1D1D" : "#78350F" }}>
                     {isEmpty
-                      ? "Quota d'offres épuisé"
-                      : `Plus que ${quota} offre${quota > 1 ? "s" : ""} disponible${quota > 1 ? "s" : ""}`}
+                      ? t("bo.employerDashboard.quota.emptyTitle")
+                      : t("bo.employerDashboard.quota.lowTitle", { count: quota })}
                   </h3>
                   <p className="text-sm mt-0.5" style={{ color: isEmpty ? "#991B1B" : "#92400E" }}>
                     {isEmpty
-                      ? "Renouvelez votre formule ou passez à un palier supérieur pour continuer à publier des offres."
-                      : "Pensez à renouveler votre formule pour ne pas interrompre vos publications."}
+                      ? t("bo.employerDashboard.quota.emptyDesc")
+                      : t("bo.employerDashboard.quota.lowDesc")}
                   </p>
                 </div>
                 <Button
@@ -144,7 +144,7 @@ export default function EmployeurDashboard() {
                   className="text-white shrink-0"
                   style={{ backgroundColor: isEmpty ? "#DC2626" : "#F59E0B" }}
                 >
-                  {isEmpty ? "Souscrire maintenant" : "Renouveler"}
+                  {isEmpty ? t("bo.employerDashboard.quota.subscribeCta") : t("bo.employerDashboard.quota.renewCta")}
                 </Button>
               </CardContent>
             </Card>
@@ -159,33 +159,33 @@ export default function EmployeurDashboard() {
           const formule = employeur?.formuleAbonnement || "gratuit";
           const formuleConfig = {
             gratuit: {
-              label: "Aucune formule active",
+              label: t("bo.employerDashboard.formule.noneLabel"),
               icon: Zap,
               gradient: "from-gray-700 to-gray-900",
               badgeBg: "bg-white/20 text-white border border-white/30",
-              description: "Souscrivez une formule pour publier vos offres et accéder à la CVthèque.",
-              ctaLabel: "Choisir une formule",
+              description: t("bo.employerDashboard.formule.noneDesc"),
+              ctaLabel: t("bo.employerDashboard.formule.chooseCta"),
               ctaVariant: "primary" as const,
             },
             // L'ancienne enum 'professionnel' est mappée sur la nouvelle
             // dénomination commerciale "Offre avantage" (50 000 FCFA).
             professionnel: {
-              label: "Offre avantage",
+              label: t("bo.employerDashboard.formule.advantageLabel"),
               icon: Sparkles,
               gradient: "from-orange-500 to-amber-600",
               badgeBg: "bg-orange-100 text-orange-700",
-              description: "10 offres / mois + accès complet à la CVthèque.",
-              ctaLabel: "Voir les formules",
+              description: t("bo.employerDashboard.formule.advantageDesc"),
+              ctaLabel: t("bo.employerDashboard.formule.seeFormulesCta"),
               ctaVariant: "outline" as const,
             },
             // 'entreprise' → "Offre Premium" (150 000 FCFA, offres illimitées).
             entreprise: {
-              label: "Offre Premium",
+              label: t("bo.employerDashboard.formule.premiumLabel"),
               icon: Crown,
               gradient: "from-purple-500 to-indigo-600",
               badgeBg: "bg-purple-100 text-purple-700",
-              description: "Offres d'emploi illimitées + CVthèque + support dédié.",
-              ctaLabel: "Voir les formules",
+              description: t("bo.employerDashboard.formule.premiumDesc"),
+              ctaLabel: t("bo.employerDashboard.formule.seeFormulesCta"),
               ctaVariant: "outline" as const,
             },
           }[formule];
@@ -201,7 +201,7 @@ export default function EmployeurDashboard() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <p className="text-sm font-medium opacity-90">Votre formule actuelle</p>
+                        <p className="text-sm font-medium opacity-90">{t("bo.employerDashboard.formule.currentLabel")}</p>
                         <Badge className={`${formuleConfig.badgeBg} hover:${formuleConfig.badgeBg}`}>
                           {formuleConfig.label}
                         </Badge>
@@ -242,10 +242,10 @@ export default function EmployeurDashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-blue-600" />
-                Publier une offre d'emploi
+                {t("bo.employerDashboard.actions.postJobTitle")}
               </CardTitle>
               <CardDescription>
-                Créez et publiez une nouvelle offre d'emploi pour attirer des candidats qualifiés
+                {t("bo.employerDashboard.actions.postJobDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -260,10 +260,10 @@ export default function EmployeurDashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Briefcase className="h-5 w-5 text-green-600" />
-                Gérer mes offres
+                {t("bo.employerDashboard.actions.manageJobsTitle")}
               </CardTitle>
               <CardDescription>
-                Consultez, modifiez ou supprimez vos offres d'emploi existantes
+                {t("bo.employerDashboard.actions.manageJobsDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -282,14 +282,14 @@ export default function EmployeurDashboard() {
         {!employeur && (
           <Card className="border-orange-200 bg-orange-50">
             <CardHeader>
-              <CardTitle className="text-orange-900">Complétez votre profil employeur</CardTitle>
+              <CardTitle className="text-orange-900">{t("bo.employerDashboard.completeProfile.title")}</CardTitle>
               <CardDescription className="text-orange-700">
-                Complétez votre profil pour commencer à publier des offres d'emploi
+                {t("bo.employerDashboard.completeProfile.description")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button onClick={() => setLocation("/employeur/profil")}>
-                Compléter mon profil
+                {t("bo.employerDashboard.completeProfile.cta")}
               </Button>
             </CardContent>
           </Card>
@@ -298,8 +298,8 @@ export default function EmployeurDashboard() {
         {/* Recent Offers */}
         <Card>
           <CardHeader>
-            <CardTitle>Mes dernières offres</CardTitle>
-            <CardDescription>Consultez vos offres d'emploi récentes</CardDescription>
+            <CardTitle>{t("bo.employerDashboard.recentJobs.title")}</CardTitle>
+            <CardDescription>{t("bo.employerDashboard.recentJobs.description")}</CardDescription>
           </CardHeader>
           <CardContent>
             {offresRecentes && offresRecentes.length > 0 ? (
@@ -311,27 +311,31 @@ export default function EmployeurDashboard() {
                       <p className="text-sm text-gray-500">{offre.ville} · {offre.typeContrat}</p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm text-gray-500">{offre.nombreCandidatures || 0} candidature(s)</span>
-                      <Button variant="outline" size="sm" onClick={() => setLocation(`/employeur/offres`)}>Voir</Button>
+                      <span className="text-sm text-gray-500">
+                        {t("bo.employerDashboard.recentJobs.applicationsCount", { count: offre.nombreCandidatures || 0 })}
+                      </span>
+                      <Button variant="outline" size="sm" onClick={() => setLocation(`/employeur/offres`)}>
+                        {t("bo.employerDashboard.recentJobs.viewBtn")}
+                      </Button>
                     </div>
                   </div>
                 ))}
                 <Button variant="outline" className="w-full mt-2" onClick={() => setLocation("/employeur/offres")}>
-                  Voir toutes mes offres
+                  {t("bo.employerDashboard.recentJobs.viewAllBtn")}
                 </Button>
               </div>
             ) : (
               <div className="text-center py-12">
                 <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Aucune offre publiée
+                  {t("bo.employerDashboard.recentJobs.emptyTitle")}
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  Commencez par publier votre première offre d'emploi
+                  {t("bo.employerDashboard.recentJobs.emptyDesc")}
                 </p>
                 <Button onClick={() => setLocation("/employeur/publier")}>
                   <Plus className="mr-2 h-5 w-5" />
-                  Publier une offre
+                  {t("bo.employerDashboard.recentJobs.emptyCta")}
                 </Button>
               </div>
             )}

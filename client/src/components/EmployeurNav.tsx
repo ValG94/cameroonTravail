@@ -21,7 +21,7 @@ export function EmployeurNav() {
 
   const logoutMutation = trpc.auth.logout.useMutation({
     onSuccess: () => {
-      toast.success("Déconnexion réussie");
+      toast.success(t("bo.employerNav.logoutSuccess"));
       window.location.href = "/";
     },
   });
@@ -31,11 +31,11 @@ export function EmployeurNav() {
   };
 
   const navItems = [
-    { path: "/employeur/dashboard", label: "Tableau de bord", icon: LayoutDashboard },
-    { path: "/employeur/offres", label: "Mes offres", icon: Briefcase },
-    { path: "/employeur/candidatures", label: "Candidatures", icon: Users },
-    { path: "/cvtheque", label: "CVthèque", icon: BookOpen },
-    { path: "/employeur/publier", label: "Publier une offre", icon: FileText },
+    { path: "/employeur/dashboard", label: t("bo.employerNav.dashboard"), icon: LayoutDashboard },
+    { path: "/employeur/offres", label: t("bo.employerNav.myJobs"), icon: Briefcase },
+    { path: "/employeur/candidatures", label: t("bo.employerNav.applications"), icon: Users },
+    { path: "/cvtheque", label: t("bo.employerNav.cvtheque"), icon: BookOpen },
+    { path: "/employeur/publier", label: t("bo.employerNav.postJob"), icon: FileText },
   ];
 
   return (
@@ -84,20 +84,20 @@ export function EmployeurNav() {
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem onClick={() => setLocation("/employeur/dashboard")}>
                   <LayoutDashboard className="mr-2 h-4 w-4" />
-                  Tableau de bord
+                  {t("bo.employerNav.dashboard")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setLocation("/employeur/profil")}>
                   <User className="mr-2 h-4 w-4" />
-                  Mon Profil
+                  {t("bo.employerNav.myProfile")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setLocation("/employeur/mes-souscriptions")}>
                   <Wallet className="mr-2 h-4 w-4" />
-                  Mes souscriptions
+                  {t("bo.employerNav.mySubscriptions")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                   <LogOut className="mr-2 h-4 w-4" />
-                  Déconnexion
+                  {t("bo.employerNav.logout")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

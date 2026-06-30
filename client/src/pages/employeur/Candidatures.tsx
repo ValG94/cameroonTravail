@@ -19,17 +19,18 @@ import {
   User,
 } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { DialogCandidatureDetail } from "@/components/DialogCandidatureDetail";
 
-const statutLabels: Record<string, { label: string; color: string }> = {
-  en_attente: { label: "En attente", color: "bg-yellow-100 text-yellow-700" },
-  vue: { label: "Vue", color: "bg-blue-100 text-blue-700" },
-  retenue: { label: "Retenue", color: "bg-green-100 text-green-700" },
-  rejetee: { label: "Rejetée", color: "bg-red-100 text-red-700" },
-  entretien: { label: "Entretien", color: "bg-purple-100 text-purple-700" },
-};
-
 export default function EmployeurCandidatures() {
+  const { t } = useTranslation();
+  const statutLabels: Record<string, { label: string; color: string }> = {
+    en_attente: { label: t("bo.employerApplications.statusPending"), color: "bg-yellow-100 text-yellow-700" },
+    vue: { label: t("bo.employerApplications.statusViewed"), color: "bg-blue-100 text-blue-700" },
+    retenue: { label: t("bo.employerApplications.statusRetained"), color: "bg-green-100 text-green-700" },
+    rejetee: { label: t("bo.employerApplications.statusRejected"), color: "bg-red-100 text-red-700" },
+    entretien: { label: t("bo.employerApplications.statusInterview"), color: "bg-purple-100 text-purple-700" },
+  };
   const [statutFilter, setStatutFilter] = useState<string>("all");
   const [selectedCandidature, setSelectedCandidature] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -61,9 +62,9 @@ export default function EmployeurCandidatures() {
       
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Candidatures reçues</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t("bo.employerApplications.title")}</h1>
           <p className="text-gray-600 mt-2">
-            Gérez et suivez toutes les candidatures à vos offres d'emploi
+            {t("bo.employerApplications.subtitle")}
           </p>
         </div>
 
@@ -74,7 +75,7 @@ export default function EmployeurCandidatures() {
               <div className="text-2xl font-bold text-gray-900">
                 {candidatures?.length || 0}
               </div>
-              <div className="text-sm text-gray-600">Total</div>
+              <div className="text-sm text-gray-600">{t("bo.employerApplications.statTotal")}</div>
             </CardContent>
           </Card>
           {Object.entries(statutLabels).map(([statut, info]) => (
@@ -94,13 +95,13 @@ export default function EmployeurCandidatures() {
           <CardContent className="p-4">
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700">Statut:</label>
+                <label className="text-sm font-medium text-gray-700">{t("bo.employerApplications.filterLabel")}</label>
                 <Select value={statutFilter} onValueChange={setStatutFilter}>
                   <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Tous les statuts" />
+                    <SelectValue placeholder={t("bo.employerApplications.filterAll")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Tous les statuts</SelectItem>
+                    <SelectItem value="all">{t("bo.employerApplications.filterAll")}</SelectItem>
                     {Object.entries(statutLabels).map(([statut, info]) => (
                       <SelectItem key={statut} value={statut}>
                         {info.label}
@@ -117,7 +118,7 @@ export default function EmployeurCandidatures() {
         {isLoading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Chargement...</p>
+            <p className="mt-4 text-gray-600">{t("bo.employerApplications.loading")}</p>
           </div>
         ) : candidatures && candidatures.length > 0 ? (
           <div className="space-y-4">
@@ -139,7 +140,7 @@ export default function EmployeurCandidatures() {
                             {statutInfo.label}
                           </span>
                           <span className="text-xs text-gray-500">
-                            pour {candidature.offreTitre}
+                            {t("bo.employerApplications.forJob", { title: candidature.offreTitre })}
                           </span>
                         </div>
                         <CardTitle className="text-xl flex items-center gap-2">
@@ -180,8 +181,7 @@ export default function EmployeurCandidatures() {
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <Calendar className="h-4 w-4" />
                         <span>
-                          Candidature reçue le{" "}
-                          {new Date(candidature.dateCandidature).toLocaleDateString("fr-FR")}
+                          {t("bo.employerApplications.receivedOn", { date: new Date(candidature.dateCandidature).toLocaleDateString() })}
                         </span>
                       </div>
 
@@ -189,8 +189,7 @@ export default function EmployeurCandidatures() {
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                           <FileText className="h-4 w-4" />
                           <span>
-                            Réponse envoyée le{" "}
-                            {new Date(candidature.dateReponse).toLocaleDateString("fr-FR")}
+                            {t("bo.employerApplications.responseSentOn", { date: new Date(candidature.dateReponse).toLocaleDateString() })}
                           </span>
                         </div>
                       )}
@@ -200,7 +199,7 @@ export default function EmployeurCandidatures() {
                           onClick={() => handleViewDetail(candidature)}
                           size="sm"
                         >
-                          Voir les détails
+                          {t("bo.employerApplications.viewDetails")}
                         </Button>
                       </div>
                     </div>
@@ -214,12 +213,12 @@ export default function EmployeurCandidatures() {
             <CardContent className="p-12 text-center">
               <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Aucune candidature
+                {t("bo.employerApplications.empty")}
               </h3>
               <p className="text-gray-600">
                 {statutFilter === "all"
-                  ? "Vous n'avez pas encore reçu de candidatures."
-                  : `Aucune candidature avec le statut "${statutLabels[statutFilter]?.label}".`}
+                  ? t("bo.employerApplications.emptyDescAll")
+                  : t("bo.employerApplications.emptyDescFiltered", { status: statutLabels[statutFilter]?.label ?? "" })}
               </p>
             </CardContent>
           </Card>

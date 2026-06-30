@@ -15,6 +15,7 @@ import {
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Loader2, ArrowLeft } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useParams } from "wouter";
 import { regions, getVillesForRegion } from "@/../../shared/regions-villes";
 import RichTextEditor from "@/components/RichTextEditor";
@@ -30,6 +31,7 @@ const typesContrat = [
 ];
 
 export default function ModifierOffre() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const params = useParams<{ id: string }>();
   const offreId = parseInt(params.id || "0");
@@ -103,7 +105,7 @@ export default function ModifierOffre() {
 
   const updateMutation = trpc.jobs.update.useMutation({
     onSuccess: () => {
-      toast.success("Offre modifiée avec succès");
+      toast.success(t("bo.employerEditJob.updatedToast"));
       setLocation("/employeur/offres");
     },
     onError: (error) => {
@@ -115,22 +117,22 @@ export default function ModifierOffre() {
     e.preventDefault();
 
     if (!formData.titre || formData.titre.length < 5) {
-      toast.error("Le titre doit contenir au moins 5 caractères");
+      toast.error(t("bo.employerPostJob.errTitleTooShort"));
       return;
     }
 
     if (!formData.description || formData.description.length < 50) {
-      toast.error("La description doit contenir au moins 50 caractères");
+      toast.error(t("bo.employerPostJob.errDescTooShort"));
       return;
     }
 
     if (!formData.typeContrat) {
-      toast.error("Veuillez sélectionner un type de contrat");
+      toast.error(t("bo.employerPostJob.errContractRequired"));
       return;
     }
 
     if (!formData.ville || !formData.region || !formData.secteur) {
-      toast.error("Veuillez remplir tous les champs obligatoires");
+      toast.error(t("bo.employerPostJob.errAllRequired"));
       return;
     }
 
@@ -155,7 +157,7 @@ export default function ModifierOffre() {
         <EmployeurNav />
         <div className="container mx-auto px-4 py-12 text-center">
           <Loader2 className="h-12 w-12 animate-spin text-green-600 mx-auto" />
-          <p className="mt-4 text-gray-600">Chargement de l'offre...</p>
+          <p className="mt-4 text-gray-600">{t("bo.employerEditJob.loadingJob")}</p>
         </div>
       </div>
     );
@@ -166,9 +168,9 @@ export default function ModifierOffre() {
       <div className="min-h-screen bg-gray-50">
         <EmployeurNav />
         <div className="container mx-auto px-4 py-12 text-center">
-          <p className="text-gray-600">Offre introuvable.</p>
+          <p className="text-gray-600">{t("bo.employerEditJob.jobNotFound")}</p>
           <Button className="mt-4" onClick={() => setLocation("/employeur/offres")}>
-            Retour à mes offres
+            {t("bo.employerEditJob.backToJobs")}
           </Button>
         </div>
       </div>
@@ -183,7 +185,7 @@ export default function ModifierOffre() {
         <EmployeurNav />
         <div className="container mx-auto px-4 py-12 text-center">
           <Loader2 className="h-12 w-12 animate-spin text-green-600 mx-auto" />
-          <p className="mt-4 text-gray-600">Préparation du formulaire...</p>
+          <p className="mt-4 text-gray-600">{t("bo.employerEditJob.preparingForm")}</p>
         </div>
       </div>
     );
@@ -201,11 +203,11 @@ export default function ModifierOffre() {
             className="mb-4 -ml-2"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Retour à mes offres
+            {t("bo.employerEditJob.backToJobs")}
           </Button>
-          <h1 className="text-3xl font-bold text-gray-900">Modifier l'offre</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t("bo.employerEditJob.title")}</h1>
           <p className="text-gray-600 mt-2">
-            Modifiez les informations de votre offre d'emploi
+            {t("bo.employerEditJob.subtitle")}
           </p>
         </div>
 
@@ -214,7 +216,7 @@ export default function ModifierOffre() {
             {/* Informations générales */}
             <Card>
               <CardHeader>
-                <CardTitle>Informations générales</CardTitle>
+                <CardTitle>{t("bo.employerPostJob.sectionGeneralTitle")}</CardTitle>
                 <CardDescription>
                   Décrivez le poste que vous proposez
                 </CardDescription>
@@ -310,7 +312,7 @@ export default function ModifierOffre() {
             {/* Profil recherché */}
             <Card>
               <CardHeader>
-                <CardTitle>Profil recherché</CardTitle>
+                <CardTitle>{t("bo.employerPostJob.sectionProfileTitle")}</CardTitle>
                 <CardDescription>
                   Définissez les compétences et qualifications requises
                 </CardDescription>
@@ -355,7 +357,7 @@ export default function ModifierOffre() {
             {/* Conditions de travail */}
             <Card>
               <CardHeader>
-                <CardTitle>Conditions de travail</CardTitle>
+                <CardTitle>{t("bo.employerPostJob.sectionConditionsTitle")}</CardTitle>
                 <CardDescription>
                   Précisez les conditions d'emploi
                 </CardDescription>
@@ -434,7 +436,7 @@ export default function ModifierOffre() {
             {/* Localisation */}
             <Card>
               <CardHeader>
-                <CardTitle>Localisation</CardTitle>
+                <CardTitle>{t("bo.employerPostJob.sectionLocationTitle")}</CardTitle>
                 <CardDescription>
                   Où se situe le poste ?
                 </CardDescription>
@@ -496,7 +498,7 @@ export default function ModifierOffre() {
             {/* Dates */}
             <Card>
               <CardHeader>
-                <CardTitle>Dates importantes</CardTitle>
+                <CardTitle>{t("bo.employerPostJob.sectionDatesTitle")}</CardTitle>
                 <CardDescription>
                   Définissez les dates clés de l'offre
                 </CardDescription>
@@ -534,7 +536,7 @@ export default function ModifierOffre() {
                 onClick={() => setLocation("/employeur/offres")}
                 disabled={updateMutation.isPending}
               >
-                Annuler
+                {t("bo.employerPostJob.cancel")}
               </Button>
               <Button
                 type="submit"
@@ -543,10 +545,10 @@ export default function ModifierOffre() {
                 {updateMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Enregistrement...
+                    {t("bo.employerEditJob.updating")}
                   </>
                 ) : (
-                  "Enregistrer les modifications"
+                  t("bo.employerEditJob.updateBtn")
                 )}
               </Button>
             </div>

@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -44,6 +45,7 @@ interface ContactDialogState {
 }
 
 export default function CVtheque() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const { user, loading } = useAuth();
   const [competenceInput, setCompetenceInput] = useState("");
@@ -81,13 +83,13 @@ export default function CVtheque() {
   // Mutation envoi message
   const sendMessageMutation = trpc.messages.send.useMutation({
     onSuccess: () => {
-      toast.success(`Message envoyé à ${contactDialog.candidatName}.`);
+      toast.success(t("bo.cvtheque.contactDialog.sentToast", { name: contactDialog.candidatName }));
       setContactDialog({ open: false, receiverId: null, candidatName: "" });
       setSujet("");
       setContenu("");
     },
     onError: (err) => {
-      toast.error(err.message || "Erreur lors de l'envoi du message");
+      toast.error(err.message || t("bo.cvtheque.contactDialog.errorToast"));
     },
   });
 
@@ -167,10 +169,10 @@ export default function CVtheque() {
         <SiteHeader />
         <div className="container mx-auto px-4 py-16 text-center">
           <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Accès réservé</h2>
-          <p className="text-gray-600 mb-6">Connectez-vous pour accéder à la CVthèque.</p>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">{t("bo.cvtheque.accessRestricted")}</h2>
+          <p className="text-gray-600 mb-6">{t("bo.cvtheque.loginToAccess")}</p>
           <Button onClick={() => setLocation("/")} className="bg-green-600 hover:bg-green-700">
-            Retour à l'accueil
+            {t("bo.cvtheque.backHome")}
           </Button>
         </div>
       </div>
@@ -183,12 +185,12 @@ export default function CVtheque() {
         <SiteHeader />
         <div className="container mx-auto px-4 py-16 text-center">
           <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Accès recruteur requis</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">{t("bo.cvtheque.recruiterAccessRequired")}</h2>
           <p className="text-gray-600 mb-6">
-            La CVthèque est réservée aux employeurs et recruteurs inscrits sur Cameroon Travail.
+            {t("bo.cvtheque.recruiterAccessDesc")}
           </p>
           <Button onClick={() => setLocation("/")} className="bg-green-600 hover:bg-green-700">
-            Retour à l'accueil
+            {t("bo.cvtheque.backHome")}
           </Button>
         </div>
       </div>
@@ -204,51 +206,59 @@ export default function CVtheque() {
             <div className="bg-white/20 rounded-2xl p-4 w-20 h-20 mx-auto mb-4 flex items-center justify-center">
               <BookOpen className="h-10 w-10" />
             </div>
-            <h2 className="text-2xl font-bold mb-2">CVthèque réservée aux formules payantes</h2>
+            <h2 className="text-2xl font-bold mb-2">{t("bo.cvtheque.formulaRequiredTitle")}</h2>
             <p className="text-orange-50 mb-2">
-              Accédez à des milliers de profils candidats qualifiés et contactez-les directement.
+              {t("bo.cvtheque.formulaRequiredDesc")}
             </p>
             <p className="text-orange-100 text-sm">
-              Votre formule actuelle : <span className="font-bold">Gratuit</span>
+              {t("bo.cvtheque.currentFormula")} <span className="font-bold">{t("bo.cvtheque.formulaFree")}</span>
             </p>
           </div>
 
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 mb-6">
-            <h3 className="font-bold text-gray-900 mb-3">Avec une formule Pro ou Entreprise :</h3>
+            <h3 className="font-bold text-gray-900 mb-3">{t("bo.cvtheque.formulaBenefitsTitle")}</h3>
             <ul className="space-y-2 text-sm text-gray-700">
               <li className="flex items-start gap-2">
                 <span className="text-orange-500 font-bold">✓</span>
-                Accès illimité à la CVthèque
+                {t("bo.cvtheque.formulaBenefit1")}
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-orange-500 font-bold">✓</span>
-                Recherche par compétences, ville, expérience
+                {t("bo.cvtheque.formulaBenefit2")}
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-orange-500 font-bold">✓</span>
-                Contact direct avec les candidats
+                {t("bo.cvtheque.formulaBenefit3")}
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-orange-500 font-bold">✓</span>
-                Publication d'offres illimitée
+                {t("bo.cvtheque.formulaBenefit4")}
               </li>
             </ul>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button
-              onClick={() => setLocation("/tarifs")}
+              onClick={() => {
+                // Nav SPA + scroll vers la grille tarifs (id="tarifs")
+                setLocation("/tarifs");
+                setTimeout(() => {
+                  document
+                    .getElementById("tarifs")
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }, 80);
+              }}
               className="bg-orange-600 hover:bg-orange-700 text-white"
               size="lg"
             >
-              Découvrir les formules
+              {t("bo.cvtheque.discoverFormulas")}
             </Button>
             <Button
               variant="outline"
               onClick={() => setLocation("/employeur/dashboard")}
               size="lg"
             >
-              Retour au tableau de bord
+              {t("bo.cvtheque.backToDashboard")}
             </Button>
           </div>
         </div>
@@ -268,9 +278,9 @@ export default function CVtheque() {
               <BookOpen className="h-6 w-6 text-blue-600" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">CVthèque</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{t("bo.cvtheque.title")}</h1>
               <p className="text-gray-500 text-sm">
-                {data ? `${data.total} candidat${data.total > 1 ? "s" : ""} disponible${data.total > 1 ? "s" : ""}` : "Chargement..."}
+                {data ? t("bo.cvtheque.candidatesAvailable", { count: data.total }) : t("bo.cvtheque.loading")}
               </p>
             </div>
           </div>
@@ -283,14 +293,14 @@ export default function CVtheque() {
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 mb-4">
               <Filter className="h-4 w-4 text-gray-500" />
-              <span className="font-medium text-gray-700">Filtrer les candidats</span>
+              <span className="font-medium text-gray-700">{t("bo.cvtheque.filterTitle")}</span>
               {(competenceFilter || villeFilter) && (
                 <button
                   onClick={handleReset}
                   className="ml-auto flex items-center gap-1 text-sm text-red-500 hover:text-red-700"
                 >
                   <X className="h-3 w-3" />
-                  Réinitialiser
+                  {t("bo.cvtheque.reset")}
                 </button>
               )}
             </div>
@@ -298,7 +308,7 @@ export default function CVtheque() {
               <div className="relative">
                 <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Compétence (ex: Excel, Java...)"
+                  placeholder={t("bo.cvtheque.competencePh")}
                   value={competenceInput}
                   onChange={(e) => setCompetenceInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -308,7 +318,7 @@ export default function CVtheque() {
               <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Ville (ex: Yaoundé, Douala...)"
+                  placeholder={t("bo.cvtheque.cityPh")}
                   value={villeInput}
                   onChange={(e) => setVilleInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -320,13 +330,13 @@ export default function CVtheque() {
                 className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
               >
                 <Search className="h-4 w-4" />
-                Rechercher
+                {t("bo.cvtheque.searchBtn")}
               </Button>
             </div>
 
             {(competenceFilter || villeFilter) && (
               <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t">
-                <span className="text-xs text-gray-500">Filtres actifs :</span>
+                <span className="text-xs text-gray-500">{t("bo.cvtheque.activeFilters")}</span>
                 {competenceFilter && (
                   <Badge variant="secondary" className="gap-1">
                     <Briefcase className="h-3 w-3" />
@@ -372,15 +382,15 @@ export default function CVtheque() {
         ) : !data || data.docs.length === 0 ? (
           <div className="text-center py-20">
             <User className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">Aucun candidat trouvé</h3>
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">{t("bo.cvtheque.noCandidates")}</h3>
             <p className="text-gray-500 mb-6">
               {competenceFilter || villeFilter
-                ? "Aucun candidat ne correspond à vos critères de recherche."
-                : "Aucun candidat n'a encore rendu son CV visible dans la CVthèque."}
+                ? t("bo.cvtheque.noCandidatesFiltered")
+                : t("bo.cvtheque.noCandidatesEmpty")}
             </p>
             {(competenceFilter || villeFilter) && (
               <Button variant="outline" onClick={handleReset}>
-                Réinitialiser les filtres
+                {t("bo.cvtheque.resetFilters")}
               </Button>
             )}
           </div>
@@ -391,15 +401,15 @@ export default function CVtheque() {
                 const competences = parseCompetences(item.displayData?.competences);
                 const displayName = item.displayData?.prenom && item.displayData?.nom
                   ? `${item.displayData.prenom} ${item.displayData.nom}`
-                  : item.user.name || "Candidat";
+                  : item.user.name || t("bo.cvtheque.candidate");
                 const initials = displayName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
                 const cvTypeLabel = {
-                  classique: "CV Classique",
-                  moderne: "CV Moderne",
-                  creatif: "CV Créatif",
-                  upload: "CV Importé",
-                  premium: "CV Premium",
-                }[item.cv.type] || "CV";
+                  classique: t("bo.cvtheque.cvType.classique"),
+                  moderne: t("bo.cvtheque.cvType.moderne"),
+                  creatif: t("bo.cvtheque.cvType.creatif"),
+                  upload: t("bo.cvtheque.cvType.upload"),
+                  premium: t("bo.cvtheque.cvType.premium"),
+                }[item.cv.type] || t("bo.cvtheque.cvType.fallback");
                 const cvTypeColor = {
                   classique: "bg-green-100 text-green-700",
                   moderne: "bg-purple-100 text-purple-700",
@@ -467,7 +477,7 @@ export default function CVtheque() {
                             }}
                           >
                             <Eye className="h-3.5 w-3.5" />
-                            Voir
+                            {t("bo.cvtheque.viewBtn")}
                           </Button>
                           <Button
                             size="sm"
@@ -476,7 +486,7 @@ export default function CVtheque() {
                             onClick={(e) => handleOpenContact(e, item.user.id, displayName, item.cv.id)}
                           >
                             <Mail className="h-3.5 w-3.5" />
-                            Contacter
+                            {t("bo.cvtheque.contactBtn")}
                           </Button>
                         </div>
                       </div>
@@ -497,7 +507,7 @@ export default function CVtheque() {
                   className="gap-1"
                 >
                   <ChevronLeft className="h-4 w-4" />
-                  Précédent
+                  {t("bo.cvtheque.prev")}
                 </Button>
                 <div className="flex items-center gap-1">
                   {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
@@ -524,7 +534,7 @@ export default function CVtheque() {
                   disabled={page === totalPages}
                   className="gap-1"
                 >
-                  Suivant
+                  {t("bo.cvtheque.next")}
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -539,29 +549,29 @@ export default function CVtheque() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Mail className="h-5 w-5 text-green-600" />
-              Contacter {contactDialog.candidatName}
+              {t("bo.cvtheque.contactDialog.title", { name: contactDialog.candidatName })}
             </DialogTitle>
             <DialogDescription>
-              Envoyez un message interne à ce candidat. Il le recevra dans sa messagerie sur la plateforme.
+              {t("bo.cvtheque.contactDialog.description")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label htmlFor="sujet">Objet <span className="text-gray-400 text-xs">(optionnel)</span></Label>
+              <Label htmlFor="sujet">{t("bo.cvtheque.contactDialog.subject")} <span className="text-gray-400 text-xs">{t("bo.cvtheque.contactDialog.subjectOptional")}</span></Label>
               <Input
                 id="sujet"
-                placeholder="Ex : Opportunité de poste chez Acme Corp"
+                placeholder={t("bo.cvtheque.contactDialog.subjectPh")}
                 value={sujet}
                 onChange={(e) => setSujet(e.target.value)}
                 maxLength={300}
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="contenu">Message <span className="text-red-500">*</span></Label>
+              <Label htmlFor="contenu">{t("bo.cvtheque.contactDialog.message")} <span className="text-red-500">*</span></Label>
               <Textarea
                 id="contenu"
-                placeholder="Bonjour, j'ai consulté votre profil et je souhaite vous proposer..."
+                placeholder={t("bo.cvtheque.contactDialog.messagePh")}
                 value={contenu}
                 onChange={(e) => setContenu(e.target.value)}
                 rows={5}
@@ -578,7 +588,7 @@ export default function CVtheque() {
               onClick={() => setContactDialog((s) => ({ ...s, open: false }))}
               disabled={sendMessageMutation.isPending}
             >
-              Annuler
+              {t("bo.cvtheque.contactDialog.cancel")}
             </Button>
             <Button
               onClick={handleSendMessage}
@@ -590,7 +600,7 @@ export default function CVtheque() {
               ) : (
                 <Mail className="h-4 w-4" />
               )}
-              Envoyer le message
+              {t("bo.cvtheque.contactDialog.send")}
             </Button>
           </DialogFooter>
         </DialogContent>

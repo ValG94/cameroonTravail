@@ -34,6 +34,7 @@ import {
   Users,
 } from "lucide-react";
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "wouter";
 import {
   DropdownMenu,
@@ -43,17 +44,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const statutLabels: Record<string, { label: string; color: string }> = {
-  brouillon: { label: "Brouillon", color: "bg-gray-100 text-gray-700" },
-  publiee: { label: "Publiée", color: "bg-green-100 text-green-700" },
-  expiree: { label: "Expirée", color: "bg-red-100 text-red-700" },
-  pourvue: { label: "Poste pourvu", color: "bg-amber-100 text-amber-700" },
-};
-
 type TabStatut = "toutes" | "publiee" | "pourvue" | "expiree" | "brouillon";
 
 export default function EmployeurOffres() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
+  const statutLabels: Record<string, { label: string; color: string }> = {
+    brouillon: { label: t("bo.employerJobs.statusDraft"), color: "bg-gray-100 text-gray-700" },
+    publiee: { label: t("bo.employerJobs.statusPublished"), color: "bg-green-100 text-green-700" },
+    expiree: { label: t("bo.employerJobs.statusExpired"), color: "bg-red-100 text-red-700" },
+    pourvue: { label: t("bo.employerJobs.statusFilled"), color: "bg-amber-100 text-amber-700" },
+  };
   const [activeTab, setActiveTab] = useState<TabStatut>("toutes");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
@@ -89,7 +90,7 @@ export default function EmployeurOffres() {
 
   const deleteMutation = trpc.jobs.delete.useMutation({
     onSuccess: () => {
-      toast.success("Offre supprimée définitivement");
+      toast.success(t("bo.employerJobs.deletedToast"));
       setDeleteDialogOpen(false);
       setOffreToDelete(null);
       refetch();
@@ -101,7 +102,7 @@ export default function EmployeurOffres() {
 
   const republierMutation = trpc.jobs.republier.useMutation({
     onSuccess: () => {
-      toast.success("Offre republiée — elle est à nouveau visible par les candidats");
+      toast.success(t("bo.employerJobs.republishedToast"));
       setRepublierDialogOpen(false);
       setOffreToRepublier(null);
       refetch();
@@ -113,7 +114,7 @@ export default function EmployeurOffres() {
 
   const archiveMutation = trpc.jobs.archive.useMutation({
     onSuccess: () => {
-      toast.success("Offre marquée comme « Poste pourvu »");
+      toast.success(t("bo.employerJobs.archivedToast"));
       setArchiveDialogOpen(false);
       setOffreToArchive(null);
       refetch();
@@ -168,24 +169,24 @@ export default function EmployeurOffres() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Mes offres d'emploi</h1>
+            <h1 className="text-3xl font-bold text-gray-900">{t("bo.employerJobs.title")}</h1>
             <p className="text-gray-600 mt-1">
-              {counts.toutes} offre{counts.toutes > 1 ? "s" : ""} au total
+              {t("bo.employerJobs.totalCount", { count: counts.toutes })}
             </p>
           </div>
           <Button onClick={() => setLocation("/employeur/publier")}>
-            Publier une nouvelle offre
+            {t("bo.employerJobs.newJobBtn")}
           </Button>
         </div>
 
         {/* Onglets de filtrage */}
         <div className="flex gap-1 bg-white border rounded-xl p-1 mb-6 overflow-x-auto">
           {([
-            { key: "toutes", label: "Toutes", count: counts.toutes },
-            { key: "publiee", label: "Actives", count: counts.publiee },
-            { key: "pourvue", label: "Poste pourvu", count: counts.pourvue },
-            { key: "expiree", label: "Expirées", count: counts.expiree },
-            { key: "brouillon", label: "Brouillons", count: counts.brouillon },
+            { key: "toutes", label: t("bo.employerJobs.tabs.all"), count: counts.toutes },
+            { key: "publiee", label: t("bo.employerJobs.tabs.active"), count: counts.publiee },
+            { key: "pourvue", label: t("bo.employerJobs.tabs.filled"), count: counts.pourvue },
+            { key: "expiree", label: t("bo.employerJobs.tabs.expired"), count: counts.expiree },
+            { key: "brouillon", label: t("bo.employerJobs.tabs.draft"), count: counts.brouillon },
           ] as { key: TabStatut; label: string; count: number }[]).map((tab) => (
             <button
               key={tab.key}
@@ -213,7 +214,7 @@ export default function EmployeurOffres() {
         {isLoading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Chargement...</p>
+            <p className="mt-4 text-gray-600">{t("bo.employerJobs.loading")}</p>
           </div>
         ) : offres && offres.length > 0 ? (
           <div className="space-y-4">
@@ -240,7 +241,7 @@ export default function EmployeurOffres() {
                           </span>
                           {isExpired && offre.statut === "publiee" && (
                             <span className="text-xs font-medium px-2 py-1 rounded bg-red-100 text-red-700">
-                              Expirée
+                              {t("bo.employerJobs.statusExpired")}
                             </span>
                           )}
                           <span
@@ -250,7 +251,7 @@ export default function EmployeurOffres() {
                                 : "bg-blue-100 text-blue-700"
                             }`}
                           >
-                            {offre.typeOffre === "public" ? "Emploi Public" : "Emploi Privé"}
+                            {offre.typeOffre === "public" ? t("bo.employerJobs.publicJob") : t("bo.employerJobs.privateJob")}
                           </span>
                         </div>
                         <CardTitle className="text-xl">
@@ -289,7 +290,7 @@ export default function EmployeurOffres() {
                           <DropdownMenuItem asChild>
                             <Link href={`/offre/${offre.id}`}>
                               <Eye className="h-4 w-4 mr-2" />
-                              Voir l'offre
+                              {t("bo.employerJobs.actions.viewJob")}
                             </Link>
                           </DropdownMenuItem>
                           {!isPourvue && (
@@ -297,12 +298,12 @@ export default function EmployeurOffres() {
                               onClick={() => setLocation(`/employeur/offres/${offre.id}/modifier`)}
                             >
                               <Pencil className="h-4 w-4 mr-2" />
-                              Modifier
+                              {t("bo.employerJobs.actions.edit")}
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuItem onClick={() => handleDuplicate(offre.id)}>
                             <Copy className="h-4 w-4 mr-2" />
-                            Dupliquer
+                            {t("bo.employerJobs.actions.duplicate")}
                           </DropdownMenuItem>
                           {!isPourvue && (
                             <DropdownMenuItem
@@ -310,7 +311,7 @@ export default function EmployeurOffres() {
                               className="text-amber-600"
                             >
                               <Archive className="h-4 w-4 mr-2" />
-                              Marquer poste pourvu
+                              {t("bo.employerJobs.actions.markFilled")}
                             </DropdownMenuItem>
                           )}
                           {isPourvue && (
@@ -319,7 +320,7 @@ export default function EmployeurOffres() {
                               className="text-green-600"
                             >
                               <CheckCircle2 className="h-4 w-4 mr-2" />
-                              Republier l'offre
+                              {t("bo.employerJobs.actions.republish")}
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />
@@ -328,7 +329,7 @@ export default function EmployeurOffres() {
                             className="text-red-600"
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
-                            Supprimer définitivement
+                            {t("bo.employerJobs.actions.deleteForever")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -340,16 +341,14 @@ export default function EmployeurOffres() {
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4" />
                           <span>
-                            Publiée le{" "}
-                            {new Date(offre.datePublication).toLocaleDateString("fr-FR")}
+                            {t("bo.employerJobs.publishedOn", { date: new Date(offre.datePublication).toLocaleDateString() })}
                           </span>
                         </div>
                         {offre.dateLimite && (
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4" />
                             <span>
-                              Expire le{" "}
-                              {new Date(offre.dateLimite).toLocaleDateString("fr-FR")}
+                              {t("bo.employerJobs.expiresOn", { date: new Date(offre.dateLimite).toLocaleDateString() })}
                             </span>
                           </div>
                         )}
@@ -359,13 +358,13 @@ export default function EmployeurOffres() {
                         <div className="flex items-center gap-2">
                           <Users className="h-4 w-4 text-blue-600" />
                           <span className="font-medium text-blue-600">
-                            {offre.nombreCandidatures || 0} candidature(s)
+                            {t("bo.employerJobs.applications", { count: offre.nombreCandidatures || 0 })}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Eye className="h-4 w-4 text-gray-600" />
                           <span className="text-gray-600">
-                            {offre.nombreVues || 0} vue(s)
+                            {t("bo.employerJobs.views", { count: offre.nombreVues || 0 })}
                           </span>
                         </div>
                       </div>
@@ -373,13 +372,13 @@ export default function EmployeurOffres() {
                       <div className="flex gap-2 mt-4">
                         <Button asChild variant="outline" size="sm">
                           <Link href={`/offre/${offre.id}`}>
-                            Voir l'offre
+                            {t("bo.employerJobs.actions.viewJob")}
                           </Link>
                         </Button>
                         {(offre.nombreCandidatures || 0) > 0 && (
                           <Button asChild size="sm">
                             <Link href="/employeur/candidatures">
-                              Voir les candidatures
+                              {t("bo.employerJobs.actions.viewApplications")}
                             </Link>
                           </Button>
                         )}
@@ -394,11 +393,11 @@ export default function EmployeurOffres() {
                                   onClick={() => handleArchive(offre.id, offre.titre)}
                                 >
                                   <Archive className="h-4 w-4 mr-1" />
-                                  Poste pourvu
+                                  {t("bo.employerJobs.actions.archive")}
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent className="max-w-xs text-sm">
-                                Archiver cette offre en indiquant que le recrutement est terminé. Les candidatures existantes sont conservées.
+                                {t("bo.employerJobs.tooltipArchive")}
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -414,11 +413,11 @@ export default function EmployeurOffres() {
                                   onClick={() => handleRepublier(offre.id, offre.titre)}
                                 >
                                   <CheckCircle2 className="h-4 w-4 mr-1" />
-                                  Republier
+                                  {t("bo.employerJobs.actions.republishShort")}
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent className="max-w-xs text-sm">
-                                Réactiver cette offre pour qu'elle soit à nouveau visible dans les résultats de recherche et accepte de nouvelles candidatures.
+                                {t("bo.employerJobs.tooltipRepublish")}
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -435,13 +434,13 @@ export default function EmployeurOffres() {
             <CardContent className="p-12 text-center">
               <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Aucune offre publiée
+                {t("bo.employerJobs.empty")}
               </h3>
               <p className="text-gray-600 mb-6">
-                Vous n'avez pas encore publié d'offres d'emploi.
+                {t("bo.employerJobs.emptyDesc")}
               </p>
               <Button onClick={() => setLocation("/employeur/publier")}>
-                Publier ma première offre
+                {t("bo.employerJobs.firstJobBtn")}
               </Button>
             </CardContent>
           </Card>
@@ -454,36 +453,32 @@ export default function EmployeurOffres() {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-red-700">
               <AlertTriangle className="h-5 w-5" />
-              Supprimer définitivement cette offre ?
+              {t("bo.employerJobs.deleteDialog.title")}
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-3 text-sm text-gray-700">
-                <p>
-                  Vous êtes sur le point de supprimer l'offre <strong>« {offreTitreToDelete} »</strong>.
-                </p>
+                <p>{t("bo.employerJobs.deleteDialog.intro", { title: offreTitreToDelete })}</p>
                 <div className="bg-red-50 border border-red-200 rounded-md p-3 space-y-1">
-                  <p className="font-semibold text-red-700">⚠ Cette action est irréversible :</p>
+                  <p className="font-semibold text-red-700">{t("bo.employerJobs.deleteDialog.warningTitle")}</p>
                   <ul className="list-disc list-inside space-y-1 text-red-600">
-                    <li>L'offre sera <strong>définitivement supprimée</strong></li>
-                    <li>Toutes les <strong>candidatures reçues</strong> seront perdues</li>
-                    <li>Les candidats <strong>ne pourront plus accéder</strong> à leur candidature</li>
-                    <li>Aucune récupération ne sera possible</li>
+                    <li>{t("bo.employerJobs.deleteDialog.warn1")}</li>
+                    <li>{t("bo.employerJobs.deleteDialog.warn2")}</li>
+                    <li>{t("bo.employerJobs.deleteDialog.warn3")}</li>
+                    <li>{t("bo.employerJobs.deleteDialog.warn4")}</li>
                   </ul>
                 </div>
-                <p className="text-gray-500">
-                  Pour conserver l'historique des candidatures, utilisez plutôt <strong>« Marquer poste pourvu »</strong>.
-                </p>
+                <p className="text-gray-500">{t("bo.employerJobs.deleteDialog.alternative")}</p>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogCancel>{t("bo.employerJobs.deleteDialog.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               className="bg-red-600 hover:bg-red-700"
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Supprimer définitivement
+              {t("bo.employerJobs.deleteDialog.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -495,33 +490,31 @@ export default function EmployeurOffres() {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-green-700">
               <CheckCircle2 className="h-5 w-5" />
-              Republier cette offre ?
+              {t("bo.employerJobs.republishDialog.title")}
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-3 text-sm text-gray-700">
-                <p>
-                  Vous allez réactiver l'offre <strong>« {offreToRepublier?.titre} »</strong>.
-                </p>
+                <p>{t("bo.employerJobs.republishDialog.intro", { title: offreToRepublier?.titre ?? "" })}</p>
                 <div className="bg-green-50 border border-green-200 rounded-md p-3 space-y-1">
-                  <p className="font-semibold text-green-700">Ce qui se passera :</p>
+                  <p className="font-semibold text-green-700">{t("bo.employerJobs.republishDialog.willTitle")}</p>
                   <ul className="list-disc list-inside space-y-1 text-green-700">
-                    <li>L'offre sera <strong>réactivée</strong> avec le statut « Publiée »</li>
-                    <li>Elle <strong>réapparaîtra</strong> dans les résultats de recherche</li>
-                    <li>Les candidats pourront à nouveau <strong>postuler</strong></li>
-                    <li>Les candidatures existantes sont <strong>conservées</strong></li>
+                    <li>{t("bo.employerJobs.republishDialog.point1")}</li>
+                    <li>{t("bo.employerJobs.republishDialog.point2")}</li>
+                    <li>{t("bo.employerJobs.republishDialog.point3")}</li>
+                    <li>{t("bo.employerJobs.republishDialog.point4")}</li>
                   </ul>
                 </div>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogCancel>{t("bo.employerJobs.republishDialog.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmRepublier}
               className="bg-green-600 hover:bg-green-700"
             >
               <CheckCircle2 className="h-4 w-4 mr-2" />
-              Confirmer — Republier l'offre
+              {t("bo.employerJobs.republishDialog.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -533,34 +526,32 @@ export default function EmployeurOffres() {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-amber-700">
               <Archive className="h-5 w-5" />
-              Marquer ce poste comme pourvu ?
+              {t("bo.employerJobs.archiveDialog.title")}
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-3 text-sm text-gray-700">
-                <p>
-                  Vous allez archiver l'offre <strong>« {offreToArchive?.titre} »</strong>.
-                </p>
+                <p>{t("bo.employerJobs.archiveDialog.intro", { title: offreToArchive?.titre ?? "" })}</p>
                 <div className="bg-amber-50 border border-amber-200 rounded-md p-3 space-y-1">
-                  <p className="font-semibold text-amber-700">Ce qui se passera :</p>
+                  <p className="font-semibold text-amber-700">{t("bo.employerJobs.archiveDialog.willTitle")}</p>
                   <ul className="list-disc list-inside space-y-1 text-amber-700">
-                    <li>L'offre sera <strong>archivée</strong> avec le badge « Poste pourvu »</li>
-                    <li>Elle <strong>n'apparaîtra plus</strong> dans les résultats de recherche</li>
-                    <li>Les candidats ayant postulé <strong>pourront toujours la consulter</strong></li>
-                    <li>Toutes les candidatures reçues sont <strong>conservées</strong></li>
-                    <li>Aucune nouvelle candidature ne sera acceptée</li>
+                    <li>{t("bo.employerJobs.archiveDialog.point1")}</li>
+                    <li>{t("bo.employerJobs.archiveDialog.point2")}</li>
+                    <li>{t("bo.employerJobs.archiveDialog.point3")}</li>
+                    <li>{t("bo.employerJobs.archiveDialog.point4")}</li>
+                    <li>{t("bo.employerJobs.archiveDialog.point5")}</li>
                   </ul>
                 </div>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogCancel>{t("bo.employerJobs.archiveDialog.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmArchive}
               className="bg-amber-600 hover:bg-amber-700"
             >
               <Archive className="h-4 w-4 mr-2" />
-              Confirmer — Poste pourvu
+              {t("bo.employerJobs.archiveDialog.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

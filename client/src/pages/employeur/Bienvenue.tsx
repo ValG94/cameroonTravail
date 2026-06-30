@@ -16,9 +16,11 @@ import {
   Users,
 } from "lucide-react";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 
 export default function BienvenueEmployeur() {
+  const { t } = useTranslation();
   const { user, loading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
 
@@ -50,52 +52,42 @@ export default function BienvenueEmployeur() {
   );
   const aPublieOffre = !!offres && offres.length > 0;
 
+  const isLocked = employeur?.formuleAbonnement === "gratuit";
   const steps = [
     {
       id: "profil",
       number: 1,
-      title: "Complétez votre profil entreprise",
-      description:
-        "Renseignez les informations de votre entreprise (logo, description, secteur, taille). Un profil complet rassure les candidats et booste vos candidatures.",
+      title: t("bo.welcomeEmployer.step1Title"),
+      description: t("bo.welcomeEmployer.step1Desc"),
       icon: Building2,
       color: "from-blue-500 to-indigo-600",
       iconBg: "bg-blue-100 text-blue-600",
-      cta: "Compléter mon profil",
+      cta: t("bo.welcomeEmployer.step1Cta"),
       route: "/employeur/profil",
       done: profilComplete,
     },
     {
       id: "offre",
       number: 2,
-      title: "Publiez votre première offre",
-      description:
-        "Décrivez le poste à pourvoir, les compétences recherchées et les conditions. Votre offre sera visible par tous les candidats inscrits.",
+      title: t("bo.welcomeEmployer.step2Title"),
+      description: t("bo.welcomeEmployer.step2Desc"),
       icon: Briefcase,
       color: "from-orange-500 to-amber-600",
       iconBg: "bg-orange-100 text-orange-600",
-      cta: "Publier une offre",
+      cta: t("bo.welcomeEmployer.step2Cta"),
       route: "/employeur/publier",
       done: aPublieOffre,
     },
     {
       id: "cvtheque",
       number: 3,
-      title:
-        employeur?.formuleAbonnement === "gratuit"
-          ? "Débloquez la CVthèque"
-          : "Explorez la CVthèque",
-      description:
-        employeur?.formuleAbonnement === "gratuit"
-          ? "La CVthèque est réservée aux formules Pro et Entreprise. Souscrivez à une formule pour rechercher parmi des milliers de profils candidats et les contacter directement."
-          : "Recherchez directement parmi les milliers de profils candidats. Filtrez par compétences, expérience, localisation et contactez les meilleurs talents.",
+      title: isLocked ? t("bo.welcomeEmployer.step3TitleLocked") : t("bo.welcomeEmployer.step3TitleUnlocked"),
+      description: isLocked ? t("bo.welcomeEmployer.step3DescLocked") : t("bo.welcomeEmployer.step3DescUnlocked"),
       icon: Search,
       color: "from-emerald-500 to-teal-600",
       iconBg: "bg-emerald-100 text-emerald-600",
-      cta:
-        employeur?.formuleAbonnement === "gratuit"
-          ? "Découvrir les formules"
-          : "Accéder à la CVthèque",
-      route: employeur?.formuleAbonnement === "gratuit" ? "/tarifs" : "/cvtheque",
+      cta: isLocked ? t("bo.welcomeEmployer.step3CtaLocked") : t("bo.welcomeEmployer.step3CtaUnlocked"),
+      route: isLocked ? "/tarifs" : "/cvtheque",
       done: false,
     },
   ];
@@ -116,11 +108,10 @@ export default function BienvenueEmployeur() {
             </div>
             <div className="flex-1">
               <h1 className="text-3xl font-bold mb-2">
-                Bienvenue {employeur?.nomEntreprise || user?.name} !
+                {t("bo.welcomeEmployer.heroTitle", { name: employeur?.nomEntreprise || user?.name })}
               </h1>
               <p className="text-orange-50 text-lg">
-                Votre compte recruteur est créé. Suivez ce guide rapide pour démarrer
-                votre première campagne de recrutement.
+                {t("bo.welcomeEmployer.heroSubtitle")}
               </p>
             </div>
           </div>
@@ -128,9 +119,9 @@ export default function BienvenueEmployeur() {
           {/* Progress bar */}
           <div className="mt-6 bg-white/20 rounded-full p-1">
             <div className="flex items-center justify-between text-xs font-medium mb-1 px-2">
-              <span>Progression de votre démarrage</span>
+              <span>{t("bo.welcomeEmployer.progress")}</span>
               <span>
-                {stepsCompleted}/{steps.length} étapes
+                {t("bo.welcomeEmployer.stepsCounter", { done: stepsCompleted, total: steps.length })}
               </span>
             </div>
             <div className="bg-white/20 rounded-full h-2 overflow-hidden">
@@ -146,7 +137,7 @@ export default function BienvenueEmployeur() {
         <div className="space-y-4 mb-10">
           <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-orange-500" />
-            Démarrage en 3 étapes
+            {t("bo.welcomeEmployer.stepsTitle")}
           </h2>
 
           {steps.map((step) => {
@@ -180,7 +171,7 @@ export default function BienvenueEmployeur() {
                         <h3 className="text-lg font-bold text-gray-900">{step.title}</h3>
                         {step.done && (
                           <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
-                            Fait
+                            {t("bo.welcomeEmployer.done")}
                           </Badge>
                         )}
                       </div>
@@ -211,31 +202,31 @@ export default function BienvenueEmployeur() {
 
         {/* Quick links */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 mb-8">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Aller plus loin</h3>
+          <h3 className="text-lg font-bold text-gray-900 mb-4">{t("bo.welcomeEmployer.quickLinksTitle")}</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <button
               onClick={() => setLocation("/employeur/dashboard")}
               className="text-left p-4 rounded-xl border border-gray-200 hover:border-orange-400 hover:bg-orange-50 transition-all group"
             >
               <Briefcase className="w-5 h-5 text-orange-500 mb-2" />
-              <p className="font-semibold text-gray-900 text-sm mb-1">Tableau de bord</p>
-              <p className="text-xs text-gray-500">Vue d'ensemble de votre activité</p>
+              <p className="font-semibold text-gray-900 text-sm mb-1">{t("bo.welcomeEmployer.quickDashboardTitle")}</p>
+              <p className="text-xs text-gray-500">{t("bo.welcomeEmployer.quickDashboardDesc")}</p>
             </button>
             <button
               onClick={() => setLocation("/employeur/candidatures")}
               className="text-left p-4 rounded-xl border border-gray-200 hover:border-orange-400 hover:bg-orange-50 transition-all group"
             >
               <Users className="w-5 h-5 text-orange-500 mb-2" />
-              <p className="font-semibold text-gray-900 text-sm mb-1">Candidatures reçues</p>
-              <p className="text-xs text-gray-500">Gérez les postulants à vos offres</p>
+              <p className="font-semibold text-gray-900 text-sm mb-1">{t("bo.welcomeEmployer.quickApplicationsTitle")}</p>
+              <p className="text-xs text-gray-500">{t("bo.welcomeEmployer.quickApplicationsDesc")}</p>
             </button>
             <button
               onClick={() => setLocation("/employeur/offres")}
               className="text-left p-4 rounded-xl border border-gray-200 hover:border-orange-400 hover:bg-orange-50 transition-all group"
             >
               <Sparkles className="w-5 h-5 text-orange-500 mb-2" />
-              <p className="font-semibold text-gray-900 text-sm mb-1">Mes offres</p>
-              <p className="text-xs text-gray-500">Modifiez ou archivez vos annonces</p>
+              <p className="font-semibold text-gray-900 text-sm mb-1">{t("bo.welcomeEmployer.quickJobsTitle")}</p>
+              <p className="text-xs text-gray-500">{t("bo.welcomeEmployer.quickJobsDesc")}</p>
             </button>
           </div>
         </div>
@@ -246,7 +237,7 @@ export default function BienvenueEmployeur() {
             onClick={() => setLocation("/employeur/dashboard")}
             className="text-gray-500 hover:text-gray-700 text-sm underline"
           >
-            Passer cette étape et accéder au tableau de bord
+            {t("bo.welcomeEmployer.skip")}
           </button>
         </div>
       </div>

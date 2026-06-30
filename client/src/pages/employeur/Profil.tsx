@@ -10,28 +10,30 @@ import { trpc } from "@/lib/trpc";
 import { CAMEROON_REGIONS, CAMEROON_CITIES_BY_REGION } from "@shared/cameroon-data";
 import { Building2, Globe, Loader2, Mail, MapPin, Phone, Upload, User } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { EmployeurNav } from "@/components/EmployeurNav";
 import { SECTEURS } from "@/lib/secteurs";
 
-const TAILLES = [
-  { value: "1-10", label: "1 à 10 employés (TPE)" },
-  { value: "11-50", label: "11 à 50 employés (PME)" },
-  { value: "51-200", label: "51 à 200 employés" },
-  { value: "201-500", label: "201 à 500 employés" },
-  { value: "500+", label: "Plus de 500 employés (Grande entreprise)" },
-];
-
 export default function EmployeurProfil() {
+  const { t } = useTranslation();
   const { user, loading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
+
+  const TAILLES = [
+    { value: "1-10", label: t("bo.employerProfile.sizeOptions.s1") },
+    { value: "11-50", label: t("bo.employerProfile.sizeOptions.s2") },
+    { value: "51-200", label: t("bo.employerProfile.sizeOptions.s3") },
+    { value: "201-500", label: t("bo.employerProfile.sizeOptions.s4") },
+    { value: "500+", label: t("bo.employerProfile.sizeOptions.s5") },
+  ];
 
   const { data: profile, isLoading, refetch } = trpc.employeur.getProfile.useQuery();
 
   const updateProfileMutation = trpc.employeur.updateProfile.useMutation({
     onSuccess: () => {
-      toast.success("Profil mis à jour avec succès");
+      toast.success(t("bo.employerProfile.savedToast"));
       refetch();
     },
     onError: (error) => {
@@ -41,7 +43,7 @@ export default function EmployeurProfil() {
 
   const uploadLogoMutation = trpc.employeur.uploadLogo.useMutation({
     onSuccess: (data) => {
-      toast.success("Logo mis à jour avec succès");
+      toast.success(t("bo.employerProfile.logoUpdatedToast"));
       setLogoPreview(data.logoUrl);
       refetch();
     },
@@ -116,12 +118,12 @@ export default function EmployeurProfil() {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("Le logo ne doit pas dépasser 5MB");
+      toast.error(t("bo.employerProfile.logoTooBigToast"));
       return;
     }
 
     if (!file.type.startsWith("image/")) {
-      toast.error("Veuillez sélectionner une image");
+      toast.error(t("bo.employerProfile.notImageToast"));
       return;
     }
 
@@ -166,7 +168,7 @@ export default function EmployeurProfil() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Chargement...</p>
+          <p className="mt-4 text-gray-600">{t("bo.common.loading")}</p>
         </div>
       </div>
     );
@@ -178,9 +180,9 @@ export default function EmployeurProfil() {
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Profil de l'entreprise</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t("bo.employerProfile.title")}</h1>
           <p className="text-gray-600">
-            Complétez les informations de votre entreprise pour attirer les meilleurs talents
+            {t("bo.employerProfile.subtitle")}
           </p>
         </div>
 
@@ -190,10 +192,10 @@ export default function EmployeurProfil() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Building2 className="h-5 w-5 text-blue-600" />
-                Logo de l'entreprise
+                {t("bo.employerProfile.logoSection")}
               </CardTitle>
               <CardDescription>
-                Ajoutez le logo de votre entreprise (PNG, JPG, max 5MB)
+                {t("bo.employerProfile.logoDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -232,9 +234,9 @@ export default function EmployeurProfil() {
                     className="flex items-center gap-2"
                   >
                     <Upload className="h-4 w-4" />
-                    {logoPreview ? "Changer le logo" : "Ajouter un logo"}
+                    {t("bo.employerProfile.logoAdd")}
                   </Button>
-                  <p className="text-xs text-gray-500">Format recommandé : carré, min 200x200px</p>
+                  <p className="text-xs text-gray-500">{t("bo.employerProfile.logoRecommended")}</p>
                 </div>
               </div>
             </CardContent>
@@ -245,33 +247,33 @@ export default function EmployeurProfil() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Building2 className="h-5 w-5 text-blue-600" />
-                Informations générales
+                {t("bo.employerProfile.generalInfo")}
               </CardTitle>
               <CardDescription>
-                Ces informations apparaîtront sur vos offres d'emploi
+                {t("bo.employerProfile.generalInfoDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2 space-y-2">
-                  <Label htmlFor="nomEntreprise">Nom de l'entreprise *</Label>
+                  <Label htmlFor="nomEntreprise">{t("bo.employerProfile.companyName")} *</Label>
                   <Input
                     id="nomEntreprise"
                     value={formData.nomEntreprise}
                     onChange={(e) => setFormData({ ...formData, nomEntreprise: e.target.value })}
-                    placeholder="Ex : Cameroon Digital Solutions"
+                    placeholder={t("bo.employerProfile.companyNamePh")}
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="secteurActivite">Secteur d'activité</Label>
+                  <Label htmlFor="secteurActivite">{t("bo.employerProfile.sector")}</Label>
                   <Select
                     value={formData.secteurActivite}
                     onValueChange={(value) => setFormData({ ...formData, secteurActivite: value })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner un secteur" />
+                      <SelectValue placeholder={t("bo.employerProfile.sectorPh")} />
                     </SelectTrigger>
                     <SelectContent>
                       {SECTEURS.map((s) => (
@@ -282,29 +284,29 @@ export default function EmployeurProfil() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="taille">Taille de l'entreprise</Label>
+                  <Label htmlFor="taille">{t("bo.employerProfile.size")}</Label>
                   <Select
                     value={formData.taille}
                     onValueChange={(value) => setFormData({ ...formData, taille: value })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Nombre d'employés" />
+                      <SelectValue placeholder={t("bo.employerProfile.sizePh")} />
                     </SelectTrigger>
                     <SelectContent>
-                      {TAILLES.map((t) => (
-                        <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                      {TAILLES.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="md:col-span-2 space-y-2">
-                  <Label htmlFor="description">Description de l'entreprise</Label>
+                  <Label htmlFor="description">{t("bo.employerProfile.description")}</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Décrivez votre entreprise, sa mission, ses valeurs..."
+                    placeholder={t("bo.employerProfile.descriptionPh")}
                     rows={4}
                   />
                 </div>
@@ -317,44 +319,44 @@ export default function EmployeurProfil() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-blue-600" />
-                Coordonnées
+                {t("bo.employerProfile.contactSection")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="telephone">Téléphone</Label>
+                  <Label htmlFor="telephone">{t("bo.employerProfile.phone")}</Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
                       id="telephone"
                       value={formData.telephone}
                       onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
-                      placeholder="+237 6XX XXX XXX"
+                      placeholder={t("bo.employerProfile.phonePh")}
                       className="pl-10"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="siteWeb">Site web</Label>
+                  <Label htmlFor="siteWeb">{t("bo.employerProfile.website")}</Label>
                   <div className="relative">
                     <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
                       id="siteWeb"
                       value={formData.siteWeb}
                       onChange={(e) => setFormData({ ...formData, siteWeb: e.target.value })}
-                      placeholder="https://www.monentreprise.cm"
+                      placeholder={t("bo.employerProfile.websitePh")}
                       className="pl-10"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="region">Région</Label>
+                  <Label htmlFor="region">{t("bo.employerProfile.region")}</Label>
                   <Select value={selectedRegion} onValueChange={handleRegionChange}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner une région" />
+                      <SelectValue placeholder={t("bo.employerProfile.regionPh")} />
                     </SelectTrigger>
                     <SelectContent>
                       {CAMEROON_REGIONS.map((r) => (
@@ -365,14 +367,14 @@ export default function EmployeurProfil() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="ville">Ville</Label>
+                  <Label htmlFor="ville">{t("bo.employerProfile.city")}</Label>
                   {availableCities.length > 0 ? (
                     <Select
                       value={formData.ville}
                       onValueChange={(value) => setFormData({ ...formData, ville: value })}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner une ville" />
+                        <SelectValue placeholder={t("bo.employerProfile.cityPh")} />
                       </SelectTrigger>
                       <SelectContent>
                         {availableCities.map((c) => (
@@ -385,18 +387,18 @@ export default function EmployeurProfil() {
                       id="ville"
                       value={formData.ville}
                       onChange={(e) => setFormData({ ...formData, ville: e.target.value })}
-                      placeholder="Ville"
+                      placeholder={t("bo.employerProfile.cityPh")}
                     />
                   )}
                 </div>
 
                 <div className="md:col-span-2 space-y-2">
-                  <Label htmlFor="adresse">Adresse</Label>
+                  <Label htmlFor="adresse">{t("bo.employerProfile.address")}</Label>
                   <Input
                     id="adresse"
                     value={formData.adresse}
                     onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
-                    placeholder="Rue, quartier, BP..."
+                    placeholder={t("bo.employerProfile.addressPh")}
                   />
                 </div>
               </div>
@@ -408,60 +410,60 @@ export default function EmployeurProfil() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5 text-blue-600" />
-                Contact RH / Recrutement
+                {t("bo.employerProfile.rhSection")}
               </CardTitle>
               <CardDescription>
-                La personne en charge du recrutement dans votre entreprise
+                {t("bo.employerProfile.rhDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="prenomContact">Prénom</Label>
+                  <Label htmlFor="prenomContact">{t("bo.employerProfile.firstName")}</Label>
                   <Input
                     id="prenomContact"
                     value={formData.prenomContact}
                     onChange={(e) => setFormData({ ...formData, prenomContact: e.target.value })}
-                    placeholder="Prénom du contact"
+                    placeholder={t("bo.employerProfile.firstNamePh")}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="nomContact">Nom</Label>
+                  <Label htmlFor="nomContact">{t("bo.employerProfile.lastName")}</Label>
                   <Input
                     id="nomContact"
                     value={formData.nomContact}
                     onChange={(e) => setFormData({ ...formData, nomContact: e.target.value })}
-                    placeholder="Nom du contact"
+                    placeholder={t("bo.employerProfile.lastNamePh")}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="posteContact">Poste / Fonction</Label>
+                  <Label htmlFor="posteContact">{t("bo.employerProfile.positionContact")}</Label>
                   <Input
                     id="posteContact"
                     value={formData.posteContact}
                     onChange={(e) => setFormData({ ...formData, posteContact: e.target.value })}
-                    placeholder="Ex : Directeur RH, Responsable recrutement"
+                    placeholder={t("bo.employerProfile.positionContactPh")}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="telephoneContact">Téléphone direct</Label>
+                  <Label htmlFor="telephoneContact">{t("bo.employerProfile.directPhone")}</Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
                       id="telephoneContact"
                       value={formData.telephoneContact}
                       onChange={(e) => setFormData({ ...formData, telephoneContact: e.target.value })}
-                      placeholder="+237 6XX XXX XXX"
+                      placeholder={t("bo.employerProfile.phonePh")}
                       className="pl-10"
                     />
                   </div>
                 </div>
 
                 <div className="md:col-span-2 space-y-2">
-                  <Label htmlFor="emailContact">Email de contact</Label>
+                  <Label htmlFor="emailContact">{t("bo.employerProfile.emailContact")}</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
@@ -469,7 +471,7 @@ export default function EmployeurProfil() {
                       type="email"
                       value={formData.emailContact}
                       onChange={(e) => setFormData({ ...formData, emailContact: e.target.value })}
-                      placeholder="recrutement@monentreprise.cm"
+                      placeholder={t("bo.employerProfile.emailContactPh")}
                       className="pl-10"
                     />
                   </div>
@@ -485,7 +487,7 @@ export default function EmployeurProfil() {
               variant="outline"
               onClick={() => setLocation("/employeur/dashboard")}
             >
-              Annuler
+              {t("bo.common.cancel")}
             </Button>
             <Button
               type="submit"
@@ -495,10 +497,10 @@ export default function EmployeurProfil() {
               {updateProfileMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Enregistrement...
+                  {t("bo.common.saving")}
                 </>
               ) : (
-                "Enregistrer les modifications"
+                t("bo.employerProfile.saveBtn")
               )}
             </Button>
           </div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
@@ -424,6 +425,7 @@ function OffresTable() {
 
 // ─── Page principale ─────────────────────────────────────────────────────────
 export default function AdminDashboard() {
+  const { t } = useTranslation();
   const { user, loading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState<"overview" | "users" | "offres" | "articles" | "formules">("overview");
@@ -503,7 +505,7 @@ export default function AdminDashboard() {
                 <Shield className="h-5 w-5 text-amber-600" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-gray-900">Administration</h1>
+                <h1 className="text-lg font-bold text-gray-900">{t("bo.adminDashboard.title")}</h1>
                 <p className="text-xs text-gray-500">Cameroon Travail</p>
               </div>
             </div>
@@ -534,11 +536,11 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex gap-0 overflow-x-auto">
             {[
-              { key: "overview", label: "Vue d'ensemble", icon: BarChart3 },
-              { key: "users", label: "Utilisateurs", icon: Users },
-              { key: "offres", label: "Offres d'emploi", icon: Briefcase },
-              { key: "articles", label: "Articles Conseils", icon: BookOpen },
-              { key: "formules", label: "Formules tarifaires", icon: CreditCard },
+              { key: "overview", label: t("bo.adminDashboard.tabs.overview"), icon: BarChart3 },
+              { key: "users", label: t("bo.adminDashboard.tabs.users"), icon: Users },
+              { key: "offres", label: t("bo.adminDashboard.tabs.jobs"), icon: Briefcase },
+              { key: "articles", label: t("bo.adminDashboard.tabs.articles"), icon: BookOpen },
+              { key: "formules", label: t("bo.adminDashboard.tabs.formules"), icon: CreditCard },
             ].map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
@@ -560,7 +562,7 @@ export default function AdminDashboard() {
               className="flex items-center gap-2 px-5 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 transition-colors whitespace-nowrap relative"
             >
               <Wallet className="h-4 w-4" />
-              Souscriptions
+              {t("bo.adminDashboard.tabs.subscriptions")}
               {nbDemandesAttente > 0 && (
                 <span className="ml-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-amber-500 text-white text-xs font-bold">
                   {nbDemandesAttente}

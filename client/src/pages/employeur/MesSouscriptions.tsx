@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
@@ -22,21 +23,20 @@ import {
  * l'admin par téléphone.
  */
 
-const STATUT_LABEL = {
-  en_attente: { label: "En attente de validation", color: "amber", icon: Clock },
-  validee: { label: "Validée — formule active", color: "emerald", icon: CheckCircle2 },
-  refusee: { label: "Refusée", color: "red", icon: XCircle },
-} as const;
-
-const METHOD_LABEL: Record<string, string> = {
-  orange_money: "Orange Money",
-  mtn_momo: "MTN MoMo",
-  autre: "Autre",
-};
-
 export default function MesSouscriptions() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const { user, loading: authLoading } = useAuth();
+  const STATUT_LABEL = {
+    en_attente: { label: t("bo.mySubscriptions.statusPending"), color: "amber", icon: Clock },
+    validee: { label: t("bo.mySubscriptions.statusValidated"), color: "emerald", icon: CheckCircle2 },
+    refusee: { label: t("bo.mySubscriptions.statusRefused"), color: "red", icon: XCircle },
+  } as const;
+  const METHOD_LABEL: Record<string, string> = {
+    orange_money: t("bo.employerPayment.methodOrange"),
+    mtn_momo: t("bo.employerPayment.methodMtn"),
+    autre: t("bo.employerPayment.methodOther"),
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -60,10 +60,10 @@ export default function MesSouscriptions() {
         <div className="flex items-center justify-between mb-7 flex-wrap gap-3">
           <div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-              Mes souscriptions
+              {t("bo.mySubscriptions.title")}
             </h1>
             <p className="text-sm text-slate-500 mt-1">
-              Historique de vos demandes de souscription et leur statut.
+              {t("bo.mySubscriptions.subtitle")}
             </p>
           </div>
           <Button
@@ -76,7 +76,7 @@ export default function MesSouscriptions() {
             className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
           >
             <Wallet className="w-4 h-4" />
-            Nouvelle souscription
+            {t("bo.mySubscriptions.newSubBtn")}
             <ArrowRight className="w-4 h-4" />
           </Button>
         </div>
@@ -92,10 +92,10 @@ export default function MesSouscriptions() {
                 <Wallet className="w-7 h-7 text-emerald-600" />
               </div>
               <h3 className="font-bold text-base text-slate-900 mb-1">
-                Aucune souscription pour l'instant
+                {t("bo.mySubscriptions.emptyTitle")}
               </h3>
               <p className="text-sm text-slate-500 mb-5 max-w-md mx-auto">
-                Choisissez une formule pour commencer à publier vos offres et accéder à la CVthèque.
+                {t("bo.mySubscriptions.emptyDesc")}
               </p>
               <Button
                 onClick={() => {
@@ -106,7 +106,7 @@ export default function MesSouscriptions() {
                 }}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white"
               >
-                Voir les tarifs
+                {t("bo.mySubscriptions.emptyCta")}
               </Button>
             </CardContent>
           </Card>
@@ -115,7 +115,7 @@ export default function MesSouscriptions() {
             {demandes.map((d: any) => {
               const cfg = STATUT_LABEL[d.statut as keyof typeof STATUT_LABEL];
               const Icon = cfg.icon;
-              const date = new Date(d.createdAt).toLocaleString("fr-FR", {
+              const date = new Date(d.createdAt).toLocaleString(undefined, {
                 dateStyle: "long",
                 timeStyle: "short",
               });
@@ -143,13 +143,13 @@ export default function MesSouscriptions() {
                           </Badge>
                         </div>
                         <h3 className="font-bold text-lg text-slate-900">
-                          {d.nomFormule || "Formule"}
+                          {d.nomFormule || "—"}
                         </h3>
-                        <p className="text-xs text-slate-400 mt-0.5">Demandée le {date}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">{t("bo.mySubscriptions.reqOn", { date })}</p>
                       </div>
                       <div className="text-right shrink-0">
                         <div className="text-xs uppercase tracking-wider font-semibold text-slate-400">
-                          Montant
+                          {t("bo.mySubscriptions.amountLabel")}
                         </div>
                         <div className="text-xl font-extrabold text-slate-900">
                           {Number(d.montant).toLocaleString("fr-FR")}{" "}
@@ -161,7 +161,7 @@ export default function MesSouscriptions() {
                     <div className="bg-slate-50 rounded-lg p-3 border border-slate-100 text-sm">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                          Référence transaction :
+                          {t("bo.mySubscriptions.refLabel")}
                         </span>
                         <span className="font-mono text-slate-900">{d.referenceTransaction}</span>
                       </div>
@@ -169,22 +169,22 @@ export default function MesSouscriptions() {
 
                     {d.statut === "refusee" && d.raisonRefus && (
                       <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
-                        <span className="font-semibold">Raison du refus :</span> {d.raisonRefus}
+                        <span className="font-semibold">{t("bo.mySubscriptions.refusalReason")}</span> {d.raisonRefus}
                       </div>
                     )}
                     {d.statut === "validee" && d.validatedAt && (
                       <p className="text-xs text-emerald-700 mt-3 font-medium">
-                        Activée le{" "}
-                        {new Date(d.validatedAt).toLocaleString("fr-FR", {
-                          dateStyle: "long",
-                          timeStyle: "short",
+                        {t("bo.mySubscriptions.activatedOn", {
+                          date: new Date(d.validatedAt).toLocaleString(undefined, {
+                            dateStyle: "long",
+                            timeStyle: "short",
+                          }),
                         })}
                       </p>
                     )}
                     {d.statut === "en_attente" && (
                       <p className="text-xs text-amber-700 mt-3">
-                        Notre équipe vérifie votre paiement. Vous recevrez un email dès activation
-                        (sous 24h en moyenne).
+                        {t("bo.mySubscriptions.pendingNote")}
                       </p>
                     )}
                   </CardContent>

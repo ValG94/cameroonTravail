@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useSearch } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
@@ -56,6 +57,7 @@ const C = {
 };
 
 export default function PaiementEmployeur() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const searchString = useSearch();
   const { user, loading: authLoading } = useAuth();
@@ -89,22 +91,22 @@ export default function PaiementEmployeur() {
 
   const demanderMutation = trpc.employeur.demanderSouscription.useMutation({
     onSuccess: () => {
-      toast.success("Demande envoyée. Vous recevrez une confirmation sous 24h.");
+      toast.success(t("bo.employerPayment.sentToast"));
       setLocation("/employeur/dashboard");
     },
     onError: (e: { message?: string }) => {
-      toast.error(e.message || "Erreur lors de l'envoi de la demande");
+      toast.error(e.message || t("bo.employerPayment.sentToast"));
     },
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formule) {
-      toast.error("Formule introuvable");
+      toast.error(t("bo.employerPayment.formulaNotFound"));
       return;
     }
     if (referenceTransaction.trim().length < 3) {
-      toast.error("Saisissez la référence de transaction (ID reçu par SMS)");
+      toast.error(t("bo.employerPayment.refTooShort"));
       return;
     }
     await demanderMutation.mutateAsync({
@@ -130,15 +132,15 @@ export default function PaiementEmployeur() {
       <div className="min-h-screen" style={{ backgroundColor: C.ivory, fontFamily: "'Manrope', 'Inter', sans-serif" }}>
         <SiteHeader />
         <div className="max-w-2xl mx-auto px-4 py-20 text-center">
-          <h1 className="text-2xl font-bold mb-3" style={{ color: C.textMain }}>Aucune formule sélectionnée</h1>
+          <h1 className="text-2xl font-bold mb-3" style={{ color: C.textMain }}>{t("bo.employerPayment.noFormulaTitle")}</h1>
           <p className="mb-6" style={{ color: C.textMuted }}>
-            Choisissez d'abord une formule dans la grille de tarifs.
+            {t("bo.employerPayment.noFormulaDesc")}
           </p>
           <Button
             onClick={() => setLocation("/tarifs")}
             style={{ backgroundColor: C.green, color: "white" }}
           >
-            Voir les tarifs
+            {t("bo.employerPayment.seePrices")}
           </Button>
         </div>
         <SiteFooter />
@@ -161,14 +163,14 @@ export default function PaiementEmployeur() {
           style={{ color: C.textMuted }}
         >
           <ArrowLeft className="w-4 h-4" />
-          Retour aux tarifs
+          {t("bo.employerPayment.backToPrices")}
         </button>
 
         <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-2">
-          Souscription <span style={{ color: C.green }}>{formule.nom}</span>
+          {t("bo.employerPayment.title")} <span style={{ color: C.green }}>{formule.nom}</span>
         </h1>
         <p className="mb-10 text-base" style={{ color: C.textMuted }}>
-          Finalisez votre souscription en payant via Mobile Money. Votre formule sera activée sous 24h après vérification par notre équipe.
+          {t("bo.employerPayment.subtitle")}
         </p>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-8">
@@ -186,7 +188,7 @@ export default function PaiementEmployeur() {
                   {prix}
                 </span>
                 <span className="text-sm mb-2" style={{ color: C.textMuted }}>
-                  {formule.devise} / {formule.periode === "annuel" ? "an" : formule.periode === "unique" ? "unique" : "mois"}
+                  {formule.devise} / {formule.periode === "annuel" ? t("bo.employerPayment.periodYear") : formule.periode === "unique" ? t("bo.employerPayment.periodOnce") : t("bo.employerPayment.periodMonth")}
                 </span>
               </div>
               {formule.description && (
@@ -212,7 +214,7 @@ export default function PaiementEmployeur() {
 
               <div className="mt-6 pt-5 border-t flex items-center gap-2 text-xs" style={{ borderColor: C.border, color: C.textMuted }}>
                 <ShieldCheck className="w-4 h-4" style={{ color: C.green }} />
-                Paiement vérifié manuellement, aucune carte stockée.
+                {t("bo.employerPayment.secureNote")}
               </div>
             </CardContent>
           </Card>
@@ -221,21 +223,21 @@ export default function PaiementEmployeur() {
           <Card className="rounded-3xl border shadow-lg" style={{ borderColor: C.border }}>
             <CardContent className="p-7 sm:p-9">
               <h2 className="text-xl font-bold mb-1" style={{ color: C.textMain }}>
-                Comment payer ?
+                {t("bo.employerPayment.howToPay")}
               </h2>
               <p className="text-sm mb-6" style={{ color: C.textMuted }}>
-                Choisissez votre méthode, effectuez le paiement depuis votre téléphone, puis renseignez la référence reçue par SMS.
+                {t("bo.employerPayment.howToPayDesc")}
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Choix méthode */}
                 <div>
-                  <Label className="text-sm font-semibold mb-2 block">Méthode de paiement</Label>
+                  <Label className="text-sm font-semibold mb-2 block">{t("bo.employerPayment.method")}</Label>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                     {[
-                      { key: "orange_money", label: "Orange Money", color: "#FF7900" },
-                      { key: "mtn_momo", label: "MTN MoMo", color: "#FFC500" },
-                      { key: "autre", label: "Autre", color: C.textMuted },
+                      { key: "orange_money", label: t("bo.employerPayment.methodOrange"), color: "#FF7900" },
+                      { key: "mtn_momo", label: t("bo.employerPayment.methodMtn"), color: "#FFC500" },
+                      { key: "autre", label: t("bo.employerPayment.methodOther"), color: C.textMuted },
                     ].map((m) => {
                       const active = methodePaiement === m.key;
                       return (
@@ -270,15 +272,14 @@ export default function PaiementEmployeur() {
                     <div className="flex items-start gap-3">
                       <Info className="w-5 h-5 mt-0.5 shrink-0" style={{ color: C.green }} />
                       <div className="text-sm leading-relaxed" style={{ color: C.textMain }}>
-                        <p className="font-semibold mb-2">Instructions de paiement</p>
+                        <p className="font-semibold mb-2">{t("bo.employerPayment.instructionsTitle")}</p>
                         <ol className="list-decimal pl-4 space-y-1.5 text-[13px]" style={{ color: C.textMuted }}>
-                          <li>Composez le code <strong>#150#</strong> (Orange) ou <strong>#126#</strong> (MTN) sur votre téléphone</li>
+                          <li>{t("bo.employerPayment.instructionStep1")}</li>
                           <li>
-                            Envoyez <strong style={{ color: C.textMain }}>{prix} {formule.devise}</strong> au numéro{" "}
-                            <strong style={{ color: C.green }}>{numero}</strong>
+                            {t("bo.employerPayment.instructionStep2", { amount: prix, currency: formule.devise, number: numero })}
                           </li>
-                          <li>Notez la référence de transaction (ID) reçue par SMS</li>
-                          <li>Saisissez cette référence ci-dessous et validez</li>
+                          <li>{t("bo.employerPayment.instructionStep3")}</li>
+                          <li>{t("bo.employerPayment.instructionStep4")}</li>
                         </ol>
                       </div>
                     </div>
@@ -290,18 +291,14 @@ export default function PaiementEmployeur() {
                     className="rounded-xl border p-4 text-sm"
                     style={{ borderColor: "rgba(246, 195, 67, 0.40)", backgroundColor: "rgba(246, 195, 67, 0.08)" }}
                   >
-                    Pour tout autre moyen (virement bancaire, espèces…), contactez-nous à{" "}
-                    <a href="mailto:contact@cameroon-travail.cm" className="font-semibold underline" style={{ color: C.green }}>
-                      contact@cameroon-travail.cm
-                    </a>{" "}
-                    en indiquant la formule choisie. Renseignez ci-dessous votre référence (numéro de virement, reçu, etc.).
+                    {t("bo.employerPayment.otherMethod")}
                   </div>
                 )}
 
                 {/* Référence transaction */}
                 <div>
                   <Label htmlFor="ref" className="text-sm font-semibold mb-1.5 block">
-                    Référence de transaction <span style={{ color: "#DC2626" }}>*</span>
+                    {t("bo.employerPayment.referenceLabel")} <span style={{ color: "#DC2626" }}>*</span>
                   </Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
@@ -309,14 +306,14 @@ export default function PaiementEmployeur() {
                       id="ref"
                       value={referenceTransaction}
                       onChange={(e) => setReferenceTransaction(e.target.value)}
-                      placeholder="Ex : MP240630.1245.A12345"
+                      placeholder={t("bo.employerPayment.referencePh")}
                       className="h-12 pl-10"
                       style={{ borderColor: C.border }}
                       required
                     />
                   </div>
                   <p className="text-xs mt-1.5" style={{ color: C.textMuted }}>
-                    L'identifiant unique reçu par SMS après votre paiement.
+                    {t("bo.employerPayment.referenceHelp")}
                   </p>
                 </div>
 
@@ -327,7 +324,7 @@ export default function PaiementEmployeur() {
                 >
                   <div>
                     <div className="text-xs uppercase tracking-wider font-semibold" style={{ color: C.textMuted }}>
-                      Total à payer
+                      {t("bo.employerPayment.totalToPay")}
                     </div>
                     <div className="text-2xl font-extrabold mt-1" style={{ color: C.textMain }}>
                       {prix} <span className="text-sm font-medium" style={{ color: C.textMuted }}>{formule.devise}</span>
@@ -335,7 +332,7 @@ export default function PaiementEmployeur() {
                   </div>
                   <div className="flex items-center gap-2 text-xs" style={{ color: C.textMuted }}>
                     <Clock className="w-3.5 h-3.5" />
-                    Activé sous 24h
+                    {t("bo.employerPayment.activatedIn")}
                   </div>
                 </div>
 
@@ -348,11 +345,11 @@ export default function PaiementEmployeur() {
                     height: "52px",
                   }}
                 >
-                  {demanderMutation.isPending ? "Envoi en cours..." : "Valider ma demande de souscription"}
+                  {demanderMutation.isPending ? t("bo.employerPayment.submitting") : t("bo.employerPayment.submitBtn")}
                 </Button>
 
                 <p className="text-xs text-center" style={{ color: C.textMuted }}>
-                  Vous recevrez une confirmation par email dès que votre paiement aura été vérifié par notre équipe.
+                  {t("bo.employerPayment.emailNote")}
                 </p>
               </form>
             </CardContent>
