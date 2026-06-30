@@ -279,20 +279,35 @@ export default function PaiementEmployeur() {
   const prix = Number(formule.prix).toLocaleString("fr-FR");
   const numero = methodePaiement === "autre" ? null : PAYMENT_NUMBERS[methodePaiement];
   const theme = getFormuleTheme(formule.nom);
-  // Liste des fonctionnalités : la DB stocke parfois un JSON array
-  // stringifié ["item1","item2"], parfois du texte multilignes.
-  // On essaie JSON.parse d'abord, fallback split par newlines.
-  const fonctionnalites = (() => {
-    const raw = formule.fonctionnalites;
-    if (!raw) return [] as string[];
-    try {
-      const parsed = JSON.parse(String(raw));
-      if (Array.isArray(parsed)) return parsed.map((s) => String(s).trim()).filter(Boolean);
-    } catch {
-      /* fall through */
-    }
-    return String(raw).split("\n").map((s) => s.trim()).filter(Boolean);
-  })();
+
+  // ─── Données formule traduites ──────────────────────────────────────
+  // La DB stocke nom/description/fonctionnalites en FR uniquement.
+  // On utilise les versions traduites du namespace formuleData si
+  // disponibles (matching basé sur le variant déduit du nom), sinon
+  // fallback sur les données DB.
+  const formuleKey = theme.variant === "basic" ? "basic"
+    : theme.variant === "advantage" ? "advantage"
+    : "premium";
+  const translatedShortName = t(`bo.formuleData.${formuleKey}.shortName`);
+  const translatedDescription = t(`bo.formuleData.${formuleKey}.description`);
+  const translatedFeatures = t(`bo.formuleData.${formuleKey}.features`, { returnObjects: true }) as string[];
+  const translatedFullName = t(`bo.formuleData.${formuleKey}.name`);
+
+  // Fonctionnalités : priorité aux traductions i18n. Fallback parsing
+  // DB (JSON array stringifié OU texte multilignes).
+  const fonctionnalites = Array.isArray(translatedFeatures) && translatedFeatures.length > 0
+    ? translatedFeatures
+    : (() => {
+        const raw = formule.fonctionnalites;
+        if (!raw) return [] as string[];
+        try {
+          const parsed = JSON.parse(String(raw));
+          if (Array.isArray(parsed)) return parsed.map((s) => String(s).trim()).filter(Boolean);
+        } catch {
+          /* fall through */
+        }
+        return String(raw).split("\n").map((s) => s.trim()).filter(Boolean);
+      })();
 
   // Handler partagé : retour vers /tarifs avec scroll smooth sur la
   // section #tarifs. On utilise l'URL hash + un handler côté
@@ -448,22 +463,25 @@ export default function PaiementEmployeur() {
                   border: "1px solid rgba(246, 195, 67, 0.40)",
                 }}
               >
-                {formule.nom}
+                {translatedFullName.toUpperCase()}
               </Badge>
               <h1
                 className="font-extrabold leading-[1.05] tracking-tight text-white"
                 style={{ fontSize: "clamp(34px, 4.8vw, 56px)" }}
               >
-                {t("bo.employerPayment.title")}{" "}
-                <span
-                  style={{
-                    background: `linear-gradient(135deg, ${C.gold} 0%, #FFE390 100%)`,
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                  }}
-                >
-                  {formule.nom}
+                <span className="block">{t("bo.employerPayment.title")}</span>
+                <span className="block">
+                  {t("bo.employerPayment.titleSecondLine")}{" "}
+                  <span
+                    style={{
+                      background: `linear-gradient(135deg, ${C.gold} 0%, #FFE390 100%)`,
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
+                    }}
+                  >
+                    {translatedShortName}
+                  </span>
                 </span>
               </h1>
               <p className="mt-4 text-base sm:text-[17px] text-white/80 leading-relaxed max-w-[520px]">
@@ -512,19 +530,20 @@ export default function PaiementEmployeur() {
           </button>
         )}
 
-        {/* Header titre — uniquement "split" (Découverte). Pour
-            "hero" (Avantage), le titre est dans la 1ère colonne du
-            grid 3-col ci-dessous. Titre + subtitle limités à
-            max-w-[640px] pour ne pas s'étaler en pleine largeur
-            (mise en page maquette : titre prend ~50% de la largeur). */}
+        {/* Header titre — uniquement "split" (Découverte). 2 lignes :
+            'Souscription' puis 'Offre [shortName]' avec shortName en
+            vert (selon la maquette). */}
         {theme.layout === "split" && (
           <div className="max-w-[680px] mb-10">
             <h1
               className="font-extrabold tracking-tight leading-[1.05] mb-3"
-              style={{ fontSize: "clamp(34px, 4.5vw, 48px)", color: C.textMain }}
+              style={{ fontSize: "clamp(40px, 5vw, 56px)", color: C.textMain }}
             >
-              {t("bo.employerPayment.title")}{" "}
-              <span style={{ color: C.green }}>{formule.nom}</span>
+              <span className="block">{t("bo.employerPayment.title")}</span>
+              <span className="block">
+                {t("bo.employerPayment.titleSecondLine")}{" "}
+                <span style={{ color: C.green }}>{translatedShortName}</span>
+              </span>
             </h1>
             <p className="text-base sm:text-[17px] leading-relaxed" style={{ color: C.textMuted }}>
               {t("bo.employerPayment.subtitle")}
@@ -562,14 +581,17 @@ export default function PaiementEmployeur() {
                     border: `1px solid ${theme.badgeBorder}`,
                   }}
                 >
-                  {formule.nom}
+                  {translatedFullName.toUpperCase()}
                 </Badge>
                 <h1
                   className="font-extrabold leading-[1.05] tracking-tight"
-                  style={{ fontSize: "clamp(30px, 3.6vw, 42px)", color: C.textMain }}
+                  style={{ fontSize: "clamp(34px, 4vw, 48px)", color: C.textMain }}
                 >
-                  {t("bo.employerPayment.title")}{" "}
-                  <span style={{ color: C.green }}>{formule.nom}</span>
+                  <span className="block">{t("bo.employerPayment.title")}</span>
+                  <span className="block">
+                    {t("bo.employerPayment.titleSecondLine")}{" "}
+                    <span style={{ color: C.green }}>{translatedShortName}</span>
+                  </span>
                 </h1>
                 <p className="mt-3 text-sm leading-relaxed" style={{ color: C.textMuted }}>
                   {t("bo.employerPayment.subtitle")}
@@ -614,7 +636,9 @@ export default function PaiementEmployeur() {
             }}
           >
             <CardContent className="p-7">
-              {/* Badge tier (vert/or selon formule) */}
+              {/* Badge tier (vert/or selon formule).
+                  Utilise le nom traduit (FR : 'Offre Découverte',
+                  EN : 'Starter Plan'), pas le nom DB. */}
               <Badge
                 className="mb-5 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.15em]"
                 style={{
@@ -623,7 +647,7 @@ export default function PaiementEmployeur() {
                   border: `1px solid ${theme.badgeBorder}`,
                 }}
               >
-                {formule.nom}
+                {translatedFullName}
               </Badge>
 
               {/* Prix + période */}
@@ -654,10 +678,11 @@ export default function PaiementEmployeur() {
                   : t("bo.employerPayment.periodMonth")}
               </div>
 
-              {/* Tagline (description courte) en accent color du tier */}
-              {formule.description && (
+              {/* Tagline (description courte) en accent color du tier.
+                  Utilise la traduction i18n (FR/EN), pas la DB. */}
+              {translatedDescription && (
                 <p className="text-sm font-medium mb-6" style={{ color: theme.taglineColor }}>
-                  {formule.description}
+                  {translatedDescription}
                 </p>
               )}
 
@@ -730,10 +755,16 @@ export default function PaiementEmployeur() {
 
           {/* ─── Form paiement ────────────────────────────────────
               Pour layout "hero" : col 3 row-span 2 (full height,
-              aligné avec [titre + recap card] sur la colonne 1). */}
+              aligné avec [titre + recap card] sur la colonne 1).
+              Pour layout "split" : h-full pour prendre la hauteur
+              du grid (titre + recap colonne 1). */}
           <Card
             className={`rounded-3xl border shadow-lg ${
-              theme.layout === "hero" ? "lg:col-start-3 lg:row-start-1 lg:row-span-2" : ""
+              theme.layout === "hero"
+                ? "lg:col-start-3 lg:row-start-1 lg:row-span-2 h-full"
+                : theme.layout === "split"
+                ? "lg:h-full"
+                : ""
             }`}
             style={{ borderColor: C.border }}
           >
@@ -751,9 +782,21 @@ export default function PaiementEmployeur() {
                   <Label className="text-sm font-semibold mb-2 block">{t("bo.employerPayment.method")}</Label>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                     {[
-                      { key: "orange_money", label: t("bo.employerPayment.methodOrange"), color: "#FF7900" },
-                      { key: "mtn_momo", label: t("bo.employerPayment.methodMtn"), color: "#FFC500" },
-                      { key: "autre", label: t("bo.employerPayment.methodOther"), color: C.textMuted },
+                      {
+                        key: "orange_money",
+                        label: t("bo.employerPayment.methodOrange"),
+                        logo: "/images/orange-money-logo.webp",
+                      },
+                      {
+                        key: "mtn_momo",
+                        label: t("bo.employerPayment.methodMtn"),
+                        logo: "/images/mtn-momo-logo.webp",
+                      },
+                      {
+                        key: "autre",
+                        label: t("bo.employerPayment.methodOther"),
+                        logo: null,
+                      },
                     ].map((m) => {
                       const active = methodePaiement === m.key;
                       return (
@@ -761,17 +804,28 @@ export default function PaiementEmployeur() {
                           key={m.key}
                           type="button"
                           onClick={() => setMethodePaiement(m.key as any)}
-                          className="relative flex items-center gap-2.5 h-12 px-3 rounded-xl border-2 text-sm font-semibold transition-all"
+                          className="relative flex items-center gap-2 min-h-[3rem] px-2.5 py-2 rounded-xl border-2 text-xs sm:text-[13px] font-semibold transition-all text-left leading-tight"
                           style={{
                             borderColor: active ? theme.accentColor : C.border,
                             backgroundColor: active ? theme.accentBg : "white",
                             color: C.textMain,
                           }}
                         >
-                          <Smartphone className="w-4 h-4" style={{ color: m.color }} />
-                          {m.label}
+                          {m.logo ? (
+                            <img
+                              src={m.logo}
+                              alt=""
+                              className="w-5 h-5 object-contain shrink-0"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).style.display = "none";
+                              }}
+                            />
+                          ) : (
+                            <Smartphone className="w-4 h-4 shrink-0" style={{ color: C.textMuted }} />
+                          )}
+                          <span className="flex-1 min-w-0">{m.label}</span>
                           {active && (
-                            <CheckCircle2 className="w-4 h-4 ml-auto" style={{ color: theme.accentColor }} />
+                            <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: theme.accentColor }} />
                           )}
                         </button>
                       );

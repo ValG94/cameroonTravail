@@ -1213,9 +1213,52 @@ const fr = {
         updating: "Enregistrement...",
         updatedToast: "Offre modifiée avec succès",
       },
+      // Traductions des données des 3 formules tarifaires.
+      // La DB stocke les données en FR uniquement ; on déduit le
+      // tier (basic/advantage/premium) du nom et on prend la
+      // version traduite ici si la langue est EN.
+      formuleData: {
+        basic: {
+          name: "Offre Découverte",
+          shortName: "Découverte",
+          description: "Pour démarrer le recrutement en ligne",
+          features: [
+            "3 offres d'emploi par mois",
+            "Réception des candidatures par email",
+            "Tableau de bord de suivi",
+            "Support standard",
+          ],
+        },
+        advantage: {
+          name: "Offre Avantage",
+          shortName: "Avantage",
+          description: "Le bon compromis pour recruter rapidement",
+          features: [
+            "10 offres d'emploi par mois",
+            "Accès complet à la CVthèque",
+            "Filtres avancés (secteur, compétences, localisation)",
+            "Mise en avant ponctuelle de vos offres",
+            "Support prioritaire (réponse sous 24h)",
+          ],
+        },
+        premium: {
+          name: "Offre Premium",
+          shortName: "Premium",
+          description: "Recrutement à grande échelle, sans limite",
+          features: [
+            "Offres d'emploi illimitées",
+            "Accès complet à la CVthèque",
+            "Mise en avant permanente de toutes vos offres",
+            "Analytics avancés (vues, candidatures, conversion)",
+            "Conseiller dédié (support 24h/7j)",
+            "Page entreprise personnalisée",
+          ],
+        },
+      },
       employerPayment: {
         backToPrices: "Retour aux tarifs",
         title: "Souscription",
+        titleSecondLine: "Offre",
         subtitle: "Finalisez votre souscription en payant via Mobile Money. Votre formule sera activée sous 24h après vérification par notre équipe.",
         howToPay: "Comment payer ?",
         howToPayDesc: "Choisissez votre méthode, effectuez le paiement depuis votre téléphone, puis renseignez la référence reçue par SMS.",
@@ -2553,9 +2596,48 @@ const en = {
         updating: "Saving...",
         updatedToast: "Job updated successfully",
       },
+      formuleData: {
+        basic: {
+          name: "Starter Plan",
+          shortName: "Starter",
+          description: "To get started with online recruitment",
+          features: [
+            "3 job postings per month",
+            "Receive applications by email",
+            "Tracking dashboard",
+            "Standard support",
+          ],
+        },
+        advantage: {
+          name: "Advantage Plan",
+          shortName: "Advantage",
+          description: "The right balance for regular recruitment",
+          features: [
+            "10 job postings per month",
+            "Full CV database access",
+            "Advanced filters (sector, skills, location)",
+            "Occasional job highlighting",
+            "Priority support (response within 24h)",
+          ],
+        },
+        premium: {
+          name: "Premium Plan",
+          shortName: "Premium",
+          description: "Large-scale recruitment, without limits",
+          features: [
+            "Unlimited job postings",
+            "Full CV database access",
+            "Permanent highlighting of all your jobs",
+            "Advanced analytics (views, applications, conversion)",
+            "Dedicated advisor (24/7 support)",
+            "Custom company page",
+          ],
+        },
+      },
       employerPayment: {
         backToPrices: "Back to prices",
         title: "Subscription",
+        titleSecondLine: "Plan",
         subtitle: "Finalize your subscription by paying via Mobile Money. Your plan will be activated within 24h after verification by our team.",
         howToPay: "How to pay?",
         howToPayDesc: "Choose your method, make the payment from your phone, then enter the reference received by SMS.",
