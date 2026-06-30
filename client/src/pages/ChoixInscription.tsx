@@ -438,7 +438,7 @@ function ProfileCard({
         src={imageSrc}
         alt={imageAlt}
         loading="lazy"
-        className="hidden md:block absolute bottom-0 right-6 h-[90%] max-w-[44%] object-contain object-bottom pointer-events-none select-none transition-transform duration-500 ease-out group-hover:scale-[1.025]"
+        className="hidden md:block absolute bottom-0 right-2 lg:right-4 h-[108%] max-w-[55%] object-contain object-bottom pointer-events-none select-none transition-transform duration-500 ease-out group-hover:scale-[1.03]"
         onError={(e) => {
           (e.currentTarget as HTMLImageElement).style.display = "none";
         }}
