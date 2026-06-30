@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "wouter";
 import { motion, useInView, useReducedMotion, type Variants } from "framer-motion";
 import { trpc } from "@/lib/trpc";
@@ -182,6 +183,7 @@ function CameroonFlag({ className = "" }: { className?: string }) {
 
 // ─── Page principale ──────────────────────────────────────────────────────────
 export default function EspaceRecruteur() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const [formData, setFormData] = useState({ entreprise: "", email: "", telephone: "", taille: "" });
   const [submitting, setSubmitting] = useState(false);
@@ -195,7 +197,7 @@ export default function EspaceRecruteur() {
   function handleInscription(e: React.FormEvent) {
     e.preventDefault();
     if (!formData.entreprise || !formData.email) {
-      toast.error("Veuillez remplir les champs obligatoires");
+      toast.error(t("common.required"));
       return;
     }
     setSubmitting(true);
@@ -263,7 +265,7 @@ export default function EspaceRecruteur() {
                     style={{ backgroundColor: C.gold }}
                   />
                 </span>
-                Plateforme de recrutement #1 au Cameroun
+                {t("recruiter.hero.badge")}
               </motion.div>
 
               {/* H1 massif */}
@@ -276,7 +278,7 @@ export default function EspaceRecruteur() {
                   textShadow: "0 2px 12px rgba(0,0,0,0.40)",
                 }}
               >
-                Recrutez les{" "}
+                {t("recruiter.hero.titleStart")}{" "}
                 <span
                   style={{
                     background: `linear-gradient(135deg, ${C.gold} 0%, #FFE390 100%)`,
@@ -285,10 +287,10 @@ export default function EspaceRecruteur() {
                     backgroundClip: "text",
                   }}
                 >
-                  meilleurs talents
+                  {t("recruiter.hero.titleAccent")}
                 </span>
                 <br />
-                au Cameroun
+                {t("recruiter.hero.titleEnd")}
               </motion.h1>
 
               {/* Sous-titre */}
@@ -297,7 +299,7 @@ export default function EspaceRecruteur() {
                 className="text-base sm:text-lg text-white/90 mt-5 max-w-xl leading-relaxed"
                 style={{ textShadow: "0 1px 6px rgba(0,0,0,0.45)" }}
               >
-                Accédez à des profils qualifiés, publiez vos offres et gérez vos recrutements depuis une plateforme conçue pour le marché camerounais.
+                {t("recruiter.hero.subtitle")}
               </motion.p>
 
               {/* CTAs */}
@@ -308,7 +310,7 @@ export default function EspaceRecruteur() {
                   className="h-12 px-7 text-base font-semibold gap-2 shadow-xl transition-all focus:ring-4 focus:ring-yellow-400/30"
                   style={{ backgroundColor: C.gold, color: C.textMain }}
                 >
-                  Commencer maintenant
+                  {t("recruiter.hero.ctaPrimary")}
                   <ArrowRight className="w-4 h-4" />
                 </Button>
                 <Button
@@ -318,7 +320,7 @@ export default function EspaceRecruteur() {
                   onClick={() => document.getElementById("hero-form")?.scrollIntoView({ behavior: "smooth" })}
                 >
                   <Phone className="w-4 h-4" />
-                  Parler à un expert
+                  {t("recruiter.hero.ctaSecondary")}
                 </Button>
               </motion.div>
 
@@ -328,7 +330,7 @@ export default function EspaceRecruteur() {
                 className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-white/90 mt-7"
                 style={{ textShadow: "0 1px 4px rgba(0,0,0,0.45)" }}
               >
-                {["Inscription en 2 minutes", "Sans engagement", "Support 24h/7j"].map((label) => (
+                {[t("recruiter.hero.proofs.fast"), t("recruiter.hero.proofs.noCommit"), t("recruiter.hero.proofs.support")].map((label) => (
                   <div key={label} className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4" style={{ color: C.gold }} />
                     {label}
@@ -364,15 +366,15 @@ export default function EspaceRecruteur() {
                   className="text-xl font-bold mb-1"
                   style={{ color: C.textMain, fontFamily: "'Manrope', 'Inter', sans-serif" }}
                 >
-                  Créez votre compte recruteur
+                  {t("recruiter.hero.form.title")}
                 </h2>
                 <p className="text-sm mb-6" style={{ color: C.textMuted }}>
-                  Rejoignez plus de 2 500 entreprises qui recrutent déjà.
+                  {t("recruiter.hero.form.subtitle")}
                 </p>
 
                 <form onSubmit={handleInscription} className="space-y-3.5">
                   <Input
-                    placeholder="Nom de l'entreprise"
+                    placeholder={t("recruiter.hero.form.company")}
                     value={formData.entreprise}
                     onChange={(e) => setFormData({ ...formData, entreprise: e.target.value })}
                     className="h-11"
@@ -381,7 +383,7 @@ export default function EspaceRecruteur() {
                   />
                   <Input
                     type="email"
-                    placeholder="Email professionnel"
+                    placeholder={t("recruiter.hero.form.email")}
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="h-11"
@@ -405,7 +407,7 @@ export default function EspaceRecruteur() {
                     </div>
                     <input
                       type="tel"
-                      placeholder="Téléphone"
+                      placeholder={t("recruiter.hero.form.phone")}
                       value={formData.telephone}
                       onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
                       className="flex-1 min-w-0 px-3 text-sm bg-white focus:outline-none"
@@ -418,12 +420,12 @@ export default function EspaceRecruteur() {
                     className="w-full h-11 px-3 rounded-md border bg-white text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                     style={{ borderColor: C.border, color: C.textMuted }}
                   >
-                    <option value="">Taille de l'entreprise</option>
-                    <option value="1-10">1 à 10 employés</option>
-                    <option value="11-50">11 à 50 employés</option>
-                    <option value="51-200">51 à 200 employés</option>
-                    <option value="201-1000">201 à 1000 employés</option>
-                    <option value="1000+">Plus de 1000 employés</option>
+                    <option value="">{t("recruiter.hero.form.size")}</option>
+                    <option value="1-10">{t("recruiter.hero.form.sizes.xs")}</option>
+                    <option value="11-50">{t("recruiter.hero.form.sizes.s")}</option>
+                    <option value="51-200">{t("recruiter.hero.form.sizes.m")}</option>
+                    <option value="201-1000">{t("recruiter.hero.form.sizes.l")}</option>
+                    <option value="1000+">{t("recruiter.hero.form.sizes.xl")}</option>
                   </select>
                   <Button
                     type="submit"
@@ -431,17 +433,17 @@ export default function EspaceRecruteur() {
                     className="w-full h-11 font-semibold text-base text-white shadow-md transition-all focus:ring-4 focus:ring-green-500/30"
                     style={{ backgroundColor: C.green }}
                   >
-                    {submitting ? "Redirection..." : "Créer mon compte"}
+                    {submitting ? t("recruiter.hero.form.submitting") : t("recruiter.hero.form.submit")}
                   </Button>
                 </form>
                 <p className="text-xs text-center mt-4 leading-relaxed" style={{ color: C.textMuted }}>
-                  En créant un compte, vous acceptez nos{" "}
+                  {t("recruiter.hero.form.terms")}{" "}
                   <a
                     href="#"
                     className="font-medium hover:underline"
                     style={{ color: C.green }}
                   >
-                    conditions d'utilisation
+                    {t("recruiter.hero.form.termsLink")}
                   </a>
                 </p>
               </div>
@@ -466,7 +468,7 @@ export default function EspaceRecruteur() {
                   {
                     value: 2500,
                     suffix: "+",
-                    label: "Entreprises partenaires",
+                    label: t("recruiter.stats.partners"),
                     icon: Building2,
                     accent: C.green,
                     bg: "rgba(0, 155, 90, 0.10)",
@@ -474,7 +476,7 @@ export default function EspaceRecruteur() {
                   {
                     value: 95,
                     suffix: "%",
-                    label: "Taux de satisfaction",
+                    label: t("recruiter.stats.satisfaction"),
                     icon: Star,
                     accent: C.orange,
                     bg: "rgba(255, 138, 0, 0.10)",
@@ -482,7 +484,7 @@ export default function EspaceRecruteur() {
                   {
                     value: 15,
                     suffix: "j",
-                    label: "Délai moyen de recrutement",
+                    label: t("recruiter.stats.avgTime"),
                     icon: Clock,
                     accent: C.blue,
                     bg: "rgba(37, 99, 235, 0.10)",
@@ -490,7 +492,7 @@ export default function EspaceRecruteur() {
                   {
                     value: 24,
                     suffix: "h",
-                    label: "Support réactif",
+                    label: t("recruiter.stats.support"),
                     icon: HeadphonesIcon,
                     accent: C.violet,
                     bg: "rgba(139, 92, 246, 0.10)",
@@ -530,7 +532,7 @@ export default function EspaceRecruteur() {
               className="mb-4 px-3 py-1 border"
               style={{ backgroundColor: C.greenSoft, color: C.green, borderColor: "rgba(0, 155, 90, 0.20)" }}
             >
-              Nos avantages
+              {t("recruiter.advantages.sectionLabel")}
             </Badge>
             <h2
               className="font-extrabold tracking-tight"
@@ -541,11 +543,11 @@ export default function EspaceRecruteur() {
                 lineHeight: 1.1,
               }}
             >
-              Tout ce qu'il faut pour{" "}
-              <span style={{ color: C.green }}>recruter intelligemment</span>
+              {t("recruiter.advantages.titleStart")}{" "}
+              <span style={{ color: C.green }}>{t("recruiter.advantages.titleAccent")}</span>
             </h2>
             <p className="mt-4 text-base sm:text-lg" style={{ color: C.textMuted }}>
-              Des outils puissants conçus spécifiquement pour le marché de l'emploi camerounais.
+              {t("recruiter.advantages.subtitle")}
             </p>
           </Reveal>
 
@@ -564,45 +566,45 @@ export default function EspaceRecruteur() {
             {[
               {
                 icon: Users,
-                title: "CVthèque Premium",
-                desc: "Accédez à des milliers de profils qualifiés filtrés par compétence, région et expérience.",
+                title: t("recruiter.advantages.cards.cvtheque.title"),
+                desc: t("recruiter.advantages.cards.cvtheque.desc"),
                 color: C.green,
                 bg: "rgba(0, 155, 90, 0.10)",
-                badge: "30 000+ profils actifs",
+                badge: t("recruiter.advantages.cards.cvtheque.badge"),
               },
               {
                 icon: Search,
-                title: "Ciblage Précis",
-                desc: "Filtres avancés par secteur, région, niveau d'expérience et formation.",
+                title: t("recruiter.advantages.cards.targeting.title"),
+                desc: t("recruiter.advantages.cards.targeting.desc"),
                 color: C.blue,
                 bg: "rgba(37, 99, 235, 0.10)",
               },
               {
                 icon: BarChart3,
-                title: "Analytics Avancés",
-                desc: "Tableau de bord en temps réel pour suivre la performance de chaque offre.",
+                title: t("recruiter.advantages.cards.analytics.title"),
+                desc: t("recruiter.advantages.cards.analytics.desc"),
                 color: C.violet,
                 bg: "rgba(139, 92, 246, 0.10)",
               },
               {
                 icon: HeadphonesIcon,
-                title: "Support Dédié",
-                desc: "Conseiller expert en recrutement camerounais à chaque étape.",
+                title: t("recruiter.advantages.cards.support.title"),
+                desc: t("recruiter.advantages.cards.support.desc"),
                 color: C.orange,
                 bg: "rgba(255, 138, 0, 0.10)",
               },
               {
                 icon: Zap,
-                title: "Publication Rapide",
-                desc: "Publiez vos offres en moins de 5 minutes et recevez des candidatures rapidement.",
+                title: t("recruiter.advantages.cards.fastPublish.title"),
+                desc: t("recruiter.advantages.cards.fastPublish.desc"),
                 color: C.gold,
                 bg: "rgba(246, 195, 67, 0.18)",
-                badge: "1ère candidature en 24h",
+                badge: t("recruiter.advantages.cards.fastPublish.badge"),
               },
               {
                 icon: ShieldCheck,
-                title: "Profils Vérifiés",
-                desc: "CV et références validés en amont pour des recrutements plus fiables et sécurisés.",
+                title: t("recruiter.advantages.cards.verified.title"),
+                desc: t("recruiter.advantages.cards.verified.desc"),
                 color: C.green,
                 bg: "rgba(0, 155, 90, 0.10)",
               },
@@ -661,7 +663,7 @@ export default function EspaceRecruteur() {
                 className="mb-4 px-3 py-1 border"
                 style={{ backgroundColor: "rgba(37, 99, 235, 0.10)", color: C.blue, borderColor: "rgba(37, 99, 235, 0.20)" }}
               >
-                Comment ça marche
+                {t("recruiter.steps.sectionLabel")}
               </Badge>
               <h2
                 className="font-extrabold tracking-tight leading-[1.1]"
@@ -671,9 +673,9 @@ export default function EspaceRecruteur() {
                   fontFamily: "'Manrope', 'Inter', sans-serif",
                 }}
               >
-                Recrutez en
+                {t("recruiter.steps.titleStart")}
                 <br />
-                <span style={{ color: C.green }}>3 étapes</span> simples.
+                <span style={{ color: C.green }}>{t("recruiter.steps.titleAccent")}</span> {t("recruiter.steps.titleEnd")}
               </h2>
 
               <div className="space-y-5 mt-8">
@@ -681,20 +683,20 @@ export default function EspaceRecruteur() {
                   // Numéros aux couleurs du drapeau camerounais (vert/jaune/rouge)
                   {
                     n: "01",
-                    title: "Créez votre compte",
-                    desc: "Inscrivez-vous et configurez votre profil entreprise en moins de 5 minutes.",
+                    title: t("recruiter.steps.step1Title"),
+                    desc: t("recruiter.steps.step1Desc"),
                     color: C.green,
                   },
                   {
                     n: "02",
-                    title: "Publiez vos offres",
-                    desc: "Rédigez et publiez vos annonces visibles par des milliers de candidats qualifiés.",
+                    title: t("recruiter.steps.step2Title"),
+                    desc: t("recruiter.steps.step2Desc"),
                     color: C.gold,
                   },
                   {
                     n: "03",
-                    title: "Sélectionnez les talents",
-                    desc: "Parcourez les candidatures, consultez les CV et contactez les profils pertinents.",
+                    title: t("recruiter.steps.step3Title"),
+                    desc: t("recruiter.steps.step3Desc"),
                     color: C.red,
                   },
                 ].map(({ n, title, desc, color }, i) => (
@@ -727,7 +729,7 @@ export default function EspaceRecruteur() {
                 className="mt-8 h-11 px-6 font-semibold text-white gap-2 shadow-md transition-all focus:ring-4 focus:ring-green-500/30"
                 style={{ backgroundColor: C.green }}
               >
-                Commencer maintenant
+                {t("recruiter.steps.cta")}
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </Reveal>
@@ -770,7 +772,7 @@ export default function EspaceRecruteur() {
                       +3 200
                     </div>
                     <div className="text-[11px] sm:text-xs text-white/95">
-                      candidats actifs ce mois
+                      {t("recruiter.steps.badgeCandidates")}
                     </div>
                   </motion.div>
                 </motion.div>
@@ -813,7 +815,7 @@ export default function EspaceRecruteur() {
                         +42%
                       </div>
                       <div className="text-[9px] leading-tight" style={{ color: C.textMuted }}>
-                        de recrutements réussis
+                        {t("recruiter.steps.badgeSuccess")}
                       </div>
                     </div>
                   </motion.div>
@@ -840,10 +842,10 @@ export default function EspaceRecruteur() {
                     fontFamily: "'Manrope', 'Inter', sans-serif",
                   }}
                 >
-                  Conseils Recrutement
+                  {t("recruiter.advice.title")}
                 </h2>
                 <p className="mt-2" style={{ color: C.textMuted }}>
-                  Nos experts partagent leurs meilleures pratiques.
+                  {t("recruiter.advice.subtitle")}
                 </p>
               </div>
               <Button
@@ -852,7 +854,7 @@ export default function EspaceRecruteur() {
                 className="self-start sm:self-end gap-2 hover:bg-emerald-50"
                 style={{ borderColor: C.border, color: C.green }}
               >
-                Voir tous les guides
+                {t("recruiter.advice.viewAll")}
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </Reveal>
@@ -892,7 +894,7 @@ export default function EspaceRecruteur() {
                                 borderColor: "rgba(0,155,90,0.20)",
                               }}
                             >
-                              Guide
+                              {t("recruiter.advice.guide")}
                             </Badge>
                             {article.tempsLecture && (
                               <span className="text-xs" style={{ color: C.textMuted }}>
@@ -918,7 +920,7 @@ export default function EspaceRecruteur() {
                             className="inline-flex items-center gap-1.5 text-sm font-semibold mt-auto group-hover:gap-2 transition-all"
                             style={{ color: C.green }}
                           >
-                            Lire le guide
+                            {t("recruiter.advice.readMore")}
                             <ChevronRight className="w-4 h-4" />
                           </span>
                         </div>
@@ -948,7 +950,7 @@ export default function EspaceRecruteur() {
               className="mb-4 px-3 py-1 border"
               style={{ backgroundColor: C.greenSoft, color: C.green, borderColor: "rgba(0,155,90,0.20)" }}
             >
-              Tarification
+              {t("recruiter.pricing.sectionLabel")}
             </Badge>
             <h2
               className="font-extrabold tracking-tight"
@@ -958,10 +960,10 @@ export default function EspaceRecruteur() {
                 fontFamily: "'Manrope', 'Inter', sans-serif",
               }}
             >
-              Tarifs transparents
+              {t("recruiter.pricing.title")}
             </h2>
             <p className="mt-3 text-base sm:text-lg" style={{ color: C.textMuted }}>
-              Choisissez la formule qui correspond à vos besoins.
+              {t("recruiter.pricing.subtitle")}
             </p>
           </Reveal>
 
@@ -1016,7 +1018,7 @@ export default function EspaceRecruteur() {
                           style={{ backgroundColor: C.green }}
                         >
                           <Star className="w-3.5 h-3.5 fill-white" />
-                          Populaire
+                          {t("recruiter.pricing.popular")}
                         </span>
                       </div>
                     )}
@@ -1078,7 +1080,7 @@ export default function EspaceRecruteur() {
                             : { backgroundColor: C.textMain, color: "white" }
                         }
                       >
-                        Choisir ce plan
+                        {t("recruiter.pricing.chooseThisPlan")}
                       </Button>
                     </div>
                   </motion.div>
@@ -1089,13 +1091,13 @@ export default function EspaceRecruteur() {
 
           <Reveal className="text-center mt-10" delay={0.2}>
             <p className="text-sm" style={{ color: C.textMuted }}>
-              Besoin d'une offre sur mesure ?{" "}
+              {t("recruiter.pricing.custom")}{" "}
               <a
                 href="mailto:contact@cameroon-travail.cm"
                 className="font-medium hover:underline"
                 style={{ color: C.green }}
               >
-                Contactez-nous
+                {t("recruiter.pricing.contactUs")}
               </a>
             </p>
           </Reveal>
@@ -1116,7 +1118,7 @@ export default function EspaceRecruteur() {
                 borderColor: "rgba(246, 195, 67, 0.30)",
               }}
             >
-              Témoignages
+              {t("recruiter.testimonials.sectionLabel")}
             </Badge>
             <h2
               className="font-extrabold tracking-tight"
@@ -1126,10 +1128,10 @@ export default function EspaceRecruteur() {
                 fontFamily: "'Manrope', 'Inter', sans-serif",
               }}
             >
-              Ils nous font confiance
+              {t("recruiter.testimonials.title")}
             </h2>
             <p className="mt-3 text-base sm:text-lg" style={{ color: C.textMuted }}>
-              Plus de 2 500 entreprises camerounaises recrutent avec nous.
+              {t("recruiter.testimonials.subtitle")}
             </p>
           </Reveal>
 
@@ -1241,7 +1243,7 @@ export default function EspaceRecruteur() {
                   fontFamily: "'Manrope', 'Inter', sans-serif",
                 }}
               >
-                Prêt à transformer votre{" "}
+                {t("recruiter.finalCta.titleStart")}{" "}
                 <span
                   style={{
                     background: `linear-gradient(135deg, ${C.gold} 0%, #FFE390 100%)`,
@@ -1250,14 +1252,14 @@ export default function EspaceRecruteur() {
                     backgroundClip: "text",
                   }}
                 >
-                  recrutement
+                  {t("recruiter.finalCta.titleAccent")}
                 </span>
-                {" "}?
+                {" "}{t("recruiter.finalCta.titleEnd")}
               </h2>
             </Reveal>
             <Reveal delay={0.1}>
               <p className="mt-5 text-base sm:text-lg text-white/85 leading-relaxed">
-                Rejoignez plus de 2 500 entreprises qui nous font confiance pour trouver les meilleurs talents camerounais.
+                {t("recruiter.finalCta.subtitle")}
               </p>
             </Reveal>
             <Reveal delay={0.2}>
@@ -1268,7 +1270,7 @@ export default function EspaceRecruteur() {
                   className="h-12 px-7 text-base font-semibold gap-2 shadow-xl transition-all focus:ring-4 focus:ring-yellow-400/30"
                   style={{ backgroundColor: C.gold, color: C.textMain }}
                 >
-                  Commencer maintenant
+                  {t("recruiter.finalCta.ctaPrimary")}
                   <ArrowRight className="w-4 h-4" />
                 </Button>
                 <Button
@@ -1278,7 +1280,7 @@ export default function EspaceRecruteur() {
                   onClick={() => window.location.assign("tel:+237600000000")}
                 >
                   <Phone className="w-4 h-4" />
-                  Parler à un expert
+                  {t("recruiter.finalCta.ctaSecondary")}
                 </Button>
               </div>
             </Reveal>

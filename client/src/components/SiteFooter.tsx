@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { Facebook, Linkedin, Mail, MapPin, Phone, Twitter } from "lucide-react";
 import { toast } from "sonner";
@@ -27,50 +28,51 @@ interface LinkItem {
   external?: boolean;
 }
 
-const CANDIDATS_LINKS: LinkItem[] = [
-  { label: "Toutes les offres", href: "/offres" },
-  { label: "Emploi public", href: "/emploi-public" },
-  { label: "Emploi privé", href: "/emploi-prive" },
-  { label: "Créer mon CV", href: "/candidat/cv" },
-  { label: "Conseils carrière", href: "/conseils" },
-];
-
-const RECRUTEURS_LINKS: LinkItem[] = [
-  { label: "Espace recruteur", href: "/espace-recruteur" },
-  { label: "Publier une offre", href: "/employeur/publier" },
-  { label: "Créer un compte", href: "/inscription/employeur" },
-  { label: "Tarifs", href: "/espace-recruteur#tarifs" },
-];
-
-const PLATFORM_LINKS: LinkItem[] = [
-  { label: "Accueil", href: "/" },
-  { label: "Conseils & magazine", href: "/conseils" },
-  { label: "Connexion", href: "/connexion" },
-  { label: "Inscription", href: "/inscription" },
-];
-
-const LEGAL_LINKS: LinkItem[] = [
-  { label: "Mentions légales", href: "#" },
-  { label: "Conditions d'utilisation", href: "#" },
-  { label: "Politique de confidentialité", href: "#" },
-];
-
 export default function SiteFooter() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [subscribing, setSubscribing] = useState(false);
+
+  const CANDIDATS_LINKS: LinkItem[] = [
+    { label: t("footer.links.allOffers"), href: "/offres" },
+    { label: t("footer.links.publicJobs"), href: "/emploi-public" },
+    { label: t("footer.links.privateJobs"), href: "/emploi-prive" },
+    { label: t("footer.links.createCv"), href: "/candidat/cv" },
+    { label: t("footer.links.careerAdvice"), href: "/conseils" },
+  ];
+
+  const RECRUTEURS_LINKS: LinkItem[] = [
+    { label: t("footer.links.recruiterSpace"), href: "/espace-recruteur" },
+    { label: t("footer.links.postOffer"), href: "/employeur/publier" },
+    { label: t("footer.links.createAccount"), href: "/inscription/employeur" },
+    { label: t("footer.links.pricing"), href: "/espace-recruteur#tarifs" },
+  ];
+
+  const PLATFORM_LINKS: LinkItem[] = [
+    { label: t("footer.links.home"), href: "/" },
+    { label: t("footer.links.magazine"), href: "/conseils" },
+    { label: t("footer.links.login"), href: "/connexion" },
+    { label: t("footer.links.signup"), href: "/inscription" },
+  ];
+
+  const LEGAL_LINKS: LinkItem[] = [
+    { label: t("footer.links.legal"), href: "#" },
+    { label: t("footer.links.terms"), href: "#" },
+    { label: t("footer.links.privacy"), href: "#" },
+  ];
 
   // Newsletter : stub côté UI. À brancher quand le backend exposera
   // une route trpc.newsletter.subscribe ou équivalent.
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newsletterEmail || !newsletterEmail.includes("@")) {
-      toast.error("Veuillez saisir une adresse email valide");
+      toast.error(t("footer.newsletter.invalidEmail"));
       return;
     }
     setSubscribing(true);
     setTimeout(() => {
-      toast.success("Merci ! Vous recevrez bientôt nos meilleures offres.");
+      toast.success(t("footer.newsletter.success"));
       setNewsletterEmail("");
       setSubscribing(false);
     }, 500);
@@ -129,7 +131,7 @@ export default function SiteFooter() {
               </span>
             </button>
             <p className="text-sm text-white/75 leading-relaxed max-w-sm">
-              La plateforme nationale qui connecte les talents aux meilleures opportunités d'emploi au Cameroun et dans la diaspora.
+              {t("footer.tagline")}
             </p>
 
             {/* Réseaux sociaux */}
@@ -153,13 +155,13 @@ export default function SiteFooter() {
           </div>
 
           {/* Candidats */}
-          <FooterColumn title="Candidats" links={CANDIDATS_LINKS} onNav={handleNav} />
+          <FooterColumn title={t("footer.columns.candidates")} links={CANDIDATS_LINKS} onNav={handleNav} />
 
           {/* Recruteurs */}
-          <FooterColumn title="Recruteurs" links={RECRUTEURS_LINKS} onNav={handleNav} />
+          <FooterColumn title={t("footer.columns.recruiters")} links={RECRUTEURS_LINKS} onNav={handleNav} />
 
-          {/* À propos */}
-          <FooterColumn title="À propos" links={PLATFORM_LINKS} onNav={handleNav} />
+          {/* Plateforme */}
+          <FooterColumn title={t("footer.columns.platform")} links={PLATFORM_LINKS} onNav={handleNav} />
 
           {/* Newsletter */}
           <div className="lg:col-span-3">
@@ -167,10 +169,10 @@ export default function SiteFooter() {
               className="font-bold mb-3 text-sm uppercase tracking-wider"
               style={{ color: COLORS.gold }}
             >
-              Newsletter
+              {t("footer.columns.newsletter")}
             </h3>
             <p className="text-sm text-white/75 mb-4 leading-relaxed">
-              Recevez nos conseils et nos meilleures offres d'emploi chaque semaine.
+              {t("footer.newsletter.desc")}
             </p>
             {/* Newsletter input + bouton TOUJOURS sur la même ligne
                 (la colonne fait lg:col-span-3 → environ 25% de la grille
@@ -182,7 +184,7 @@ export default function SiteFooter() {
                   type="email"
                   value={newsletterEmail}
                   onChange={(e) => setNewsletterEmail(e.target.value)}
-                  placeholder="Votre email"
+                  placeholder={t("footer.newsletter.placeholder")}
                   className="w-full h-10 pl-10 pr-3 text-sm rounded-lg border bg-white/5 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 transition-all"
                   style={{ borderColor: "rgba(255, 255, 255, 0.15)" }}
                 />
@@ -193,7 +195,7 @@ export default function SiteFooter() {
                 className="h-10 px-4 sm:px-5 text-sm font-semibold rounded-lg transition-all disabled:opacity-60 shrink-0 whitespace-nowrap"
                 style={{ backgroundColor: COLORS.emerald, color: "white" }}
               >
-                {subscribing ? "..." : "S'abonner"}
+                {subscribing ? t("footer.newsletter.submitting") : t("footer.newsletter.submit")}
               </button>
             </form>
 
@@ -218,7 +220,7 @@ export default function SiteFooter() {
         {/* ─── Bas du footer : copyright + légal ─────────────────── */}
         <div className="border-t border-white/10 pt-7 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <p className="text-xs text-white/60">
-            © {new Date().getFullYear()} Cameroon Travail. Tous droits réservés.
+            © {new Date().getFullYear()} Cameroon Travail. {t("footer.copyright")}
           </p>
           <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-white/60">
             {LEGAL_LINKS.map((link) => (

@@ -23,6 +23,7 @@ import {
   Users,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 
 // ─── Palette identitaire ──────────────────────────────────────────────────────
@@ -147,6 +148,7 @@ function AnimatedCounter({ target, suffix = "", duration = 1800 }: { target: num
 
 // ─── Composant principal ──────────────────────────────────────────────────────
 export default function Home() {
+  const { t } = useTranslation();
   const { user, loading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const [mode, setMode] = useState<"candidat" | "recruteur">("candidat");
@@ -171,7 +173,7 @@ export default function Home() {
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderColor: COLORS.emerald }} />
-          <p className="mt-4 text-gray-600">Chargement…</p>
+          <p className="mt-4 text-gray-600">{t("common.loading")}</p>
         </div>
       </div>
     );
@@ -220,7 +222,7 @@ export default function Home() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: COLORS.gold }} />
                   <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: COLORS.gold }} />
                 </span>
-                La plateforme n°1 de l'emploi au Cameroun
+                {t("landing.hero.badge")}
               </motion.div>
 
               {/* Titre */}
@@ -229,18 +231,14 @@ export default function Home() {
                 className="text-3xl sm:text-4xl lg:text-5xl xl:text-[3.2rem] font-extrabold leading-[1.08] tracking-tight"
                 style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}
               >
-                Le marché de l'emploi
+                {t("landing.hero.titleStart")}
                 <br />
-                camerounais, enfin connecté
-                <br />
-                aux bons talents.
+                {t("landing.hero.titleAccent")}
               </motion.h1>
 
               {/* Sous-titre */}
               <motion.p variants={fadeUp} className="text-base sm:text-lg text-white/85 max-w-2xl leading-relaxed">
-                Des milliers d'offres d'emploi, des profils qualifiés,
-                <br className="hidden sm:block" />
-                et des opportunités dans toutes les régions du Cameroun.
+                {t("landing.hero.subtitle")}
               </motion.p>
 
               {/* TABS Candidat / Recruteur */}
@@ -264,7 +262,7 @@ export default function Home() {
                     <Users className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
-                    <div className="font-bold text-white text-sm">Je cherche un emploi</div>
+                    <div className="font-bold text-white text-sm">{t("landing.hero.ctaJobSeeker")}</div>
                     {mode === "candidat" && (
                       <div className="text-xs text-white/70 truncate">Trouvez l'opportunité qui vous correspond</div>
                     )}
@@ -290,7 +288,7 @@ export default function Home() {
                     <Building2 className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
-                    <div className="font-bold text-white text-sm">Je recrute</div>
+                    <div className="font-bold text-white text-sm">{t("landing.hero.ctaRecruiter")}</div>
                     {mode === "recruteur" && (
                       <div className="text-xs text-white/70 truncate">Publiez vos offres et trouvez des candidats</div>
                     )}
@@ -315,7 +313,7 @@ export default function Home() {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                        placeholder="Métier, compétence, entreprise…"
+                        placeholder={t("landing.hero.searchPlaceholderJob")}
                         className="w-full h-11 pl-10 pr-3 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-gray-900 placeholder:text-gray-400"
                       />
                     </div>
@@ -326,7 +324,7 @@ export default function Home() {
                         value={searchVille}
                         onChange={(e) => setSearchVille(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                        placeholder="Ville, région…"
+                        placeholder={t("landing.hero.searchPlaceholderCity")}
                         className="w-full h-11 pl-10 pr-3 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-gray-900 placeholder:text-gray-400"
                       />
                     </div>
@@ -345,13 +343,13 @@ export default function Home() {
                       style={{ backgroundColor: COLORS.gold, color: COLORS.charcoal }}
                     >
                       <Search className="w-4 h-4" />
-                      Rechercher
+                      {t("landing.hero.searchButton")}
                     </Button>
                   </div>
 
                   {/* Recherches populaires */}
                   <div className="flex flex-wrap items-center gap-2 mt-3.5 pt-3.5 border-t border-gray-100">
-                    <span className="text-xs font-medium text-gray-500">Recherches populaires :</span>
+                    <span className="text-xs font-medium text-gray-500">{t("landing.hero.popularSearches")}</span>
                     {RECHERCHES_POPULAIRES.map((tag) => (
                       <button
                         key={tag}
@@ -389,10 +387,10 @@ export default function Home() {
               <motion.div variants={fadeUp} className="bg-white rounded-2xl shadow-xl p-4 max-w-2xl">
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                   {[
-                    { icon: FileText, label: "Créer mon CV", subtitle: "professionnel", path: user ? "/candidat/cv" : "/inscription?type=candidat" },
-                    { icon: Upload, label: "Déposer mon CV", subtitle: "", path: user ? "/deposer-cv" : "/inscription?type=candidat" },
-                    { icon: Bell, label: "Alertes emploi", subtitle: "", path: user ? "/candidat/alertes" : "/inscription?type=candidat", iconColor: COLORS.emerald },
-                    { icon: GraduationCap, label: "Conseils carrière", subtitle: "", path: "/conseils" },
+                    { icon: FileText, label: t("landing.hero.quickActions.createCv"), subtitle: t("landing.hero.quickActions.createCvSub"), path: user ? "/candidat/cv" : "/inscription?type=candidat" },
+                    { icon: Upload, label: t("landing.hero.quickActions.uploadCv"), subtitle: "", path: user ? "/deposer-cv" : "/inscription?type=candidat" },
+                    { icon: Bell, label: t("landing.hero.quickActions.jobAlerts"), subtitle: "", path: user ? "/candidat/alertes" : "/inscription?type=candidat", iconColor: COLORS.emerald },
+                    { icon: GraduationCap, label: t("landing.hero.quickActions.careerAdvice"), subtitle: "", path: "/conseils" },
                   ].map(({ icon: Icon, label, subtitle, path, iconColor }, i) => (
                     <button
                       key={i}
@@ -449,15 +447,15 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="text-lg font-extrabold text-gray-900 leading-tight">
-                  50 000+ candidats
+                  {t("landing.hero.socialProof.count")}
                 </div>
-                <div className="text-sm text-gray-600 mb-3">nous font confiance</div>
+                <div className="text-sm text-gray-600 mb-3">{t("landing.hero.socialProof.subtitle")}</div>
                 <button
                   onClick={() => setLocation("/inscription?type=candidat")}
                   className="inline-flex items-center gap-1.5 text-sm font-semibold hover:gap-2 transition-all"
                   style={{ color: COLORS.emerald }}
                 >
-                  Rejoignez-les
+                  {t("landing.hero.socialProof.joinUs")}
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -474,10 +472,10 @@ export default function Home() {
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm py-8 px-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
               {[
-                { value: 10000, suffix: "+", label: "Offres d'emploi", icon: Briefcase, bg: "rgba(15, 138, 76, 0.10)", color: COLORS.emerald },
-                { value: 2500, suffix: "+", label: "Entreprises actives", icon: Building2, bg: "rgba(246, 195, 67, 0.18)", color: COLORS.goldDark },
-                { value: 50000, suffix: "+", label: "Candidats inscrits", icon: Users, bg: "rgba(15, 138, 76, 0.10)", color: COLORS.emerald },
-                { value: 98, suffix: "%", label: "De satisfaction", icon: Sparkles, bg: "rgba(246, 195, 67, 0.18)", color: COLORS.goldDark },
+                { value: 10000, suffix: "+", label: t("landing.stats.jobOffers"), icon: Briefcase, bg: "rgba(15, 138, 76, 0.10)", color: COLORS.emerald },
+                { value: 2500, suffix: "+", label: t("landing.stats.partners"), icon: Building2, bg: "rgba(246, 195, 67, 0.18)", color: COLORS.goldDark },
+                { value: 50000, suffix: "+", label: t("landing.stats.candidates"), icon: Users, bg: "rgba(15, 138, 76, 0.10)", color: COLORS.emerald },
+                { value: 98, suffix: "%", label: t("landing.stats.satisfaction"), icon: Sparkles, bg: "rgba(246, 195, 67, 0.18)", color: COLORS.goldDark },
               ].map(({ value, suffix, label, icon: Icon, bg, color }, i) => (
                 <Reveal key={label} delay={i * 0.06}>
                   <div className="text-center">
@@ -503,10 +501,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Reveal className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight" style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}>
-              Deux parcours, une plateforme
+              {t("landing.parcours.sectionLabel")}
             </h2>
             <p className="text-gray-500 mt-3">
-              Cameroon Travail accompagne candidats et recruteurs à chaque étape.
+              {t("landing.parcours.title")} {t("landing.parcours.titleAccent")}
             </p>
           </Reveal>
 
@@ -522,18 +520,13 @@ export default function Home() {
                 <div className="grid grid-cols-[1.2fr_1fr] h-full min-h-[360px]">
                   <div className="p-7 lg:p-9 flex flex-col">
                     <h3 className="text-2xl font-extrabold mb-3" style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}>
-                      Vous êtes candidat ?
+                      {t("landing.parcours.candidate.title")}
                     </h3>
                     <p className="text-gray-600 text-sm leading-relaxed mb-5">
-                      Trouvez l'opportunité qui correspond à votre profil et construisez votre carrière.
+                      {t("landing.parcours.candidate.desc")}
                     </p>
                     <ul className="space-y-2.5 mb-6 flex-1">
-                      {[
-                        "Recherchez des offres d'emploi qualifiées",
-                        "Créez un profil complet et visible",
-                        "Générez un CV professionnel",
-                        "Recevez des alertes personnalisées",
-                      ].map((it) => (
+                      {(t("landing.parcours.candidate.features", { returnObjects: true }) as string[]).map((it) => (
                         <li key={it} className="flex items-start gap-2.5 text-sm text-gray-700">
                           <BadgeCheck className="w-4 h-4 mt-0.5 shrink-0" style={{ color: COLORS.emerald }} />
                           {it}
@@ -545,7 +538,7 @@ export default function Home() {
                       className="self-start font-semibold gap-2 shadow-md"
                       style={{ backgroundColor: COLORS.gold, color: COLORS.charcoal }}
                     >
-                      Découvrir les offres
+                      {t("landing.parcours.candidate.ctaSecondary")}
                       <ArrowRight className="w-4 h-4" />
                     </Button>
                   </div>
@@ -571,18 +564,13 @@ export default function Home() {
                 <div className="grid grid-cols-[1.2fr_1fr] h-full min-h-[360px]">
                   <div className="p-7 lg:p-9 flex flex-col">
                     <h3 className="text-2xl font-extrabold mb-3" style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}>
-                      Vous êtes recruteur ?
+                      {t("landing.parcours.recruiter.title")}
                     </h3>
                     <p className="text-gray-600 text-sm leading-relaxed mb-5">
-                      Trouvez les meilleurs talents et simplifiez votre processus de recrutement.
+                      {t("landing.parcours.recruiter.desc")}
                     </p>
                     <ul className="space-y-2.5 mb-6 flex-1">
-                      {[
-                        "Publiez vos offres en quelques minutes",
-                        "Recevez des candidatures ciblées",
-                        "Accédez à des profils qualifiés",
-                        "Gérez vos recrutements facilement",
-                      ].map((it) => (
+                      {(t("landing.parcours.recruiter.features", { returnObjects: true }) as string[]).map((it) => (
                         <li key={it} className="flex items-start gap-2.5 text-sm text-gray-700">
                           <BadgeCheck className="w-4 h-4 mt-0.5 shrink-0" style={{ color: COLORS.goldDark }} />
                           {it}
@@ -594,7 +582,7 @@ export default function Home() {
                       className="self-start font-semibold gap-2 shadow-md"
                       style={{ backgroundColor: COLORS.gold, color: COLORS.charcoal }}
                     >
-                      Publier une offre
+                      {t("landing.parcours.recruiter.ctaSecondary")}
                       <ArrowRight className="w-4 h-4" />
                     </Button>
                   </div>
@@ -619,14 +607,14 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Reveal className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight" style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}>
-              Dernières offres d'emploi
+              {t("landing.offers.title")} {t("landing.offers.titleLine2")}
             </h2>
             <button
               onClick={() => setLocation("/offres")}
               className="self-start sm:self-end text-sm font-semibold inline-flex items-center gap-1.5 hover:gap-2 transition-all"
               style={{ color: COLORS.emerald }}
             >
-              Voir toutes les offres
+              {t("landing.offers.viewAll")}
               <ArrowRight className="w-4 h-4" />
             </button>
           </Reveal>
@@ -689,7 +677,7 @@ export default function Home() {
           ) : (
             <div className="text-center py-12 text-gray-400">
               <Briefcase className="w-10 h-10 mx-auto mb-3 opacity-40" />
-              <p>Aucune offre disponible pour le moment.</p>
+              <p>{t("landing.offers.empty")}</p>
             </div>
           )}
         </div>
@@ -706,22 +694,20 @@ export default function Home() {
                 className="inline-block text-[11px] font-bold uppercase tracking-widest px-2.5 py-1 rounded mb-4"
                 style={{ backgroundColor: COLORS.gold, color: COLORS.charcoal }}
               >
-                Nouveau
+                {t("landing.cvPremium.sectionLabel")}
               </span>
               <h2 className="text-3xl sm:text-4xl lg:text-[2.6rem] font-extrabold tracking-tight mb-4 leading-tight" style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
-                Créez un CV professionnel
-                <br />
-                qui vous démarque
+                {t("landing.cvPremium.title")} {t("landing.cvPremium.titleAccent")}
               </h2>
               <p className="text-white/80 mb-6 max-w-lg leading-relaxed">
-                Choisissez parmi nos modèles premium, remplissez vos informations et téléchargez un CV prêt à convaincre.
+                {t("landing.cvPremium.desc")}
               </p>
 
               <div className="grid sm:grid-cols-3 gap-3 mb-7 max-w-xl">
                 {[
-                  { icon: GraduationCap, label: "Modèles professionnels" },
-                  { icon: FileText, label: "PDF haute qualité" },
-                  { icon: Sparkles, label: "Optimisé pour les recruteurs" },
+                  { icon: GraduationCap, label: t("landing.cvPremium.features.templates") },
+                  { icon: FileText, label: t("landing.cvPremium.features.pdf") },
+                  { icon: Sparkles, label: t("landing.cvPremium.features.editable") },
                 ].map(({ icon: Icon, label }) => (
                   <div key={label} className="flex items-center gap-2 text-xs text-white/90">
                     <Icon className="w-3.5 h-3.5 shrink-0" style={{ color: COLORS.gold }} />
@@ -737,14 +723,14 @@ export default function Home() {
                   className="font-semibold gap-2 shadow-xl h-11 px-6"
                   style={{ backgroundColor: COLORS.gold, color: COLORS.charcoal }}
                 >
-                  Créer mon CV maintenant
+                  {t("landing.cvPremium.cta")}
                   <ArrowRight className="w-4 h-4" />
                 </Button>
                 <span
                   className="text-xs font-semibold px-3 py-2 rounded-lg border"
                   style={{ borderColor: "rgba(246, 195, 67, 0.4)", color: COLORS.gold }}
                 >
-                  1000 FCFA — Paiement unique
+                  {t("landing.cvPremium.price")}
                 </span>
               </div>
             </Reveal>
@@ -770,7 +756,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Reveal className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight" style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}>
-              Pourquoi choisir Cameroon Travail ?
+              {t("landing.whyUs.title")} {t("landing.whyUs.titleLine2")}
             </h2>
           </Reveal>
           <motion.div
@@ -781,10 +767,10 @@ export default function Home() {
             className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6"
           >
             {[
-              { icon: MapPin, titre: "Offres locales et qualifiées", desc: "Des milliers d'offres vérifiées dans toutes les régions du Cameroun." },
-              { icon: BadgeCheck, titre: "Profils candidats complets", desc: "Mettez en valeur vos compétences et augmentez votre visibilité." },
-              { icon: Gauge, titre: "Matching intelligent", desc: "Trouvez les opportunités qui correspondent vraiment à votre profil." },
-              { icon: Compass, titre: "Recrutement simplifié", desc: "Des outils puissants pour trouver et gérer vos talents efficacement." },
+              { icon: MapPin, titre: t("landing.whyUs.pillar1Title"), desc: t("landing.whyUs.pillar1Desc") },
+              { icon: BadgeCheck, titre: t("landing.whyUs.pillar2Title"), desc: t("landing.whyUs.pillar2Desc") },
+              { icon: Gauge, titre: t("landing.whyUs.pillar3Title"), desc: t("landing.whyUs.pillar3Desc") },
+              { icon: Compass, titre: t("landing.whyUs.pillar4Title"), desc: t("landing.whyUs.pillar4Desc") },
             ].map(({ icon: Icon, titre, desc }) => (
               <motion.div key={titre} variants={fadeUp} className="text-center">
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4" style={{ backgroundColor: "rgba(15, 138, 76, 0.10)" }}>
@@ -807,14 +793,14 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Reveal className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight" style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}>
-              Conseils pour booster votre carrière
+              {t("landing.advice.title")}
             </h2>
             <button
               onClick={() => setLocation("/conseils")}
               className="self-start sm:self-end text-sm font-semibold inline-flex items-center gap-1.5 hover:gap-2 transition-all"
               style={{ color: COLORS.emerald }}
             >
-              Voir tous les conseils
+              {t("landing.advice.viewAll")}
               <ArrowRight className="w-4 h-4" />
             </button>
           </Reveal>
@@ -881,7 +867,7 @@ export default function Home() {
                       className="inline-flex items-center gap-1.5 text-sm font-semibold group-hover:gap-2 transition-all mt-auto"
                       style={{ color: COLORS.emerald }}
                     >
-                      Lire l'article
+                      {t("landing.advice.readArticle")}
                       <ArrowRight className="w-3.5 h-3.5" />
                     </span>
                   </div>
@@ -892,7 +878,7 @@ export default function Home() {
           ) : (
             <div className="text-center py-12 text-gray-400">
               <BookOpen className="w-10 h-10 mx-auto mb-3 opacity-40" />
-              <p>Aucun article pour le moment.</p>
+              <p>{t("landing.advice.empty")}</p>
             </div>
           )}
         </div>
@@ -909,12 +895,12 @@ export default function Home() {
                 className="text-xl sm:text-2xl font-extrabold mb-2 tracking-tight leading-snug"
                 style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}
               >
-                Fiers de travailler
+                {t("landing.partners.title")}
                 <br />
-                avec les meilleurs au Cameroun
+                {t("landing.partners.titleLine2")}
               </h3>
               <p className="text-sm text-gray-500 leading-relaxed">
-                Ils nous font confiance pour leurs recrutements chaque jour.
+                {t("landing.partners.subtitle")}
               </p>
             </div>
             <div className="flex flex-wrap items-center justify-center lg:justify-end gap-x-8 gap-y-5">
@@ -956,12 +942,12 @@ export default function Home() {
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Reveal>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-5 tracking-tight leading-tight" style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
-              Votre prochaine opportunité commence ici.
+              {t("landing.finalCta.titleStart")} {t("landing.finalCta.titleAccent")} {t("landing.finalCta.titleEnd")}
             </h2>
           </Reveal>
           <Reveal delay={0.1}>
             <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto leading-relaxed">
-              Rejoignez des milliers de candidats et d'entreprises qui construisent ensemble le futur du travail au Cameroun.
+              {t("landing.finalCta.subtitle")}
             </p>
           </Reveal>
           <Reveal delay={0.2} className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -972,7 +958,7 @@ export default function Home() {
               style={{ backgroundColor: COLORS.gold, color: COLORS.charcoal }}
             >
               <Users className="w-4 h-4" />
-              Je cherche un emploi
+              {t("landing.finalCta.ctaCandidate")}
             </Button>
             <Button
               size="lg"
@@ -981,7 +967,7 @@ export default function Home() {
               className="text-base px-7 h-12 gap-2 border-white/30 bg-white/5 text-white hover:bg-white/15 backdrop-blur-md"
             >
               <Building2 className="w-4 h-4" />
-              Je suis recruteur
+              {t("landing.finalCta.ctaRecruiter")}
             </Button>
           </Reveal>
         </div>
