@@ -385,8 +385,10 @@ function ProfileCard({
           </h2>
         </div>
 
-        {/* Block texte — limité à ~52% pour laisser place à l'image */}
-        <div className="lg:max-w-[52%] flex flex-col flex-1">
+        {/* Block texte — limité à ~52% à partir de md pour laisser
+            place à l'image. Sur mobile l'image est masquée donc le
+            texte prend toute la largeur. */}
+        <div className="md:max-w-[55%] lg:max-w-[52%] flex flex-col flex-1">
           <p className="text-[15px] sm:text-base leading-relaxed mb-6" style={{ color: C.textMuted }}>
             {description}
           </p>
@@ -438,7 +440,7 @@ function ProfileCard({
         src={imageSrc}
         alt={imageAlt}
         loading="lazy"
-        className="hidden md:block absolute bottom-0 right-2 lg:right-4 h-[108%] max-w-[55%] object-contain object-bottom pointer-events-none select-none transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+        className="hidden md:block absolute bottom-0 right-2 lg:right-4 h-[140%] md:max-w-[48%] lg:h-[200%] lg:max-w-[55%] object-contain object-bottom pointer-events-none select-none transition-transform duration-500 ease-out group-hover:scale-[1.03]"
         onError={(e) => {
           (e.currentTarget as HTMLImageElement).style.display = "none";
         }}
