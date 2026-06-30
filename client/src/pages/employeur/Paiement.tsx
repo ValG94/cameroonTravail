@@ -272,12 +272,13 @@ export default function PaiementEmployeur() {
     }, 80);
   };
 
-  // Background global : dark premium pour Premium (toute la page),
-  // ivoire pour Découverte/Avantage (la teinte hero est gérée en
-  // local par chaque variant).
+  // Background global : dark premium VERT (pas noir) pour Premium —
+  // garde une teinte verte profonde uniforme dans toute la page,
+  // avec un léger halo or au centre haut pour l'ambiance premium.
+  // Ivoire pour Découverte/Avantage.
   const pageBackground =
     theme.layout === "premium"
-      ? "radial-gradient(circle at 75% 25%, rgba(246,195,67,0.20), transparent 38%), linear-gradient(135deg, #031F16 0%, #063F24 52%, #020617 100%)"
+      ? "radial-gradient(circle at 50% 20%, rgba(246,195,67,0.10), transparent 45%), linear-gradient(180deg, #031F16 0%, #063F24 50%, #031F16 100%)"
       : C.ivory;
 
   return (
@@ -394,7 +395,7 @@ export default function PaiementEmployeur() {
             {t("bo.employerPayment.backToPrices")}
           </button>
 
-          <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-8 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <div>
               <Badge
                 className="mb-5 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em]"
@@ -427,14 +428,16 @@ export default function PaiementEmployeur() {
               </p>
             </div>
 
-            {/* Couronne or — image fournie par le user */}
+            {/* Couronne or — image fournie par le user, taille
+                renforcée pour avoir le rendu central et impactant
+                attendu dans la maquette (380-460px). */}
             {theme.heroImage && (
-              <div className="relative flex justify-center lg:justify-end">
+              <div className="relative flex justify-center lg:justify-center">
                 <img
                   src={theme.heroImage}
                   alt=""
                   aria-hidden="true"
-                  className="w-[220px] h-[220px] lg:w-[280px] lg:h-[280px] object-contain drop-shadow-2xl"
+                  className="w-[300px] h-[300px] sm:w-[380px] sm:h-[380px] lg:w-[460px] lg:h-[460px] object-contain"
                   onError={(e) => {
                     (e.currentTarget as HTMLImageElement).style.display = "none";
                   }}
