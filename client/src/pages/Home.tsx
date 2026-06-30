@@ -37,19 +37,11 @@ const COLORS = {
 };
 
 // ─── Données statiques ────────────────────────────────────────────────────────
-const SECTEURS = [
-  "Tous les secteurs",
-  "Administration publique",
-  "Agriculture",
-  "Banque / Finance",
-  "BTP / Construction",
-  "Commerce / Vente",
-  "Communication / Marketing",
-  "Éducation / Formation",
-  "Informatique / IT",
-  "Santé",
-  "Transport / Logistique",
-];
+// On utilise la liste centralisée (lib/secteurs) pour rester cohérent avec
+// les formulaires recruteur, profil entreprise, etc. Ajout de "Tous les
+// secteurs" en première position pour le sélecteur de recherche.
+import { SECTEURS as ALL_SECTEURS } from "@/lib/secteurs";
+const SECTEURS = ["Tous les secteurs", ...ALL_SECTEURS];
 
 const RECHERCHES_POPULAIRES = ["Développeur", "Commercial", "Comptabilité", "Marketing", "Ressources humaines"];
 
@@ -306,10 +298,16 @@ export default function Home() {
                 </button>
               </motion.div>
 
-              {/* CARD blanche : recherche + recherches populaires */}
+              {/* CARD blanche : recherche + recherches populaires.
+                  Grille responsive :
+                  - mobile          : 1 col (stack)
+                  - sm/md/lg        : 2x2 (Métier|Ville top, Secteur|Btn bottom)
+                  - 2xl (1536px+)   : single row (4 éléments)
+                  → évite les inputs trop étroits qui croppent le placeholder
+                    sur les écrans laptop 1366px ou les preview Vercel. */}
               {mode === "candidat" ? (
-                <motion.div variants={fadeUp} className="bg-white rounded-2xl shadow-2xl p-4 sm:p-5 max-w-2xl">
-                  <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr_1fr_auto] gap-2.5">
+                <motion.div variants={fadeUp} className="bg-white rounded-2xl shadow-2xl p-4 sm:p-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-[1.5fr_1fr_minmax(180px,1fr)_auto] gap-2.5">
                     <div className="relative">
                       <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <input
@@ -335,7 +333,7 @@ export default function Home() {
                     <select
                       value={searchSecteur}
                       onChange={(e) => setSearchSecteur(e.target.value)}
-                      className="h-11 px-3 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-gray-700"
+                      className="h-11 px-3 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 text-gray-700 min-w-0"
                     >
                       {SECTEURS.map((s) => (
                         <option key={s} value={s}>{s}</option>
@@ -343,7 +341,7 @@ export default function Home() {
                     </select>
                     <Button
                       onClick={handleSearch}
-                      className="h-11 px-6 font-semibold gap-2 shadow-md transition-all"
+                      className="h-11 px-6 font-semibold gap-2 shadow-md transition-all whitespace-nowrap"
                       style={{ backgroundColor: COLORS.gold, color: COLORS.charcoal }}
                     >
                       <Search className="w-4 h-4" />
