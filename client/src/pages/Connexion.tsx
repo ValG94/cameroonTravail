@@ -1,7 +1,19 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "wouter";
-import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Link, useLocation } from "wouter";
+import { motion, useReducedMotion } from "framer-motion";
+import {
+  ArrowRight,
+  BellRing,
+  Briefcase,
+  Eye,
+  EyeOff,
+  Lock,
+  Mail,
+  ShieldCheck,
+  Sparkles,
+  Users,
+} from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,11 +22,42 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { SiteHeader } from "@/components/SiteHeader";
 
+/**
+ * Page de connexion — refonte split-screen premium.
+ *
+ * Direction : cohérente avec les pages d'inscription (candidat,
+ * employeur, choix profil) — hero à gauche, formulaire à droite.
+ *
+ * Logique préservée intégralement :
+ * - Mutation tRPC `auth.login` avec payload {email, password, rememberMe}
+ * - Pré-remplissage email via localStorage REMEMBER_EMAIL_KEY
+ * - Redirection selon profileType : candidat → /candidat/dashboard,
+ *   employeur → /employeur/dashboard, sinon → /select-profile
+ * - Invalidation `auth.me` + délai de 100ms pour propagation cookie
+ * - Filtrage des erreurs techniques (Failed query, ECONNREFUSED, etc.)
+ *
+ * Google OAuth : non implémenté côté backend → bouton désactivé avec
+ * title "Bientôt disponible".
+ */
+
 const REMEMBER_EMAIL_KEY = "ct_remember_email";
+
+// ─── Palette cohérente avec les autres pages premium ──────────────────────────
+const C = {
+  ivory: "#FAF7EF",
+  deepGreen: "#063F24",
+  green: "#007A3D",
+  greenBright: "#009B5A",
+  gold: "#F6C343",
+  textMain: "#0F172A",
+  textMuted: "#64748B",
+  border: "#DCE3EA",
+};
 
 export default function Connexion() {
   const { t } = useTranslation();
   const [, setLocation] = useLocation();
+  const reduced = useReducedMotion();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -33,22 +76,17 @@ export default function Connexion() {
 
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess: async (data) => {
-      toast.success("Connexion réussie !");
+      toast.success(t("login.form.successToast"));
 
-      // Si "Se souvenir de moi" est coché, on garde l'email pour la prochaine visite
       if (formData.rememberMe) {
         localStorage.setItem(REMEMBER_EMAIL_KEY, formData.email.trim().toLowerCase());
       } else {
         localStorage.removeItem(REMEMBER_EMAIL_KEY);
       }
-      
-      // Invalider et refetch auth.me pour mettre à jour la session
+
       await utils.auth.me.invalidate();
-      
-      // Petit délai pour laisser le cookie se propager
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Rediriger selon le type de profil
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       if (data.user.profileType === "candidat") {
         setLocation("/candidat/dashboard");
       } else if (data.user.profileType === "employeur") {
@@ -58,7 +96,7 @@ export default function Connexion() {
       }
     },
     onError: (error) => {
-      // Filtrer les messages techniques pour ne jamais les exposer à l'utilisateur
+      // Filtrage des erreurs techniques (cf. comportement existant)
       const raw = error.message || "";
       const looksTechnical =
         raw.includes("Failed query") ||
@@ -70,11 +108,9 @@ export default function Connexion() {
         raw.includes("undefined") ||
         raw.startsWith("[") ||
         error.data?.code === "INTERNAL_SERVER_ERROR";
-
       const friendly = looksTechnical
-        ? "Service temporairement indisponible. Réessayez dans quelques instants."
-        : raw || "Erreur lors de la connexion";
-
+        ? t("login.form.techError")
+        : raw || t("login.form.genericError");
       toast.error(friendly);
     },
   });
@@ -89,153 +125,360 @@ export default function Connexion() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div
+      className="min-h-screen"
+      style={{ backgroundColor: C.ivory, color: C.textMain, fontFamily: "'Manrope', 'Inter', sans-serif" }}
+    >
       <SiteHeader />
-      <div className="flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="text-center text-3xl font-bold text-gray-900">
-          {t("auth.login")}
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          {t("auth.or")}{" "}
-          <Link href="/inscription" className="font-medium text-green-600 hover:text-green-500">
-            {t("auth.createAccount")}
-          </Link>
-        </p>
-      </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-xl rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <Label htmlFor="email">{t("auth.email")}</Label>
-              <div className="mt-1 relative">
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                  <Mail className="h-5 w-5" />
-                </div>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  className="pl-10"
-                  placeholder="votre@email.com"
-                />
-              </div>
-            </div>
+      {/* ╭───────────────────────────────────────────────────────────────╮ */}
+      {/* │ SPLIT-SCREEN HERO + FORM                                       │ */}
+      {/* ╰───────────────────────────────────────────────────────────────╯ */}
+      <section className="relative overflow-hidden">
+        {/* Décorations subtiles d'arrière-plan */}
+        <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
+          {/* Courbes or haut gauche */}
+          <svg
+            className="absolute top-0 left-0 w-[420px] h-[420px] -translate-x-1/4 -translate-y-1/4 opacity-50"
+            viewBox="0 0 400 400"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <linearGradient id="login-curve-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor={C.gold} stopOpacity="0.30" />
+                <stop offset="100%" stopColor={C.gold} stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <path d="M0,200 Q100,50 250,150 T400,250" stroke="url(#login-curve-gold)" strokeWidth="50" fill="none" />
+            <path d="M50,300 Q150,100 300,200" stroke="url(#login-curve-gold)" strokeWidth="2" fill="none" />
+          </svg>
+          {/* Points or à droite */}
+          <div className="absolute top-40 right-24 grid grid-cols-5 gap-2 opacity-40">
+            {Array.from({ length: 15 }).map((_, i) => (
+              <div key={i} className="w-1 h-1 rounded-full" style={{ backgroundColor: C.gold }} />
+            ))}
+          </div>
+          {/* Points verts en bas */}
+          <div className="absolute bottom-32 left-1/3 grid grid-cols-4 gap-2 opacity-40">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i} className="w-1 h-1 rounded-full" style={{ backgroundColor: C.greenBright }} />
+            ))}
+          </div>
+          {/* Halo vert doux */}
+          <div
+            className="absolute top-1/3 left-1/4 w-[500px] h-[500px] rounded-full blur-[140px] opacity-30"
+            style={{ backgroundColor: C.greenBright }}
+          />
+        </div>
 
-            <div>
-              <Label htmlFor="password">{t("auth.password")}</Label>
-              <div className="mt-1 relative">
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                  <Lock className="h-5 w-5" />
-                </div>
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
-                  required
-                  value={formData.password}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
-                  }
-                  className="pl-10 pr-10"
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="remember-me"
-                  checked={formData.rememberMe}
-                  onCheckedChange={(checked) =>
-                    setFormData({ ...formData, rememberMe: checked as boolean })
-                  }
-                />
-                <Label
-                  htmlFor="remember-me"
-                  className="text-sm font-normal cursor-pointer"
-                >
-                  {t("auth.rememberMe")}
-                </Label>
-              </div>
-
-              <div className="text-sm">
-                <Link href="/mot-de-passe-oublie" className="font-medium text-green-600 hover:text-green-500">
-                  {t("auth.forgotPassword")}
-                </Link>
-              </div>
-            </div>
-
-            <div>
-              <Button
-                type="submit"
-                className="w-full bg-green-600 hover:bg-green-700"
-                disabled={loginMutation.isPending}
+        <div className="relative max-w-[1280px] mx-auto px-6 lg:px-10 py-12 lg:py-[72px]">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+            {/* ─── COLONNE GAUCHE : storytelling de retour ─────────── */}
+            <motion.div
+              initial={reduced ? false : { opacity: 0, x: -16 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.55 }}
+              className="order-2 lg:order-1"
+            >
+              {/* Badge */}
+              <div
+                className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-semibold mb-5"
+                style={{
+                  backgroundColor: "rgba(0, 155, 90, 0.10)",
+                  color: C.green,
+                  border: "1px solid rgba(0, 155, 90, 0.20)",
+                }}
               >
-                {loginMutation.isPending ? t("auth.connecting") : t("auth.login")}
-              </Button>
-            </div>
-          </form>
-
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+                <Sparkles className="w-3.5 h-3.5" />
+                {t("login.hero.badge")}
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
-                  {t("auth.continueWith")}
-                </span>
-              </div>
-            </div>
 
-            <div className="mt-6">
-              <button className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors">
-                <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              {/* Titre */}
+              <h1
+                className="font-extrabold tracking-tight"
+                style={{
+                  fontSize: "clamp(30px, 4.2vw, 44px)",
+                  color: C.textMain,
+                  lineHeight: 1.1,
+                }}
+              >
+                {t("login.hero.title")}
+              </h1>
+
+              {/* Sous-titre */}
+              <p
+                className="mt-4 text-base sm:text-[17px] leading-relaxed max-w-[520px]"
+                style={{ color: C.textMuted }}
+              >
+                {t("login.hero.subtitle")}
+              </p>
+
+              {/* Bénéfices */}
+              <ul className="mt-8 space-y-5 max-w-[520px]">
+                {[
+                  { icon: Lock, title: t("login.hero.b1Title"), desc: t("login.hero.b1Desc") },
+                  { icon: Users, title: t("login.hero.b2Title"), desc: t("login.hero.b2Desc") },
+                  { icon: BellRing, title: t("login.hero.b3Title"), desc: t("login.hero.b3Desc") },
+                  { icon: Briefcase, title: t("login.hero.b4Title"), desc: t("login.hero.b4Desc") },
+                ].map(({ icon: Icon, title, desc }) => (
+                  <li key={title} className="flex items-start gap-3.5">
+                    <span
+                      className="inline-flex items-center justify-center w-11 h-11 rounded-2xl shrink-0 mt-0.5"
+                      style={{
+                        backgroundColor: "rgba(0, 155, 90, 0.08)",
+                        border: "1px solid rgba(0, 155, 90, 0.18)",
+                      }}
+                    >
+                      <Icon className="w-5 h-5" style={{ color: C.greenBright }} />
+                    </span>
+                    <div className="min-w-0">
+                      <div className="font-bold text-[15px] leading-tight" style={{ color: C.textMain }}>
+                        {title}
+                      </div>
+                      <div className="text-sm leading-relaxed mt-0.5" style={{ color: C.textMuted }}>
+                        {desc}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              {/* Bloc sécurité vert profond */}
+              <motion.div
+                initial={reduced ? false : { opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="mt-10 max-w-[520px] rounded-3xl p-7 text-white relative overflow-hidden"
+                style={{
+                  backgroundColor: C.deepGreen,
+                  boxShadow: "0 20px 60px -10px rgba(6, 63, 36, 0.40)",
+                }}
+              >
+                {/* Halo or interne très subtil */}
+                <div
+                  aria-hidden="true"
+                  className="absolute -top-10 -right-10 w-40 h-40 rounded-full blur-[60px] opacity-30"
+                  style={{ backgroundColor: C.gold }}
+                />
+                <div className="relative flex items-start gap-4">
+                  <div
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+                    style={{
+                      backgroundColor: "rgba(246, 195, 67, 0.18)",
+                      border: "1px solid rgba(246, 195, 67, 0.30)",
+                    }}
+                  >
+                    <ShieldCheck className="w-6 h-6" style={{ color: C.gold }} />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-base mb-1">{t("login.hero.securityTitle")}</h3>
+                    <p className="text-sm text-white/85 leading-relaxed">{t("login.hero.securityDesc")}</p>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+
+            {/* ─── COLONNE DROITE : carte formulaire ────────────────── */}
+            <motion.div
+              initial={reduced ? false : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="order-1 lg:order-2 flex justify-center lg:justify-end"
+            >
+              <div
+                className="relative w-full max-w-[560px] rounded-[28px] border p-7 sm:p-10 lg:p-12"
+                style={{
+                  backgroundColor: "rgba(255, 255, 255, 0.96)",
+                  borderColor: C.border,
+                  boxShadow: "0 30px 90px rgba(15, 23, 42, 0.12)",
+                  backdropFilter: "blur(10px)",
+                  WebkitBackdropFilter: "blur(10px)",
+                }}
+              >
+                {/* Motif points or haut-droite */}
+                <div aria-hidden="true" className="absolute top-6 right-6 grid grid-cols-5 gap-1.5 pointer-events-none opacity-70">
+                  {Array.from({ length: 15 }).map((_, i) => (
+                    <span key={i} className="w-1 h-1 rounded-full" style={{ backgroundColor: C.gold }} />
+                  ))}
+                </div>
+
+                {/* Header form */}
+                <div className="text-center mb-7">
+                  <h2
+                    className="text-3xl font-extrabold tracking-tight"
+                    style={{ color: C.textMain }}
+                  >
+                    {t("login.form.title")}
+                  </h2>
+                  <p className="mt-2 text-sm" style={{ color: C.textMuted }}>
+                    {t("login.form.subtitle")}
+                  </p>
+                  {/* Petit filet or */}
+                  <div
+                    aria-hidden="true"
+                    className="mx-auto mt-3 h-0.5 w-12 rounded-full"
+                    style={{ backgroundColor: C.gold }}
                   />
-                  <path
-                    fill="currentColor"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  />
-                </svg>
-                {t("auth.continueGoogle")}
-              </button>
-            </div>
+                </div>
+
+                <form className="space-y-5" onSubmit={handleSubmit}>
+                  {/* Email */}
+                  <div>
+                    <Label htmlFor="email" className="text-sm font-semibold mb-1.5 block" style={{ color: C.textMain }}>
+                      {t("login.form.email")}
+                    </Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        autoComplete="email"
+                        required
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        className="h-12 pl-11 text-[15px]"
+                        style={{ borderColor: C.border }}
+                        placeholder={t("login.form.emailPh")}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Password */}
+                  <div>
+                    <Label htmlFor="password" className="text-sm font-semibold mb-1.5 block" style={{ color: C.textMain }}>
+                      {t("login.form.password")}
+                    </Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                      <Input
+                        id="password"
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        autoComplete="current-password"
+                        required
+                        value={formData.password}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        className="h-12 pl-11 pr-11 text-[15px]"
+                        style={{ borderColor: C.border }}
+                        placeholder={t("login.form.passwordPh")}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        tabIndex={-1}
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Se souvenir + mot de passe oublié */}
+                  <div className="flex items-center justify-between flex-wrap gap-3">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="remember-me"
+                        checked={formData.rememberMe}
+                        onCheckedChange={(checked) =>
+                          setFormData({ ...formData, rememberMe: checked as boolean })
+                        }
+                      />
+                      <Label htmlFor="remember-me" className="text-sm font-normal cursor-pointer" style={{ color: C.textMuted }}>
+                        {t("login.form.rememberMe")}
+                      </Label>
+                    </div>
+                    <Link
+                      href="/mot-de-passe-oublie"
+                      className="text-sm font-semibold hover:underline transition-all"
+                      style={{ color: C.green }}
+                    >
+                      {t("login.form.forgotPassword")}
+                    </Link>
+                  </div>
+
+                  {/* CTA */}
+                  <Button
+                    type="submit"
+                    disabled={loginMutation.isPending}
+                    className="relative w-full h-14 text-base font-bold text-white gap-2 shadow-lg transition-all focus:ring-4 focus:ring-emerald-500/30 overflow-hidden"
+                    style={{
+                      background: `linear-gradient(135deg, ${C.deepGreen} 0%, ${C.greenBright} 100%)`,
+                      boxShadow: "0 14px 30px rgba(0, 155, 90, 0.25)",
+                    }}
+                    onMouseEnter={(e) => {
+                      const el = e.currentTarget as HTMLButtonElement;
+                      if (!loginMutation.isPending) {
+                        el.style.transform = "translateY(-1px)";
+                        el.style.boxShadow = "0 16px 35px rgba(0, 155, 90, 0.26)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      const el = e.currentTarget as HTMLButtonElement;
+                      el.style.transform = "translateY(0)";
+                      el.style.boxShadow = "0 14px 30px rgba(0, 155, 90, 0.25)";
+                    }}
+                  >
+                    {loginMutation.isPending ? (
+                      <>
+                        <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        {t("login.form.submitting")}
+                      </>
+                    ) : (
+                      <>
+                        {t("login.form.submit")}
+                        <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                      </>
+                    )}
+                  </Button>
+
+                  {/* Séparateur */}
+                  <div className="relative my-2">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t" style={{ borderColor: C.border }} />
+                    </div>
+                    <div className="relative flex justify-center">
+                      <span className="px-3 text-xs bg-white" style={{ color: C.textMuted }}>
+                        {t("login.form.orContinueWith")}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Google — désactivé (OAuth non branché) */}
+                  <button
+                    type="button"
+                    disabled
+                    title={t("login.form.googleSoon")}
+                    className="w-full inline-flex items-center justify-center gap-3 h-12 border rounded-md text-sm font-semibold bg-white transition-colors cursor-not-allowed opacity-60"
+                    style={{ borderColor: C.border, color: C.textMain }}
+                  >
+                    <svg viewBox="0 0 24 24" className="w-4 h-4">
+                      <path fill="#EA4335" d="M12 5c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.71 14.97.55 12 .55 7.46.55 3.55 3.14 1.64 7l3.66 2.84C6.17 7.24 8.86 5 12 5z" />
+                      <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.55-.19-2.27H12v4.51h6.45c-.28 1.5-1.12 2.77-2.39 3.62l3.66 2.84c2.13-1.97 3.37-4.87 3.37-8.7z" />
+                      <path fill="#FBBC05" d="M5.3 14.16c-.22-.66-.34-1.36-.34-2.16s.12-1.5.34-2.16L1.64 7C.9 8.52.5 10.21.5 12s.4 3.48 1.14 5l3.66-2.84z" />
+                      <path fill="#34A853" d="M12 23.45c2.97 0 5.45-.98 7.27-2.65l-3.66-2.84c-1 .67-2.28 1.07-3.61 1.07-3.14 0-5.83-2.24-6.7-5.32L1.64 16.6C3.55 20.36 7.46 23.45 12 23.45z" />
+                    </svg>
+                    {t("login.form.google")}
+                  </button>
+                </form>
+
+                {/* Pas de compte ? */}
+                <p className="text-center text-sm mt-7" style={{ color: C.textMuted }}>
+                  {t("login.form.noAccount")}{" "}
+                  <Link
+                    href="/inscription"
+                    className="font-semibold hover:underline transition-all"
+                    style={{ color: C.green }}
+                  >
+                    {t("login.form.createAccount")}
+                  </Link>
+                </p>
+              </div>
+            </motion.div>
           </div>
         </div>
-      </div>
-      </div>
+      </section>
     </div>
   );
 }
