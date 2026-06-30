@@ -17,6 +17,7 @@ import { setupVite, serveStatic } from "./vite";
 import { initStorageBuckets } from "../storage";
 import { ENV } from "./env";
 import { sdk } from "./sdk";
+import { registerGoogleOAuthRoutes } from "./googleOAuth";
 
 // ─── CORS origins ──────────────────────────────────────────────────────────────
 const normalizeOrigin = (s: string) => s.trim().toLowerCase().replace(/\/+$/, "");
@@ -186,6 +187,9 @@ async function startServer() {
   app.get("/health", (_req, res) => {
     res.json({ ok: true, ts: new Date().toISOString() });
   });
+
+  // ─── Google OAuth (routes /api/auth/google et /callback) ─────────
+  registerGoogleOAuthRoutes(app);
 
   // ─── Upload CV (multipart) — authentification requise ──────────────────────
   app.post("/api/upload-cv", async (req, res) => {

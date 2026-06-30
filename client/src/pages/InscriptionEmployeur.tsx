@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { motion, useReducedMotion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
+import { API_BASE } from "@/lib/apiBase";
 import { SECTEURS } from "@/lib/secteurs";
 import { isCameroonCity } from "@/lib/villesCameroun";
 import { Button } from "@/components/ui/button";
@@ -704,6 +705,37 @@ export default function InscriptionEmployeur() {
                     </>
                   )}
                 </Button>
+
+                {/* ─── Séparateur + Google OAuth ──────────────── */}
+                <div className="relative my-2">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t" style={{ borderColor: C.border }} />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="px-3 text-xs bg-white" style={{ color: C.textMuted }}>
+                      {t("login.form.orContinueWith")}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Inscription via Google : profileType=employeur
+                    // pour que la fiche employeur soit créée à la 1ère
+                    // connexion (cf. server/_core/googleOAuth.ts).
+                    window.location.href = `${API_BASE}/api/auth/google?profileType=employeur`;
+                  }}
+                  className="w-full inline-flex items-center justify-center gap-3 h-11 border rounded-md text-sm font-semibold bg-white transition-colors hover:bg-gray-50 hover:border-gray-300"
+                  style={{ borderColor: C.border, color: C.textMain }}
+                >
+                  <svg viewBox="0 0 24 24" className="w-4 h-4">
+                    <path fill="#EA4335" d="M12 5c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.71 14.97.55 12 .55 7.46.55 3.55 3.14 1.64 7l3.66 2.84C6.17 7.24 8.86 5 12 5z" />
+                    <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.55-.19-2.27H12v4.51h6.45c-.28 1.5-1.12 2.77-2.39 3.62l3.66 2.84c2.13-1.97 3.37-4.87 3.37-8.7z" />
+                    <path fill="#FBBC05" d="M5.3 14.16c-.22-.66-.34-1.36-.34-2.16s.12-1.5.34-2.16L1.64 7C.9 8.52.5 10.21.5 12s.4 3.48 1.14 5l3.66-2.84z" />
+                    <path fill="#34A853" d="M12 23.45c2.97 0 5.45-.98 7.27-2.65l-3.66-2.84c-1 .67-2.28 1.07-3.61 1.07-3.14 0-5.83-2.24-6.7-5.32L1.64 16.6C3.55 20.36 7.46 23.45 12 23.45z" />
+                  </svg>
+                  {t("login.form.google")}
+                </button>
 
                 {/* ─── Déjà inscrit ────────────────────────────── */}
                 <p className="text-center text-sm" style={{ color: C.textMuted }}>

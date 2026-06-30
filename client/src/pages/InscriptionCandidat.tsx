@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { motion, useReducedMotion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
+import { API_BASE } from "@/lib/apiBase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -583,6 +584,12 @@ export default function InscriptionCandidat() {
                   <SocialButton
                     label={t("signup.form.google")}
                     title={t("signup.form.socialComingSoon")}
+                    onClick={() => {
+                      // Inscription via Google : on passe profileType=candidat
+                      // pour que le backend crée la fiche candidat à la
+                      // 1ère connexion (cf. server/_core/googleOAuth.ts).
+                      window.location.href = `${API_BASE}/api/auth/google?profileType=candidat`;
+                    }}
                     icon={
                       <svg viewBox="0 0 24 24" className="w-4 h-4">
                         <path fill="#EA4335" d="M12 5c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.71 14.97.55 12 .55 7.46.55 3.55 3.14 1.64 7l3.66 2.84C6.17 7.24 8.86 5 12 5z" />
@@ -859,11 +866,28 @@ function SocialButton({
   label,
   title,
   icon,
+  onClick,
 }: {
   label: string;
   title: string;
   icon: React.ReactNode;
+  /** Si fourni, le bouton est actif et appelle onClick. Sinon
+   *  rendu désactivé avec tooltip "Bientôt disponible". */
+  onClick?: () => void;
 }) {
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className="flex items-center justify-center gap-2 h-11 rounded-md border bg-white text-sm font-medium transition-colors hover:bg-gray-50 hover:border-gray-300"
+        style={{ borderColor: C.border, color: C.textMain }}
+      >
+        {icon}
+        {label}
+      </button>
+    );
+  }
   return (
     <button
       type="button"

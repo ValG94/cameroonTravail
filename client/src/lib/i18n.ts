@@ -662,7 +662,7 @@ const fr = {
     // ─── Page /connexion — refonte premium split-screen ──────────────
     login: {
       hero: {
-        badge: "Bienvenue de retour",
+        badge: "Bon retour",
         title: "Connectez-vous à votre espace Cameroon Travail",
         subtitle: "Accédez à vos opportunités, gérez vos candidatures et développez votre carrière ou vos recrutements en toute simplicité.",
         b1Title: "Accès rapide et sécurisé",

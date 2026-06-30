@@ -37,6 +37,11 @@ export const users = pgTable("users", {
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: roleEnum("role").default("user").notNull(),
   profileType: profileTypeEnum("profileType"),
+  // Identifiant Google (sub claim OAuth). Présent uniquement pour
+  // les comptes connectés via Google. Indexé unique partiel via
+  // migration 0015. Co-existe avec password : un user peut avoir
+  // un compte créé par email puis lié à Google a posteriori.
+  googleId: varchar("googleId", { length: 100 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),

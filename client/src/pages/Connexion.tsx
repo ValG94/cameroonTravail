@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
@@ -15,6 +15,7 @@ import {
   Users,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { API_BASE } from "@/lib/apiBase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,6 +58,7 @@ const C = {
 export default function Connexion() {
   const { t } = useTranslation();
   const [, setLocation] = useLocation();
+  const searchString = useSearch();
   const reduced = useReducedMotion();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -65,6 +67,40 @@ export default function Connexion() {
     rememberMe: false,
   });
   const utils = trpc.useUtils();
+
+  // ─── Retour Google OAuth ──────────────────────────────────────────
+  // Après /api/auth/google/callback, le backend redirige vers
+  // /connexion?google=success (ou ?google=error&reason=...). On
+  // détecte ce signal, invalide auth.me pour récupérer le user
+  // fraîchement créé/lié, puis on route vers le dashboard adapté.
+  useEffect(() => {
+    const sp = new URLSearchParams(searchString || "");
+    const googleStatus = sp.get("google");
+    if (!googleStatus) return;
+
+    // Nettoyer l'URL pour ne pas re-trigger au refresh
+    window.history.replaceState({}, "", "/connexion");
+
+    if (googleStatus === "error") {
+      const reason = sp.get("reason") || "";
+      toast.error(
+        reason === "email_unverified"
+          ? "Votre email Google n'est pas vérifié."
+          : t("login.form.genericError")
+      );
+      return;
+    }
+    if (googleStatus === "success") {
+      (async () => {
+        toast.success(t("login.form.successToast"));
+        await utils.auth.me.invalidate();
+        const me = await utils.auth.me.fetch();
+        if (me?.profileType === "candidat") setLocation("/candidat/dashboard");
+        else if (me?.profileType === "employeur") setLocation("/employeur/dashboard");
+        else setLocation("/select-profile");
+      })();
+    }
+  }, [searchString, setLocation, utils, t]);
 
   // Pré-remplir l'email si l'utilisateur avait coché "Se souvenir de moi"
   useEffect(() => {
@@ -180,13 +216,15 @@ export default function Connexion() {
               transition={{ duration: 0.55 }}
               className="order-2 lg:order-1 relative"
             >
-              {/* Image hero en arrière-plan flouté de la colonne gauche.
-                  Overlay ivoire dégradé pour garantir la lisibilité du
-                  texte tout en gardant l'ambiance visuelle premium.
-                  Désactivée < lg pour ne pas surcharger le mobile. */}
+              {/* Image hero en arrière-plan de la colonne gauche.
+                  Couche z-0 (devant le bg ivory de la page) ; le
+                  contenu textuel ci-dessous est wrapper z-10 pour
+                  apparaître devant. Désactivée < lg pour ne pas
+                  surcharger le mobile. */}
               <div
                 aria-hidden="true"
-                className="hidden lg:block absolute -inset-x-6 -inset-y-10 rounded-[40px] overflow-hidden pointer-events-none -z-10"
+                className="hidden lg:block absolute -inset-x-6 -inset-y-10 rounded-[40px] overflow-hidden pointer-events-none"
+                style={{ zIndex: 0 }}
               >
                 <img
                   src="/images/login-hero.webp"
@@ -198,14 +236,18 @@ export default function Connexion() {
                 />
                 {/* Overlay ivoire dégradé : opaque à gauche pour lire le
                     titre + bénéfices, plus léger à droite pour laisser
-                    voir un peu l'image. */}
+                    voir un peu l'ambiance image. */}
                 <div
                   className="absolute inset-0"
                   style={{
-                    background: `linear-gradient(105deg, ${C.ivory} 0%, ${C.ivory}EE 50%, ${C.ivory}AA 100%)`,
+                    background: `linear-gradient(105deg, ${C.ivory}F2 0%, ${C.ivory}D9 50%, ${C.ivory}80 100%)`,
                   }}
                 />
               </div>
+
+              {/* Wrapper z-10 pour passer tout le contenu textuel
+                  devant l'image hero (qui est z-0 ci-dessus). */}
+              <div className="relative" style={{ zIndex: 10 }}>
 
               {/* Badge */}
               <div
@@ -303,6 +345,7 @@ export default function Connexion() {
                   </div>
                 </div>
               </motion.div>
+              </div>
             </motion.div>
 
             {/* ─── COLONNE DROITE : carte formulaire ────────────────── */}
@@ -472,12 +515,18 @@ export default function Connexion() {
                     </div>
                   </div>
 
-                  {/* Google — désactivé (OAuth non branché) */}
+                  {/* Google OAuth — redirige vers le backend qui
+                      pilote tout le flow. Au retour, /connexion?google=
+                      success est intercepté par l'useEffect ci-dessus. */}
                   <button
                     type="button"
-                    disabled
-                    title={t("login.form.googleSoon")}
-                    className="w-full inline-flex items-center justify-center gap-3 h-12 border rounded-md text-sm font-semibold bg-white transition-colors cursor-not-allowed opacity-60"
+                    onClick={() => {
+                      // Redirige vers le backend Railway qui pilote
+                      // tout le flow OAuth (état CSRF, échange code,
+                      // création user, JWT cookie, retour vers /connexion).
+                      window.location.href = `${API_BASE}/api/auth/google`;
+                    }}
+                    className="w-full inline-flex items-center justify-center gap-3 h-12 border rounded-md text-sm font-semibold bg-white transition-colors hover:bg-gray-50 hover:border-gray-300"
                     style={{ borderColor: C.border, color: C.textMain }}
                   >
                     <svg viewBox="0 0 24 24" className="w-4 h-4">

@@ -13,5 +13,12 @@ export const ENV = {
   emailFrom: process.env.EMAIL_FROM ?? "Cameroon Travail <onboarding@resend.dev>",
   // URL publique du frontend (Vercel) — utilisée dans les emails
   frontendUrl: process.env.FRONTEND_URL ?? process.env.CORS_ORIGIN?.split(",")[0]?.trim() ?? "",
+  // Google OAuth (cf. routes /api/auth/google* et migration 0015)
+  googleClientId: process.env.GOOGLE_CLIENT_ID ?? "",
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+  // URI de redirection enregistrée dans Google Cloud Console
+  // (Credentials → OAuth Client ID → Authorized redirect URIs).
+  // Doit pointer exactement vers .../api/auth/google/callback.
+  googleRedirectUri: process.env.GOOGLE_REDIRECT_URI ?? "",
   isProduction: process.env.NODE_ENV === "production",
 };
