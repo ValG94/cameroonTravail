@@ -217,57 +217,39 @@ export default function EspaceRecruteur() {
       {/* ╭───────────────────────────────────────────────────────────────╮ */}
       {/* │ 1. HERO RECRUTEUR                                              │ */}
       {/* ╰───────────────────────────────────────────────────────────────╯ */}
-      <section
-        className="relative overflow-hidden"
-        style={{ backgroundColor: C.deepGreen, minHeight: "680px" }}
-      >
-        {/* Background ABSTRAIT (pas de photo en bg) : pattern topographique
-            SVG + halos lumineux. Plus aucun risque de masquage de visages.
-            La photo des recruteurs est intégrée comme card distincte dans
-            la colonne droite (cf. plus bas). */}
-        <svg
-          aria-hidden="true"
-          className="absolute inset-0 w-full h-full opacity-[0.07] pointer-events-none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <defs>
-            <pattern id="recruteur-topo" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
-              <circle cx="40" cy="40" r="36" stroke={C.gold} strokeWidth="0.5" fill="none" />
-              <circle cx="40" cy="40" r="24" stroke={C.gold} strokeWidth="0.5" fill="none" />
-              <circle cx="40" cy="40" r="12" stroke={C.gold} strokeWidth="0.5" fill="none" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#recruteur-topo)" />
-        </svg>
-
-        {/* Halos lumineux animés (or + vert) */}
-        <motion.div
-          aria-hidden="true"
-          className="absolute -top-32 right-0 w-[40rem] h-[40rem] rounded-full blur-[120px]"
-          style={{ backgroundColor: C.gold, opacity: 0.12 }}
-          animate={{ scale: [1, 1.1, 1], opacity: [0.10, 0.16, 0.10] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          aria-hidden="true"
-          className="absolute bottom-0 -left-20 w-96 h-96 rounded-full blur-[100px]"
-          style={{ backgroundColor: C.green, opacity: 0.25 }}
-          animate={{ scale: [1, 1.15, 1], opacity: [0.20, 0.30, 0.20] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        />
+      <section className="relative overflow-hidden" style={{ minHeight: "680px" }}>
+        {/* Background entier du hero : nouvelle image avec personnes +
+            carte Cameroun + skyline intégrés (à placer sous ce nom). */}
+        <div className="absolute inset-0">
+          <img
+            src="/images/recruteur/hero-bg-new.webp"
+            alt=""
+            aria-hidden="true"
+            className="w-full h-full object-cover object-center"
+          />
+          {/* Voile dégradé subtil : un peu plus dense côté gauche (où
+              est le texte), quasi transparent au milieu (personnes visibles),
+              légèrement dim à droite (sous le formulaire blanc). */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(90deg, rgba(3, 52, 30, 0.55) 0%, rgba(3, 52, 30, 0.20) 38%, rgba(3, 52, 30, 0.08) 58%, rgba(3, 52, 30, 0.18) 100%)",
+            }}
+          />
+        </div>
 
         <div className="relative max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20">
-          {/* Grille 52%/44% — composition équilibrée comme demandé par le brief. */}
           <div className="grid lg:grid-cols-[52%_44%] gap-10 lg:gap-16 items-center">
-            {/* ─── Colonne gauche : texte + CTAs ─────────────────── */}
+            {/* ─── Colonne gauche : TEXTE uniquement (pas de photo) ──── */}
             <motion.div initial="hidden" animate="visible" variants={stagger} className="text-white">
               {/* Badge */}
               <motion.div
                 variants={fadeUp}
                 className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium backdrop-blur-md border mb-6"
                 style={{
-                  backgroundColor: "rgba(255,255,255,0.08)",
-                  borderColor: "rgba(255,255,255,0.20)",
+                  backgroundColor: "rgba(255,255,255,0.10)",
+                  borderColor: "rgba(255,255,255,0.22)",
                   color: C.gold,
                 }}
               >
@@ -291,6 +273,7 @@ export default function EspaceRecruteur() {
                 style={{
                   fontSize: "clamp(38px, 6vw, 64px)",
                   fontFamily: "'Manrope', 'Inter', sans-serif",
+                  textShadow: "0 2px 12px rgba(0,0,0,0.40)",
                 }}
               >
                 Recrutez les{" "}
@@ -311,7 +294,8 @@ export default function EspaceRecruteur() {
               {/* Sous-titre */}
               <motion.p
                 variants={fadeUp}
-                className="text-base sm:text-lg text-white/85 mt-5 max-w-xl leading-relaxed"
+                className="text-base sm:text-lg text-white/90 mt-5 max-w-xl leading-relaxed"
+                style={{ textShadow: "0 1px 6px rgba(0,0,0,0.45)" }}
               >
                 Accédez à des profils qualifiés, publiez vos offres et gérez vos recrutements depuis une plateforme conçue pour le marché camerounais.
               </motion.p>
@@ -330,7 +314,7 @@ export default function EspaceRecruteur() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="h-12 px-6 text-base font-semibold gap-2 border-white/30 bg-white/5 text-white hover:bg-white/15 backdrop-blur-md transition-all focus:ring-4 focus:ring-white/30"
+                  className="h-12 px-6 text-base font-semibold gap-2 border-white/40 bg-white/10 text-white hover:bg-white/20 backdrop-blur-md transition-all focus:ring-4 focus:ring-white/30"
                   onClick={() => document.getElementById("hero-form")?.scrollIntoView({ behavior: "smooth" })}
                 >
                   <Phone className="w-4 h-4" />
@@ -341,7 +325,8 @@ export default function EspaceRecruteur() {
               {/* Ligne de preuves */}
               <motion.div
                 variants={fadeUp}
-                className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-white/80 mt-7"
+                className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-white/90 mt-7"
+                style={{ textShadow: "0 1px 4px rgba(0,0,0,0.45)" }}
               >
                 {["Inscription en 2 minutes", "Sans engagement", "Support 24h/7j"].map((label) => (
                   <div key={label} className="flex items-center gap-2">
@@ -352,31 +337,8 @@ export default function EspaceRecruteur() {
               </motion.div>
             </motion.div>
 
-            {/* ─── Colonne droite : photo card showcase + formulaire ── */}
-            <div className="flex flex-col gap-4 lg:gap-5 w-full max-w-[460px] mx-auto lg:mx-0 lg:ml-auto">
-              {/* Photo card SHOWCASE : recruteurs visibles, jamais masqués
-                  par le formulaire (le form est en dessous). */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-                className="relative rounded-3xl overflow-hidden shadow-2xl hidden lg:block"
-                style={{ aspectRatio: "16 / 9" }}
-              >
-                <img
-                  src={IMG_HERO}
-                  alt="Recruteurs au travail au Cameroun"
-                  className="w-full h-full object-cover"
-                  style={{ objectPosition: "center 35%" }}
-                />
-                {/* Léger dégradé bottom pour transition vers le form */}
-                <div
-                  className="absolute inset-x-0 bottom-0 h-1/3 pointer-events-none"
-                  style={{ background: "linear-gradient(180deg, transparent 0%, rgba(3,52,30,0.20) 100%)" }}
-                />
-              </motion.div>
-
-              {/* Carte formulaire */}
+            {/* ─── Colonne droite : formulaire SEUL ──────────────────── */}
+            <div className="flex flex-col w-full max-w-[460px] mx-auto lg:mx-0 lg:ml-auto">
               <motion.div
                 id="hero-form"
                 initial={{ opacity: 0, y: 30, scale: 0.97 }}
