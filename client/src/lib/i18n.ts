@@ -617,6 +617,46 @@ const fr = {
         privacyLink: "politique de confidentialité",
       },
     },
+    // ─── Page /inscription (choix du profil) — refonte premium ─────
+    chooseProfile: {
+      badge: "Rejoignez Cameroon Travail",
+      title: "Choisissez votre profil",
+      subtitle: "Sélectionnez le type de compte qui correspond le mieux à vos besoins et accédez à des outils conçus pour vous faire réussir.",
+      cta: "S'inscrire",
+      candidate: {
+        title: "Candidats",
+        description: "Construisez un profil professionnel solide, découvrez des opportunités qui vous correspondent et avancez dans votre carrière.",
+        benefits: [
+          "Recherche d'offres avec filtres avancés",
+          "Profil candidat complet et structuré",
+          "CV professionnel téléchargeable en PDF",
+          "Alertes personnalisées par email",
+        ],
+        imageAlt: "Candidate Cameroon Travail",
+      },
+      recruiter: {
+        title: "Recruteurs",
+        description: "Publiez vos offres, recevez des candidatures structurées et identifiez les profils les plus pertinents en quelques clics.",
+        benefits: [
+          "Publication d'offres en moins de 5 minutes",
+          "Accès à une CVthèque qualifiée",
+          "Outils de gestion des candidatures",
+          "Support dédié pour vous accompagner",
+        ],
+        imageAlt: "Recruteur Cameroon Travail",
+      },
+      reassurance: {
+        item1: {
+          title: "Inscription rapide et sécurisée",
+          subtitle: "Rejoignez des milliers de professionnels et d'entreprises qui font confiance à Cameroon Travail.",
+        },
+        item2: { title: "Vos données sont 100% sécurisées" },
+        item3: { title: "Une communauté active et engagée" },
+        item4: { title: "Service fiable et assistance réactive" },
+      },
+      alreadyAccount: "Vous avez déjà un compte ?",
+      loginLink: "Se connecter",
+    },
     // ─── Footer refondu ────────────────────────────────────────────
     footer: {
       tagline: "La plateforme nationale qui connecte les talents aux meilleures opportunités d'emploi au Cameroun et dans la diaspora.",
@@ -1272,6 +1312,46 @@ const en = {
         termsAnd: "and our",
         privacyLink: "privacy policy",
       },
+    },
+    // ─── /inscription page (profile chooser) — premium ──────────────
+    chooseProfile: {
+      badge: "Join Cameroon Travail",
+      title: "Choose your profile",
+      subtitle: "Select the account type that best matches your needs and access tools designed to help you succeed.",
+      cta: "Sign up",
+      candidate: {
+        title: "Candidates",
+        description: "Build a strong professional profile, discover opportunities that match you, and move forward in your career.",
+        benefits: [
+          "Job search with advanced filters",
+          "Complete and structured candidate profile",
+          "Professional CV downloadable as PDF",
+          "Personalized email job alerts",
+        ],
+        imageAlt: "Candidate Cameroon Travail",
+      },
+      recruiter: {
+        title: "Recruiters",
+        description: "Post jobs, receive structured applications, and identify the most relevant profiles in just a few clicks.",
+        benefits: [
+          "Post a job in under 5 minutes",
+          "Access to a qualified CV database",
+          "Application management tools",
+          "Dedicated support to assist you",
+        ],
+        imageAlt: "Recruiter Cameroon Travail",
+      },
+      reassurance: {
+        item1: {
+          title: "Fast and secure sign-up",
+          subtitle: "Join thousands of professionals and companies who trust Cameroon Travail.",
+        },
+        item2: { title: "Your data is 100% secure" },
+        item3: { title: "An active and engaged community" },
+        item4: { title: "Reliable service and responsive support" },
+      },
+      alreadyAccount: "Already have an account?",
+      loginLink: "Log in",
     },
     // ─── Refondued Footer ──────────────────────────────────────────
     footer: {
