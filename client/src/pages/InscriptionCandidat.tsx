@@ -14,17 +14,20 @@ import {
   BadgeCheck,
   Bell,
   Briefcase,
+  Calendar,
   CheckCircle2,
+  ChevronDown,
   Eye,
   EyeOff,
   FileText,
+  Info,
   Lock,
   Mail,
+  MapPin,
+  Plus,
   Send,
   Shield,
   Sparkles,
-  User,
-  UserCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -623,32 +626,109 @@ export default function InscriptionCandidat() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-            <ProfileStepCard
-              n={1}
-              active
-              title={t("signup.profileSection.cards.info.title")}
-              subtitle={t("signup.profileSection.cards.info.subtitle")}
-              icon={UserCircle}
-              note={t("signup.profileSection.cards.info.note")}
-              currentLabel={t("signup.form.steps.current")}
-            />
-            <ProfileStepCard
-              n={2}
-              title={t("signup.profileSection.cards.profil.title")}
-              subtitle={t("signup.profileSection.cards.profil.subtitle")}
-              icon={User}
-              note={t("signup.profileSection.cards.profil.note")}
-              currentLabel={t("signup.form.steps.current")}
-            />
-            <ProfileStepCard
-              n={3}
-              title={t("signup.profileSection.cards.experience.title")}
-              subtitle={t("signup.profileSection.cards.experience.subtitle")}
-              icon={Briefcase}
-              note={t("signup.profileSection.cards.experience.note")}
-              currentLabel={t("signup.form.steps.current")}
-            />
+          {/* Cards + flèches vertes entre elles (mock-up visuel du parcours) */}
+          <div className="relative">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch">
+              {/* Card 1 — Informations (active) */}
+              <ProfileStepCard
+                n={1}
+                active
+                title={t("signup.profileSection.cards.info.title")}
+                subtitle={t("signup.profileSection.cards.info.subtitle")}
+              >
+                <MockField label={t("signup.form.firstName")} value="Jean" />
+                <MockField label={t("signup.form.lastName")} value="Dupont" />
+                <MockField label={t("signup.form.email")} value="jean.dupont@email.com" />
+                <MockField
+                  label={t("signup.form.phone")}
+                  value="+237 6XX XX XX XX"
+                  leftIcon={<CameroonFlag className="w-4 h-3 rounded-sm" />}
+                />
+                <MockField label={t("signup.form.password")} value="••••••••" rightIcon={<Eye className="w-3.5 h-3.5 text-gray-400" />} />
+                <MockField label={t("signup.form.confirmPassword")} value="••••••••" rightIcon={<Eye className="w-3.5 h-3.5 text-gray-400" />} />
+                <div className="flex items-start gap-1.5 mt-1">
+                  <div
+                    className="mt-0.5 w-3.5 h-3.5 rounded shrink-0 flex items-center justify-center"
+                    style={{ backgroundColor: C.green }}
+                  >
+                    <CheckCircle2 className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                  </div>
+                  <p className="text-[10px] leading-snug" style={{ color: C.textMuted }}>
+                    {t("signup.form.acceptTermsStart")}{" "}
+                    <span className="underline" style={{ color: C.green }}>{t("signup.form.acceptTermsLink1")}</span>{" "}
+                    {t("signup.form.acceptTermsAnd")}{" "}
+                    <span className="underline" style={{ color: C.green }}>{t("signup.form.acceptTermsLink2")}</span>
+                  </p>
+                </div>
+                <MockButton label={t("signup.profileSection.cta.continue")} />
+              </ProfileStepCard>
+
+              {/* Card 2 — Profil */}
+              <ProfileStepCard
+                n={2}
+                title={t("signup.profileSection.cards.profil.title")}
+                subtitle={t("signup.profileSection.cards.profil.subtitle")}
+              >
+                <MockSelect label={t("signup.profileSection.preview.jobTitle")} value="Développeur Full Stack" />
+                <MockSelect label={t("signup.profileSection.preview.experienceYears")} value="3 à 5 ans" />
+                <MockField
+                  label={t("signup.profileSection.preview.city")}
+                  value="Yaoundé"
+                  leftIcon={<MapPin className="w-3.5 h-3.5 text-gray-400" />}
+                />
+                <MockSelect label={t("signup.profileSection.preview.availability")} value="Immédiate" />
+                <div
+                  className="flex items-start gap-2 px-2.5 py-2 rounded-md border text-[10px] leading-snug mt-1"
+                  style={{
+                    backgroundColor: "rgba(0, 155, 90, 0.06)",
+                    borderColor: "rgba(0, 155, 90, 0.20)",
+                    color: C.textMuted,
+                  }}
+                >
+                  <Info className="w-3 h-3 mt-0.5 shrink-0" style={{ color: C.green }} />
+                  <span>{t("signup.profileSection.preview.profilNote")}</span>
+                </div>
+                <MockButton label={t("signup.profileSection.cta.continue")} />
+              </ProfileStepCard>
+
+              {/* Card 3 — Expérience */}
+              <ProfileStepCard
+                n={3}
+                title={t("signup.profileSection.cards.experience.title")}
+                subtitle={t("signup.profileSection.cards.experience.subtitle")}
+              >
+                <MockField label={t("signup.profileSection.preview.currentCompany")} value="Tech Solutions SARL" />
+                <MockField label={t("signup.profileSection.preview.currentPosition")} value="Développeur Full Stack" />
+                <div className="grid grid-cols-2 gap-2">
+                  <MockField
+                    label={t("signup.profileSection.preview.startDate")}
+                    value="01/2022"
+                    rightIcon={<Calendar className="w-3.5 h-3.5 text-gray-400" />}
+                  />
+                  <MockField
+                    label={t("signup.profileSection.preview.endDate")}
+                    value={t("signup.profileSection.preview.present")}
+                    rightIcon={<Calendar className="w-3.5 h-3.5 text-gray-400" />}
+                  />
+                </div>
+                <button
+                  type="button"
+                  disabled
+                  className="w-full h-8 rounded-md border border-dashed text-[11px] font-medium flex items-center justify-center gap-1.5 mt-1 cursor-default"
+                  style={{ borderColor: "rgba(0, 155, 90, 0.40)", color: C.green }}
+                >
+                  <Plus className="w-3 h-3" />
+                  {t("signup.profileSection.preview.addExperience")}
+                </button>
+                <MockButton label={t("signup.profileSection.cta.createAccount")} />
+              </ProfileStepCard>
+            </div>
+
+            {/* Flèches vertes entre les cards (desktop only) */}
+            <div className="hidden lg:block pointer-events-none">
+              <ArrowBetween left="calc(33.333% - 14px)" />
+              <ArrowBetween left="calc(66.666% - 14px)" />
+            </div>
           </div>
         </div>
       </section>
@@ -787,34 +867,35 @@ function SocialButton({
   );
 }
 
+/**
+ * Card "aperçu d'étape" : header (numéro + titre + sous-titre) puis
+ * mock-up visuel des champs du formulaire de cette étape. Non
+ * interactif — c'est une démonstration du parcours, pas un vrai form.
+ */
 function ProfileStepCard({
   n,
   active,
   title,
   subtitle,
-  icon: Icon,
-  note,
-  currentLabel,
+  children,
 }: {
   n: number;
   active?: boolean;
   title: string;
   subtitle: string;
-  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
-  note: string;
-  currentLabel: string;
+  children: React.ReactNode;
 }) {
   return (
     <div
-      className="rounded-3xl bg-white border p-7 h-full flex flex-col transition-shadow hover:shadow-lg"
+      className="rounded-3xl bg-white border p-5 lg:p-6 h-full flex flex-col transition-shadow hover:shadow-lg"
       style={{
         borderColor: active ? C.green : C.border,
         boxShadow: active ? `0 12px 30px -10px rgba(0, 155, 90, 0.25)` : undefined,
       }}
     >
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex items-center gap-3 mb-5">
         <span
-          className="inline-flex items-center justify-center w-10 h-10 rounded-2xl font-extrabold shrink-0"
+          className="inline-flex items-center justify-center w-9 h-9 rounded-2xl font-extrabold text-sm shrink-0"
           style={{
             backgroundColor: active ? C.green : "rgba(0, 155, 90, 0.10)",
             color: active ? "white" : C.green,
@@ -824,33 +905,100 @@ function ProfileStepCard({
         </span>
         <div className="min-w-0">
           <h3
-            className="font-bold text-base"
+            className="font-bold text-[15px] leading-tight"
             style={{ color: C.textMain, fontFamily: "'Manrope', 'Inter', sans-serif" }}
           >
             {title}
           </h3>
-          <p className="text-xs" style={{ color: C.textMuted }}>{subtitle}</p>
+          <p className="text-[11px]" style={{ color: C.textMuted }}>{subtitle}</p>
         </div>
-        <Icon className="w-5 h-5 ml-auto shrink-0" style={{ color: active ? C.green : C.textMuted }} />
       </div>
+      <div className="space-y-2.5 flex-1 flex flex-col">{children}</div>
+    </div>
+  );
+}
 
-      {active && (
-        <div
-          className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full border self-start mb-4"
-          style={{
-            backgroundColor: "rgba(0, 155, 90, 0.08)",
-            borderColor: "rgba(0, 155, 90, 0.25)",
-            color: C.green,
-          }}
-        >
-          <CheckCircle2 className="w-3 h-3" />
-          {currentLabel}
-        </div>
-      )}
+/** Champ de formulaire factice (lecture seule, design cohérent avec
+ *  les vrais inputs du hero). */
+function MockField({
+  label,
+  value,
+  leftIcon,
+  rightIcon,
+}: {
+  label: string;
+  value: string;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
+}) {
+  return (
+    <div>
+      <div className="text-[10px] font-medium mb-1" style={{ color: C.textMain }}>
+        {label} <span style={{ color: "#DC2626" }}>*</span>
+      </div>
+      <div
+        className="relative flex items-center h-8 rounded-md border bg-white px-2.5"
+        style={{ borderColor: C.border }}
+      >
+        {leftIcon && <span className="mr-2 shrink-0">{leftIcon}</span>}
+        <span className="text-[11px] truncate flex-1" style={{ color: C.textMain }}>
+          {value}
+        </span>
+        {rightIcon && <span className="ml-2 shrink-0">{rightIcon}</span>}
+      </div>
+    </div>
+  );
+}
 
-      <p className="text-sm leading-relaxed flex-1" style={{ color: C.textMuted }}>
-        {note}
-      </p>
+/** Select factice avec chevron. */
+function MockSelect({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="text-[10px] font-medium mb-1" style={{ color: C.textMain }}>
+        {label} <span style={{ color: "#DC2626" }}>*</span>
+      </div>
+      <div
+        className="relative flex items-center h-8 rounded-md border bg-white px-2.5"
+        style={{ borderColor: C.border }}
+      >
+        <span className="text-[11px] truncate flex-1" style={{ color: C.textMain }}>
+          {value}
+        </span>
+        <ChevronDown className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+      </div>
+    </div>
+  );
+}
+
+/** Bouton CTA factice (vert, full width, hauteur réduite pour les
+ *  cards d'aperçu). */
+function MockButton({ label }: { label: string }) {
+  return (
+    <button
+      type="button"
+      disabled
+      className="w-full h-9 rounded-md text-xs font-semibold text-white mt-auto cursor-default"
+      style={{ backgroundColor: C.green }}
+    >
+      {label}
+    </button>
+  );
+}
+
+/** Flèche verte positionnée absolument entre deux cards (desktop). */
+function ArrowBetween({ left }: { left: string }) {
+  return (
+    <div
+      aria-hidden="true"
+      className="absolute top-1/2 -translate-y-1/2 z-10"
+      style={{ left }}
+    >
+      <div
+        className="w-7 h-7 rounded-full flex items-center justify-center shadow-md"
+        style={{ backgroundColor: C.green }}
+      >
+        <ArrowRight className="w-4 h-4 text-white" strokeWidth={2.5} />
+      </div>
     </div>
   );
 }
