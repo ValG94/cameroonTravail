@@ -552,12 +552,17 @@ export default function EspaceRecruteur() {
             </p>
           </Reveal>
 
+          {/* Grille : 6 cards alignées sur une seule ligne en desktop.
+              - mobile : 1 col
+              - sm     : 2 cols  (3 rangées)
+              - md     : 3 cols  (2 rangées)
+              - lg+    : 6 cols  (1 rangée, comme la maquette) */}
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
             variants={stagger}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"
           >
             {[
               {
@@ -571,28 +576,28 @@ export default function EspaceRecruteur() {
               {
                 icon: Search,
                 title: "Ciblage Précis",
-                desc: "Filtrez par secteur, région, niveau d'expérience et formation.",
+                desc: "Filtres avancés par secteur, région, niveau d'expérience et formation.",
                 color: C.blue,
                 bg: "rgba(37, 99, 235, 0.10)",
               },
               {
                 icon: BarChart3,
                 title: "Analytics Avancés",
-                desc: "Suivez la performance de chaque offre en temps réel.",
+                desc: "Tableau de bord en temps réel pour suivre la performance de chaque offre.",
                 color: C.violet,
                 bg: "rgba(139, 92, 246, 0.10)",
               },
               {
                 icon: HeadphonesIcon,
                 title: "Support Dédié",
-                desc: "Un conseiller recrutement vous accompagne à chaque étape.",
+                desc: "Conseiller expert en recrutement camerounais à chaque étape.",
                 color: C.orange,
                 bg: "rgba(255, 138, 0, 0.10)",
               },
               {
                 icon: Zap,
                 title: "Publication Rapide",
-                desc: "Publiez vos offres en moins de 5 minutes.",
+                desc: "Publiez vos offres en moins de 5 minutes et recevez des candidatures rapidement.",
                 color: C.gold,
                 bg: "rgba(246, 195, 67, 0.18)",
                 badge: "1ère candidature en 24h",
@@ -600,7 +605,7 @@ export default function EspaceRecruteur() {
               {
                 icon: ShieldCheck,
                 title: "Profils Vérifiés",
-                desc: "CV et références validés pour des recrutements plus fiables.",
+                desc: "CV et références validés en amont pour des recrutements plus fiables et sécurisés.",
                 color: C.green,
                 bg: "rgba(0, 155, 90, 0.10)",
               },
@@ -610,34 +615,34 @@ export default function EspaceRecruteur() {
                 variants={fadeUp}
                 whileHover={{ y: -4 }}
                 transition={{ duration: 0.25 }}
-                className="group rounded-3xl bg-white border p-7 transition-all hover:shadow-lg"
+                className="group flex flex-col rounded-2xl bg-white border p-5 transition-all hover:shadow-lg text-center lg:text-left"
                 style={{ borderColor: C.border }}
               >
                 <div
-                  className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-4 transition-transform group-hover:scale-110"
+                  className="inline-flex items-center justify-center w-10 h-10 rounded-xl mb-3 transition-transform group-hover:scale-110 mx-auto lg:mx-0"
                   style={{ backgroundColor: bg }}
                 >
-                  <Icon className="w-5 h-5" style={{ color }} />
+                  <Icon className="w-4 h-4" style={{ color }} />
                 </div>
                 <h3
-                  className="font-bold text-lg mb-2"
+                  className="font-bold text-[15px] mb-1.5"
                   style={{ color: C.textMain, fontFamily: "'Manrope', 'Inter', sans-serif" }}
                 >
                   {title}
                 </h3>
-                <p className="text-sm leading-relaxed" style={{ color: C.textMuted }}>
+                <p className="text-xs leading-relaxed flex-1" style={{ color: C.textMuted }}>
                   {desc}
                 </p>
                 {badge && (
                   <div
-                    className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border"
+                    className="mt-3 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border self-center lg:self-start"
                     style={{
                       backgroundColor: "rgba(255,255,255,0.7)",
                       color: C.textMain,
                       borderColor: C.border,
                     }}
                   >
-                    <Sparkles className="w-3 h-3" style={{ color }} />
+                    <Sparkles className="w-2.5 h-2.5" style={{ color }} />
                     {badge}
                   </div>
                 )}
