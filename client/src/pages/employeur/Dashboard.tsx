@@ -156,7 +156,18 @@ export default function EmployeurDashboard() {
                     </div>
                   </div>
                   <Button
-                    onClick={() => setLocation("/tarifs")}
+                    onClick={() => {
+                      // Navigation SPA + scroll vers la grille de tarifs
+                      // (id="tarifs" dans EspaceRecruteur). Le setTimeout
+                      // laisse le temps à la page de monter avant de
+                      // chercher l'élément à scroller.
+                      setLocation("/tarifs");
+                      setTimeout(() => {
+                        document
+                          .getElementById("tarifs")
+                          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }, 80);
+                    }}
                     className={
                       formuleConfig.ctaVariant === "primary"
                         ? "bg-white text-orange-600 hover:bg-orange-50"
