@@ -735,32 +735,36 @@ export default function EspaceRecruteur() {
               </Button>
             </Reveal>
 
-            {/* Droite : 2 images côte-à-côte avec ratio 4/3 (paysage) pour
-                ne pas couper le contenu, badges semi-transparents posés
-                dans les coins comme demandé. */}
+            {/* Droite : 2 images côte-à-côte. Wrapper extérieur SANS
+                overflow-hidden pour permettre aux badges de dépasser
+                légèrement les coins. L'image est dans un wrapper interne
+                avec overflow-hidden pour préserver les coins arrondis. */}
             <Reveal delay={0.2}>
-              <div className="grid grid-cols-2 gap-3 sm:gap-4 relative">
-                {/* Image 1 (gauche) : entretien — badge VERT semi-transparent
-                    en bas-gauche */}
+              <div className="grid grid-cols-2 gap-4 sm:gap-6 relative">
+                {/* Image 1 (gauche) : entretien — badge VERT débordant
+                    légèrement le coin bas-gauche */}
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.3 }}
-                  className="relative rounded-[24px] overflow-hidden shadow-xl aspect-[4/3]"
+                  className="relative aspect-[4/3]"
                 >
-                  <img
-                    src={IMG_INTERVIEW}
-                    alt="Entretien d'embauche"
-                    className="w-full h-full object-cover"
-                  />
-                  {/* Badge "+3 200" — coin bas-gauche, fond vert à ~70% +
-                      backdrop-blur pour laisser transparaitre la photo. */}
+                  <div className="absolute inset-0 rounded-[24px] overflow-hidden shadow-xl">
+                    <img
+                      src={IMG_INTERVIEW}
+                      alt="Entretien d'embauche"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  {/* Badge "+3 200" — coin bas-gauche, dépasse légèrement
+                      l'image (overflow autorisé par le wrapper sans
+                      overflow-hidden). Opacité 0.70 + backdrop-blur. */}
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.5 }}
-                    className="absolute left-3 bottom-3 sm:left-4 sm:bottom-4 rounded-2xl px-4 py-3 text-white shadow-lg backdrop-blur-sm"
-                    style={{ backgroundColor: "rgba(0, 155, 90, 0.78)" }}
+                    className="absolute -bottom-3 -left-3 sm:-bottom-4 sm:-left-4 rounded-2xl px-4 py-3 text-white shadow-2xl backdrop-blur-md z-10"
+                    style={{ backgroundColor: "rgba(0, 155, 90, 0.70)" }}
                   >
                     <div
                       className="text-xl sm:text-2xl font-extrabold leading-tight"
@@ -774,31 +778,33 @@ export default function EspaceRecruteur() {
                   </motion.div>
                 </motion.div>
 
-                {/* Image 2 (droite) : réunion d'équipe — badge BLANC semi-
-                    transparent collé au bord haut-droit */}
+                {/* Image 2 (droite) : réunion d'équipe — badge BLANC
+                    débordant légèrement le coin haut-droit */}
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.3 }}
-                  className="relative rounded-[24px] overflow-hidden shadow-xl aspect-[4/3]"
+                  className="relative aspect-[4/3]"
                 >
-                  <img
-                    src={IMG_MEETING}
-                    alt="Équipe en réunion"
-                    className="w-full h-full object-cover"
-                  />
-                  {/* Badge "+42%" — coin haut-droit, fond blanc ~85% +
-                      backdrop-blur pour effet glassmorphism premium. */}
+                  <div className="absolute inset-0 rounded-[24px] overflow-hidden shadow-xl">
+                    <img
+                      src={IMG_MEETING}
+                      alt="Équipe en réunion"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  {/* Badge "+42%" — coin haut-droit, dépasse légèrement
+                      l'image. Opacité 0.70 + backdrop-blur md. */}
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.55 }}
-                    className="absolute top-3 right-3 sm:top-4 sm:right-4 rounded-xl px-3 py-2 shadow-lg flex items-center gap-2 max-w-[170px] backdrop-blur-md"
-                    style={{ backgroundColor: "rgba(255, 255, 255, 0.85)" }}
+                    className="absolute -top-3 -right-3 sm:-top-4 sm:-right-4 rounded-xl px-3 py-2 shadow-2xl flex items-center gap-2 max-w-[170px] backdrop-blur-md z-10"
+                    style={{ backgroundColor: "rgba(255, 255, 255, 0.70)" }}
                   >
                     <div
                       className="p-1 rounded-md shrink-0"
-                      style={{ backgroundColor: "rgba(0, 155, 90, 0.12)" }}
+                      style={{ backgroundColor: "rgba(0, 155, 90, 0.15)" }}
                     >
                       <TrendingUp className="w-3.5 h-3.5" style={{ color: C.green }} />
                     </div>
