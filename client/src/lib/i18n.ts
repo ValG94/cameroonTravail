@@ -25,6 +25,9 @@ const fr = {
     },
     nav: {
       home: "Accueil",
+      jobs: "Emplois",
+      advice: "Conseils",
+      createCv: "Créer mon CV",
       publicJobs: "Emploi Public",
       privateJobs: "Emploi Privé",
       myProfile: "Mon Profil",
@@ -34,6 +37,9 @@ const fr = {
       postJob: "Publier une offre",
       myJobs: "Mes offres",
       candidates: "Candidatures reçues",
+      administration: "Administration",
+      logoutInProgress: "Déconnexion...",
+      mobileMenu: "Menu",
     },
     home: {
       title: "Cameroon Travail",
@@ -553,6 +559,9 @@ const en = {
     },
     nav: {
       home: "Home",
+      jobs: "Jobs",
+      advice: "Advice",
+      createCv: "Create my CV",
       publicJobs: "Public Jobs",
       privateJobs: "Private Jobs",
       myProfile: "My Profile",
@@ -562,6 +571,9 @@ const en = {
       postJob: "Post a Job",
       myJobs: "My Jobs",
       candidates: "Received Applications",
+      administration: "Administration",
+      logoutInProgress: "Logging out...",
+      mobileMenu: "Menu",
     },
     home: {
       title: "Cameroon Travail",

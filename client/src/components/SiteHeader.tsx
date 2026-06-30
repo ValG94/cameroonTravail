@@ -50,10 +50,10 @@ export function SiteHeader({ activePage }: SiteHeaderProps) {
   });
 
   const navLinks = [
-    { label: "Accueil", path: "/", key: "accueil" },
-    { label: "Emplois", path: "/offres", key: "emplois" },
-    { label: "Conseils", path: "/conseils", key: "conseils" },
-    { label: "Créer mon CV", path: "/candidat/cv", key: "creer-cv" },
+    { label: t("nav.home"), path: "/", key: "accueil" },
+    { label: t("nav.jobs"), path: "/offres", key: "emplois" },
+    { label: t("nav.advice"), path: "/conseils", key: "conseils" },
+    { label: t("nav.createCv"), path: "/candidat/cv", key: "creer-cv" },
   ];
 
   const isActive = (link: typeof navLinks[0]) =>
@@ -209,7 +209,7 @@ export function SiteHeader({ activePage }: SiteHeaderProps) {
                 {user.role === "admin" && (
                   <DropdownMenuItem onClick={() => setLocation("/admin/dashboard")}>
                     <Award className="mr-2 h-4 w-4" />
-                    <span>Administration</span>
+                    <span>{t("nav.administration")}</span>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
@@ -218,7 +218,7 @@ export function SiteHeader({ activePage }: SiteHeaderProps) {
                   disabled={logoutMutation.isPending}
                   className="text-red-600"
                 >
-                  <span>{logoutMutation.isPending ? "Déconnexion..." : t("common.logout")}</span>
+                  <span>{logoutMutation.isPending ? t("nav.logoutInProgress") : t("common.logout")}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -228,7 +228,7 @@ export function SiteHeader({ activePage }: SiteHeaderProps) {
           <button
             className="md:hidden p-2 rounded-lg hover:bg-gray-100"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Menu"
+            aria-label={t("nav.mobileMenu")}
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
