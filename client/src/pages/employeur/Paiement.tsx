@@ -71,9 +71,13 @@ const C = {
  */
 type FormuleTheme = {
   variant: "basic" | "advantage" | "premium";
-  /** "split" = recap à gauche + paiement à droite (Découverte).
-   *  "hero" = hero pleine largeur en tête + paiement empilés dessous. */
-  layout: "split" | "hero";
+  /** "split" = recap gauche + paiement droite sur fond ivoire (Découverte).
+   *  "hero"  = hero vert profond en tête + recap+paiement empilés sur
+   *            fond ivoire dessous (Avantage).
+   *  "premium" = page entière dark green : hero + grid 2-col
+   *              recap_dark|paiement_white + bandeau dark, tout
+   *              dans un seul flux sombre (Premium). */
+  layout: "split" | "hero" | "premium";
   cardBorder: string;
   accentColor: string;
   accentBg: string;
@@ -82,13 +86,9 @@ type FormuleTheme = {
   badgeBorder: string;
   checkColor: string;
   taglineColor: string;
-  /** Image hero affichée à droite du bloc hero (Avantage). */
+  /** Image hero affichée à droite du bloc hero (Avantage = recruteuse,
+   *  Premium = couronne or). */
   heroImage?: string;
-  /** SVG décoratif au lieu d'une image photo (Premium = couronne). */
-  heroDecoration?: "crown";
-  /** Background du hero band :
-   *  'deepGreen' (Avantage) ou 'darkPremium' (Premium, plus noir + gold). */
-  heroBg?: "deepGreen" | "darkPremium";
   /** Si true, la card récap utilise un fond sombre transparent +
    *  border or + texte blanc (Premium). */
   recapDark?: boolean;
@@ -106,7 +106,7 @@ function getFormuleTheme(nom: string): FormuleTheme {
   if (lower.includes("premium")) {
     return {
       variant: "premium",
-      layout: "hero",
+      layout: "premium",
       cardBorder: "rgba(246, 195, 67, 0.35)",
       accentColor: C.gold,
       accentBg: "rgba(246, 195, 67, 0.10)",
@@ -115,8 +115,7 @@ function getFormuleTheme(nom: string): FormuleTheme {
       badgeBorder: "rgba(246, 195, 67, 0.40)",
       checkColor: C.gold,
       taglineColor: C.gold,
-      heroDecoration: "crown",
-      heroBg: "darkPremium",
+      heroImage: "/images/recruteur/offre-premium.webp",
       recapDark: true,
       // CTA or pour différencier de l'Avantage (vert).
       ctaGradient: `linear-gradient(135deg, ${C.gold} 0%, ${C.goldDark} 100%)`,
@@ -137,7 +136,6 @@ function getFormuleTheme(nom: string): FormuleTheme {
       checkColor: C.goldDark,
       taglineColor: C.goldDark,
       heroImage: "/images/recruteur/offre-avantage.webp",
-      heroBg: "deepGreen",
       reassuranceBg: "dark",
     };
   }
@@ -274,63 +272,61 @@ export default function PaiementEmployeur() {
     }, 80);
   };
 
+  // Background global : dark premium pour Premium (toute la page),
+  // ivoire pour Découverte/Avantage (la teinte hero est gérée en
+  // local par chaque variant).
+  const pageBackground =
+    theme.layout === "premium"
+      ? "radial-gradient(circle at 75% 25%, rgba(246,195,67,0.20), transparent 38%), linear-gradient(135deg, #031F16 0%, #063F24 52%, #020617 100%)"
+      : C.ivory;
+
   return (
-    <div className="min-h-screen" style={{ backgroundColor: C.ivory, color: C.textMain, fontFamily: "'Manrope', 'Inter', sans-serif" }}>
+    <div
+      className="min-h-screen"
+      style={{
+        background: pageBackground,
+        color: theme.layout === "premium" ? "white" : C.textMain,
+        fontFamily: "'Manrope', 'Inter', sans-serif",
+      }}
+    >
       <SiteHeader />
 
       {/* ╭───────────────────────────────────────────────────────────────╮ */}
-      {/* │ HERO BAND vert profond — uniquement layout "hero" (Avantage/  │ */}
-      {/* │ Premium). En basic (Découverte), header simple dans le        │ */}
-      {/* │ container ci-dessous.                                          │ */}
+      {/* │ HERO BAND vert profond — uniquement layout "hero" (Avantage). │ */}
+      {/* │ Premium : pas de hero séparé, toute la page est déjà dark.    │ */}
+      {/* │ Basic : header simple dans le container ci-dessous.            │ */}
       {/* ╰───────────────────────────────────────────────────────────────╯ */}
       {theme.layout === "hero" && (
         <section
           className="relative overflow-hidden text-white"
-          style={{
-            // Premium = quasi-noir + halo or radial ; Avantage = vert profond.
-            background:
-              theme.heroBg === "darkPremium"
-                ? "radial-gradient(circle at 75% 25%, rgba(246,195,67,0.20), transparent 38%), linear-gradient(135deg, #031F16 0%, #063F24 55%, #020617 100%)"
-                : C.deepGreen,
-          }}
+          style={{ backgroundColor: C.deepGreen }}
         >
-          {/* Halo or animé en haut droite (présent sur les 2 variants) */}
+          {/* Halo or animé en haut droite */}
           <div
             aria-hidden="true"
             className="absolute -top-20 -right-20 w-[480px] h-[480px] rounded-full blur-[140px] opacity-25 pointer-events-none"
             style={{ backgroundColor: C.gold }}
           />
-          {/* Particules or pour Premium uniquement */}
-          {theme.heroBg === "darkPremium" && (
-            <div aria-hidden="true" className="absolute top-1/3 right-1/4 grid grid-cols-6 gap-3 opacity-30 pointer-events-none">
-              {Array.from({ length: 18 }).map((_, i) => (
-                <span key={i} className="w-1 h-1 rounded-full" style={{ backgroundColor: C.gold }} />
-              ))}
-            </div>
-          )}
 
           <div className="relative max-w-[1180px] mx-auto px-4 sm:px-6 lg:px-10 py-8 lg:py-14">
             <button
               type="button"
               onClick={handleBackToPricing}
-              className="inline-flex items-center gap-2 text-sm font-medium mb-6 transition-colors hover:underline"
-              style={{
-                color: theme.variant === "premium" ? C.gold : "rgba(255,255,255,0.85)",
-              }}
+              className="inline-flex items-center gap-2 text-sm font-medium mb-6 transition-colors hover:underline text-white/85 hover:text-white"
             >
               <ArrowLeft className="w-4 h-4" />
               {t("bo.employerPayment.backToPrices")}
             </button>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-              {/* Côté gauche : titre + prix + tagline */}
+              {/* Côté gauche : titre + tagline */}
               <div>
                 <Badge
                   className="mb-5 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em]"
                   style={{
                     backgroundColor: "rgba(255, 255, 255, 0.10)",
-                    color: theme.variant === "basic" ? "white" : C.gold,
-                    border: `1px solid ${theme.variant === "basic" ? "rgba(255, 255, 255, 0.25)" : "rgba(246, 195, 67, 0.40)"}`,
+                    color: C.gold,
+                    border: "1px solid rgba(246, 195, 67, 0.40)",
                   }}
                 >
                   {formule.nom}
@@ -342,20 +338,10 @@ export default function PaiementEmployeur() {
                   {t("bo.employerPayment.title")}{" "}
                   <span
                     style={{
-                      background:
-                        theme.variant === "advantage" || theme.variant === "premium"
-                          ? `linear-gradient(135deg, ${C.gold} 0%, #FFE390 100%)`
-                          : undefined,
-                      WebkitBackgroundClip:
-                        theme.variant === "advantage" || theme.variant === "premium" ? "text" : undefined,
-                      WebkitTextFillColor:
-                        theme.variant === "advantage" || theme.variant === "premium" ? "transparent" : undefined,
-                      backgroundClip:
-                        theme.variant === "advantage" || theme.variant === "premium" ? "text" : undefined,
-                      color:
-                        theme.variant === "advantage" || theme.variant === "premium"
-                          ? undefined
-                          : C.greenBright,
+                      background: `linear-gradient(135deg, ${C.gold} 0%, #FFE390 100%)`,
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
                     }}
                   >
                     {formule.nom}
@@ -366,7 +352,7 @@ export default function PaiementEmployeur() {
                 </p>
               </div>
 
-              {/* Côté droit : image OU couronne SVG selon le tier */}
+              {/* Côté droit : image (Avantage = recruteuse) */}
               {theme.heroImage && (
                 <div className="relative hidden lg:flex justify-end">
                   <img
@@ -380,13 +366,90 @@ export default function PaiementEmployeur() {
                   />
                 </div>
               )}
-              {theme.heroDecoration === "crown" && <CrownSvg />}
             </div>
           </div>
         </section>
       )}
 
-      <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-10 py-10 lg:py-14">
+      {/* ╭───────────────────────────────────────────────────────────────╮ */}
+      {/* │ HERO PREMIUM : header + couronne, dans le flux dark de la     │ */}
+      {/* │ page (pas de section séparée car le bg est déjà dark global). │ */}
+      {/* ╰───────────────────────────────────────────────────────────────╯ */}
+      {theme.layout === "premium" && (
+        <div className="relative max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-10 pt-8 pb-4 lg:pt-12 lg:pb-6">
+          {/* Particules or subtiles */}
+          <div aria-hidden="true" className="absolute top-16 right-32 grid grid-cols-5 gap-3 opacity-30 pointer-events-none hidden lg:grid">
+            {Array.from({ length: 20 }).map((_, i) => (
+              <span key={i} className="w-1 h-1 rounded-full" style={{ backgroundColor: C.gold }} />
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={handleBackToPricing}
+            className="inline-flex items-center gap-2 text-sm font-medium mb-6 transition-colors hover:underline"
+            style={{ color: C.gold }}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {t("bo.employerPayment.backToPrices")}
+          </button>
+
+          <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-8 items-center">
+            <div>
+              <Badge
+                className="mb-5 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em]"
+                style={{
+                  backgroundColor: "rgba(246, 195, 67, 0.15)",
+                  color: C.gold,
+                  border: "1px solid rgba(246, 195, 67, 0.40)",
+                }}
+              >
+                {formule.nom}
+              </Badge>
+              <h1
+                className="font-extrabold leading-[1.05] tracking-tight text-white"
+                style={{ fontSize: "clamp(34px, 4.8vw, 56px)" }}
+              >
+                {t("bo.employerPayment.title")}{" "}
+                <span
+                  style={{
+                    background: `linear-gradient(135deg, ${C.gold} 0%, #FFE390 100%)`,
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}
+                >
+                  {formule.nom}
+                </span>
+              </h1>
+              <p className="mt-4 text-base sm:text-[17px] text-white/80 leading-relaxed max-w-[520px]">
+                {t("bo.employerPayment.subtitle")}
+              </p>
+            </div>
+
+            {/* Couronne or — image fournie par le user */}
+            {theme.heroImage && (
+              <div className="relative flex justify-center lg:justify-end">
+                <img
+                  src={theme.heroImage}
+                  alt=""
+                  aria-hidden="true"
+                  className="w-[220px] h-[220px] lg:w-[280px] lg:h-[280px] object-contain drop-shadow-2xl"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.display = "none";
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className={
+        theme.layout === "premium"
+          ? "max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-10 pb-12 lg:pb-16"
+          : "max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-10 py-10 lg:py-14"
+      }>
         {/* Header simple — uniquement layout "basic" (Découverte).
             En "hero", le header est déjà rendu dans la bande verte
             au-dessus. */}
@@ -411,12 +474,17 @@ export default function PaiementEmployeur() {
           </>
         )}
 
-        {/* Grid layout : split pour basic, vertical stack pour hero
-            (recap full-width au-dessus, paiement plus large dessous) */}
+        {/* Grid layout par variante :
+            - basic   : split classique recap | paiement
+            - hero    : vertical stack centré (Avantage)
+            - premium : 2-col side-by-side recap_dark | paiement_white,
+              avec le paiement légèrement plus large pour respirer */}
         <div
           className={
             theme.layout === "hero"
               ? "flex flex-col gap-8 max-w-[820px] mx-auto"
+              : theme.layout === "premium"
+              ? "grid grid-cols-1 lg:grid-cols-2 gap-8 items-start"
               : "grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-8"
           }
         >
@@ -758,96 +826,3 @@ export default function PaiementEmployeur() {
   );
 }
 
-// ─── Sous-composants décoratifs ──────────────────────────────────────────────
-
-/**
- * Couronne SVG or sur halo radial pour le hero Premium.
- * Génération inline (pas de fichier image) pour rester scalable et léger.
- */
-function CrownSvg() {
-  return (
-    <div className="relative hidden lg:flex justify-center items-center">
-      <svg viewBox="0 0 240 240" className="w-[280px] h-[280px]" aria-hidden="true">
-        <defs>
-          <radialGradient id="crown-halo" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#F6C343" stopOpacity="0.45" />
-            <stop offset="60%" stopColor="#F6C343" stopOpacity="0.10" />
-            <stop offset="100%" stopColor="#F6C343" stopOpacity="0" />
-          </radialGradient>
-          <linearGradient id="crown-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#FFE390" />
-            <stop offset="55%" stopColor="#F6C343" />
-            <stop offset="100%" stopColor="#C98A00" />
-          </linearGradient>
-          <linearGradient id="crown-band-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#D99200" />
-            <stop offset="100%" stopColor="#8C5A00" />
-          </linearGradient>
-        </defs>
-
-        {/* Halo radial */}
-        <circle cx="120" cy="120" r="118" fill="url(#crown-halo)" />
-
-        {/* Cercle orbital fin */}
-        <circle
-          cx="120"
-          cy="120"
-          r="92"
-          fill="none"
-          stroke="#F6C343"
-          strokeOpacity="0.25"
-          strokeWidth="1"
-        />
-        <circle
-          cx="120"
-          cy="120"
-          r="80"
-          fill="none"
-          stroke="#F6C343"
-          strokeOpacity="0.18"
-          strokeWidth="0.5"
-        />
-
-        {/* Couronne — base + pointes */}
-        <g transform="translate(120 130)">
-          {/* Pointes (5 triangles + courbes liantes) */}
-          <path
-            d="M -52 0
-               L -52 -22
-               L -28 -8
-               L -16 -38
-               L 0 -50
-               L 16 -38
-               L 28 -8
-               L 52 -22
-               L 52 0
-               Z"
-            fill="url(#crown-grad)"
-            stroke="#C98A00"
-            strokeWidth="1"
-            strokeLinejoin="round"
-          />
-          {/* Bandeau base */}
-          <rect
-            x="-54"
-            y="0"
-            width="108"
-            height="18"
-            rx="3"
-            fill="url(#crown-band-grad)"
-            stroke="#8C5A00"
-            strokeWidth="0.6"
-          />
-          {/* Gemmes sur les pointes */}
-          <circle cx="-28" cy="-8" r="3.5" fill="#FFE390" stroke="#C98A00" strokeWidth="0.5" />
-          <circle cx="0" cy="-44" r="5" fill="#FFE390" stroke="#C98A00" strokeWidth="0.6" />
-          <circle cx="28" cy="-8" r="3.5" fill="#FFE390" stroke="#C98A00" strokeWidth="0.5" />
-          {/* Gemmes sur la base */}
-          <circle cx="-30" cy="9" r="2.2" fill="#FFE390" opacity="0.85" />
-          <circle cx="0" cy="9" r="2.5" fill="#FFE390" opacity="0.9" />
-          <circle cx="30" cy="9" r="2.2" fill="#FFE390" opacity="0.85" />
-        </g>
-      </svg>
-    </div>
-  );
-}
