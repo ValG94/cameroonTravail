@@ -1,4 +1,4 @@
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import {
@@ -10,18 +10,21 @@ import {
   formations,
   competences,
   langues,
+  demandesSouscription,
   InsertCandidat,
   InsertEmployeur,
   InsertExperience,
   InsertFormation,
   InsertCompetence,
   InsertLangue,
+  InsertDemandeSouscription,
   Candidat,
   Employeur,
   Experience,
   Formation,
   Competence,
   Langue,
+  DemandeSouscription,
 } from "../drizzle/schema";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -299,4 +302,63 @@ export async function deleteLangue(id: number) {
   if (!db) throw new Error("Database not available");
 
   await db.delete(langues).where(eq(langues.id, id));
+}
+
+// ─── Demandes de souscription (paiement manuel) ──────────────────────────────
+
+export async function createDemandeSouscription(
+  data: InsertDemandeSouscription
+): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db
+    .insert(demandesSouscription)
+    .values(data)
+    .returning({ id: demandesSouscription.id });
+  return result[0].id;
+}
+
+export async function getDemandeSouscriptionById(
+  id: number
+): Promise<DemandeSouscription | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select()
+    .from(demandesSouscription)
+    .where(eq(demandesSouscription.id, id))
+    .limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+/**
+ * Liste les demandes de souscription. Optionnellement filtrées par
+ * statut ou par employeur. Triées par date de création décroissante
+ * (les plus récentes en premier).
+ */
+export async function listDemandesSouscription(filters?: {
+  statut?: "en_attente" | "validee" | "refusee";
+  employeurId?: number;
+}): Promise<DemandeSouscription[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const conds = [];
+  if (filters?.statut) conds.push(eq(demandesSouscription.statut, filters.statut));
+  if (filters?.employeurId)
+    conds.push(eq(demandesSouscription.employeurId, filters.employeurId));
+  const query = db.select().from(demandesSouscription);
+  const filtered = conds.length > 0 ? query.where(and(...conds)) : query;
+  return await filtered.orderBy(desc(demandesSouscription.createdAt));
+}
+
+export async function updateDemandeSouscription(
+  id: number,
+  data: Partial<InsertDemandeSouscription>
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db
+    .update(demandesSouscription)
+    .set({ ...data, updatedAt: new Date() })
+    .where(eq(demandesSouscription.id, id));
 }

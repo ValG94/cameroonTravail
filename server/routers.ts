@@ -479,6 +479,152 @@ export const appRouter = router({
         await dbInstance.update(formulesTarifaires).set({ actif: input.actif }).where(eq(formulesTarifaires.id, input.id));
         return { success: true };
       }),
+
+    // ─── Demandes de souscription (paiement manuel) ─────────────────
+    // L'admin liste les demandes en attente, vérifie chaque paiement
+    // côté téléphone marchand puis valide ou refuse. Validation =
+    // activation immédiate de la formule sur la fiche employeur.
+
+    listDemandesSouscription: adminProcedure
+      .input(z.object({
+        statut: z.enum(["en_attente", "validee", "refusee"]).optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        const dbInstance = await db.getDb();
+        if (!dbInstance) return [];
+        const demandes = await db.listDemandesSouscription({ statut: input?.statut });
+
+        // Jointure manuelle pour enrichir : nom entreprise + nom formule
+        const { employeurs, formulesTarifaires, users } = await import('../drizzle/schema');
+        const { eq, inArray } = await import('drizzle-orm');
+        const empIds = Array.from(new Set(demandes.map((d) => d.employeurId)));
+        const formIds = Array.from(new Set(demandes.map((d) => d.formuleId)));
+        const adminIds = demandes
+          .map((d) => d.validatedByAdminId)
+          .filter((v): v is number => v !== null);
+
+        const [emps, forms, admins] = await Promise.all([
+          empIds.length > 0
+            ? dbInstance.select().from(employeurs).where(inArray(employeurs.id, empIds))
+            : Promise.resolve([] as any[]),
+          formIds.length > 0
+            ? dbInstance.select().from(formulesTarifaires).where(inArray(formulesTarifaires.id, formIds))
+            : Promise.resolve([] as any[]),
+          adminIds.length > 0
+            ? dbInstance.select({ id: users.id, email: users.email, name: users.name }).from(users).where(inArray(users.id, adminIds))
+            : Promise.resolve([] as any[]),
+        ]);
+        const empById = new Map(emps.map((e: any) => [e.id, e]));
+        const formById = new Map(forms.map((f: any) => [f.id, f]));
+        const adminById = new Map(admins.map((a: any) => [a.id, a]));
+        // Pour chaque employeur, récupérer le user associé pour l'email
+        const userIds = emps.map((e: any) => e.userId);
+        const usersList = userIds.length > 0
+          ? await dbInstance.select({ id: users.id, email: users.email, name: users.name }).from(users).where(inArray(users.id, userIds))
+          : [];
+        const userById = new Map(usersList.map((u: any) => [u.id, u]));
+
+        return demandes.map((d) => {
+          const emp = empById.get(d.employeurId);
+          const formule = formById.get(d.formuleId);
+          const validator = d.validatedByAdminId ? adminById.get(d.validatedByAdminId) : null;
+          const empUser = emp ? userById.get(emp.userId) : null;
+          return {
+            ...d,
+            nomEntreprise: emp?.nomEntreprise ?? "",
+            emailRecruteur: empUser?.email ?? "",
+            nomRecruteur: empUser?.name ?? "",
+            telephoneRecruteur: emp?.telephoneContact ?? emp?.telephone ?? "",
+            nomFormule: formule?.nom ?? "",
+            validatorName: validator?.name ?? null,
+          };
+        });
+      }),
+
+    validerDemandeSouscription: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const demande = await db.getDemandeSouscriptionById(input.id);
+        if (!demande) throw new Error("Demande introuvable");
+        if (demande.statut !== "en_attente")
+          throw new Error("Cette demande a déjà été traitée");
+
+        const dbInstance = await db.getDb();
+        if (!dbInstance) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { formulesTarifaires, employeurs } = await import('../drizzle/schema');
+        const { eq } = await import('drizzle-orm');
+
+        const [formule] = await dbInstance
+          .select()
+          .from(formulesTarifaires)
+          .where(eq(formulesTarifaires.id, demande.formuleId))
+          .limit(1);
+        if (!formule) throw new Error("Formule introuvable");
+
+        // Mapping nom formule → enum formuleAbonnement + quota offres.
+        // Enum DB : "gratuit" | "professionnel" | "entreprise". On
+        // mappe les noms commerciaux courants vers ces 3 valeurs.
+        const nomLower = formule.nom.toLowerCase();
+        let formuleEnum: "professionnel" | "entreprise" = "professionnel";
+        let nbOffres = 3;
+        if (nomLower.includes("premium")) {
+          formuleEnum = "entreprise";
+          nbOffres = 9999;
+        } else if (nomLower.includes("avantage")) {
+          formuleEnum = "professionnel";
+          nbOffres = 10;
+        } else if (nomLower.includes("découverte") || nomLower.includes("decouverte")) {
+          formuleEnum = "professionnel";
+          nbOffres = 3;
+        }
+
+        // Calcul dates : période mensuelle = +30j, annuelle = +365j,
+        // unique = +10 ans (équivalent illimité borné).
+        const now = new Date();
+        const fin = new Date(now);
+        if (formule.periode === "annuel") fin.setDate(fin.getDate() + 365);
+        else if (formule.periode === "unique") fin.setFullYear(fin.getFullYear() + 10);
+        else fin.setDate(fin.getDate() + 30);
+
+        // Activation de la formule sur la fiche employeur + marquage
+        // de la demande comme validée (atomicité best-effort sans
+        // transaction explicite, OK pour ce MVP).
+        await dbInstance
+          .update(employeurs)
+          .set({
+            formuleAbonnement: formuleEnum,
+            dateDebutAbonnement: now,
+            dateFinAbonnement: fin,
+            nombreOffresRestantes: nbOffres,
+          } as any)
+          .where(eq(employeurs.id, demande.employeurId));
+
+        await db.updateDemandeSouscription(input.id, {
+          statut: "validee",
+          validatedByAdminId: ctx.user.id,
+          validatedAt: now,
+        });
+
+        return { success: true };
+      }),
+
+    refuserDemandeSouscription: adminProcedure
+      .input(z.object({ id: z.number(), raison: z.string().min(3, "Précisez la raison") }))
+      .mutation(async ({ ctx, input }) => {
+        const demande = await db.getDemandeSouscriptionById(input.id);
+        if (!demande) throw new Error("Demande introuvable");
+        if (demande.statut !== "en_attente")
+          throw new Error("Cette demande a déjà été traitée");
+
+        await db.updateDemandeSouscription(input.id, {
+          statut: "refusee",
+          raisonRefus: input.raison,
+          validatedByAdminId: ctx.user.id,
+          validatedAt: new Date(),
+        });
+
+        return { success: true };
+      }),
   }),
 
   auth: router({
@@ -1858,8 +2004,61 @@ export const appRouter = router({
           logoUrl,
         };
       }),
+
+    // ─── Souscription à une formule payante (paiement manuel) ───────
+    // Le recruteur déclare un paiement effectué via Orange Money ou
+    // MTN MoMo (en envoyant sa référence de transaction). L'admin
+    // vérifie réellement le paiement côté téléphone marchand puis
+    // valide via admin.validerDemandeSouscription, ce qui active la
+    // formule sur la fiche employeur.
+    demanderSouscription: protectedProcedure
+      .input(z.object({
+        formuleId: z.number(),
+        methodePaiement: z.enum(["orange_money", "mtn_momo", "autre"]),
+        referenceTransaction: z.string().min(3, "Référence trop courte"),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.profileType !== "employeur") {
+          throw new Error("Seuls les recruteurs peuvent souscrire à une formule");
+        }
+        const employeur = await db.getEmployeurByUserId(ctx.user.id);
+        if (!employeur) throw new Error("Profil recruteur introuvable");
+
+        // Récupérer la formule pour stocker le montant figé (le prix
+        // peut évoluer ; on garde le montant payé au moment de la
+        // demande).
+        const dbInstance = await db.getDb();
+        if (!dbInstance) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { formulesTarifaires } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const [formule] = await dbInstance
+          .select()
+          .from(formulesTarifaires)
+          .where(eq(formulesTarifaires.id, input.formuleId))
+          .limit(1);
+        if (!formule) throw new Error("Formule introuvable");
+        if (formule.cible !== "employeur")
+          throw new Error("Cette formule n'est pas destinée aux recruteurs");
+
+        const id = await db.createDemandeSouscription({
+          employeurId: employeur.id,
+          formuleId: input.formuleId,
+          montant: formule.prix,
+          devise: formule.devise,
+          methodePaiement: input.methodePaiement,
+          referenceTransaction: input.referenceTransaction,
+        });
+        return { success: true, demandeId: id };
+      }),
+
+    // Liste des demandes du recruteur connecté (pour suivi côté BO)
+    mesDemandesSouscription: protectedProcedure.query(async ({ ctx }) => {
+      const employeur = await db.getEmployeurByUserId(ctx.user.id);
+      if (!employeur) return [];
+      return await db.listDemandesSouscription({ employeurId: employeur.id });
+    }),
   }),
-  
+
   // Candidatures
   candidatures: router({
     // Créer une candidature

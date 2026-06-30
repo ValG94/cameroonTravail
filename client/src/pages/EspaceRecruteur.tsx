@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "wouter";
 import { motion, useInView, useReducedMotion, type Variants } from "framer-motion";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -185,6 +186,7 @@ function CameroonFlag({ className = "" }: { className?: string }) {
 export default function EspaceRecruteur() {
   const { t } = useTranslation();
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
   const [formData, setFormData] = useState({ entreprise: "", email: "", telephone: "", taille: "" });
   const [submitting, setSubmitting] = useState(false);
 
@@ -1068,7 +1070,19 @@ export default function EspaceRecruteur() {
                       )}
 
                       <Button
-                        onClick={() => setLocation(`/inscription?type=employeur&plan=${formule.id}`)}
+                        onClick={() => {
+                          // Si recruteur déjà authentifié, on l'envoie
+                          // directement vers le tunnel de paiement
+                          // (Option B : déclaration de paiement Mobile
+                          // Money + validation admin). Sinon, on garde
+                          // le parcours d'inscription qui transmet le
+                          // plan choisi en query param.
+                          if (user && user.profileType === "employeur") {
+                            setLocation(`/employeur/paiement?plan=${formule.id}`);
+                          } else {
+                            setLocation(`/inscription?type=employeur&plan=${formule.id}`);
+                          }
+                        }}
                         className="w-full h-11 font-semibold transition-all focus:ring-4"
                         style={
                           isPopulaire

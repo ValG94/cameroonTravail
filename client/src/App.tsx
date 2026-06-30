@@ -27,6 +27,7 @@ import EmployeurOffres from "./pages/employeur/Offres";
 import ToutesLesOffres from "./pages/ToutesLesOffres";
 import EmployeurPublier from "./pages/employeur/Publier";
 import EmployeurProfil from "./pages/employeur/Profil";
+import EmployeurPaiement from "./pages/employeur/Paiement";
 import ModifierOffre from "./pages/employeur/ModifierOffre";
 import Connexion from "./pages/Connexion";
 import RechercheEmploi from "./pages/RechercheEmploi";
@@ -34,6 +35,7 @@ import OffreDetail from "./pages/OffreDetail";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import AdminDashboard from "./pages/admin/Dashboard";
+import AdminSouscriptions from "./pages/admin/Souscriptions";
 import Conseils from "./pages/Conseils";
 import ConseilDetail from "./pages/ConseilDetail";
 import DeposerCV from "./pages/DeposerCV";
@@ -79,8 +81,10 @@ function Router() {
       <Route path="/employeur/offres" component={EmployeurOffres} />
       <Route path="/employeur/publier" component={EmployeurPublier} />
       <Route path="/employeur/profil" component={EmployeurProfil} />
+      <Route path="/employeur/paiement" component={EmployeurPaiement} />
       <Route path="/employeur/offres/:id/modifier" component={ModifierOffre} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
+      <Route path="/admin/souscriptions" component={AdminSouscriptions} />
       <Route path="/deposer-cv" component={DeposerCV} />
       <Route path="/cv/classique" component={CVClassique} />
       <Route path="/cv/moderne" component={CVModerne} />

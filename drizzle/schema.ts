@@ -1,6 +1,7 @@
 import {
   boolean,
   decimal,
+  integer,
   pgEnum,
   pgTable,
   serial,
@@ -438,3 +439,44 @@ export type CvTemplate = typeof cvTemplates.$inferSelect;
 export type InsertCvTemplate = typeof cvTemplates.$inferInsert;
 export type CvTemplatePurchase = typeof cvTemplatePurchases.$inferSelect;
 export type InsertCvTemplatePurchase = typeof cvTemplatePurchases.$inferInsert;
+
+// ─── Demandes de souscription (paiement manuel Option B) ──────────────────────
+// Workflow : le recruteur déclare un paiement (Orange Money / MTN MoMo)
+// avec sa référence de transaction. L'admin vérifie le paiement réel sur
+// le téléphone marchand et valide → la formule devient active sur la
+// fiche employeur. Pas d'intégration de passerelle pour ce MVP.
+
+export const methodePaiementEnum = pgEnum("methodePaiement", [
+  "orange_money",
+  "mtn_momo",
+  "autre",
+]);
+
+export const statutDemandeEnum = pgEnum("statutDemande", [
+  "en_attente",
+  "validee",
+  "refusee",
+]);
+
+export const demandesSouscription = pgTable("demandes_souscription", {
+  id: serial("id").primaryKey(),
+  employeurId: integer("employeurId")
+    .notNull()
+    .references(() => employeurs.id, { onDelete: "cascade" }),
+  formuleId: integer("formuleId")
+    .notNull()
+    .references(() => formulesTarifaires.id),
+  montant: decimal("montant", { precision: 10, scale: 2 }).notNull(),
+  devise: varchar("devise", { length: 10 }).default("XAF").notNull(),
+  methodePaiement: methodePaiementEnum("methodePaiement").notNull(),
+  referenceTransaction: varchar("referenceTransaction", { length: 100 }).notNull(),
+  statut: statutDemandeEnum("statut").default("en_attente").notNull(),
+  raisonRefus: text("raisonRefus"),
+  validatedByAdminId: integer("validatedByAdminId").references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  validatedAt: timestamp("validatedAt"),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
+export type DemandeSouscription = typeof demandesSouscription.$inferSelect;
+export type InsertDemandeSouscription = typeof demandesSouscription.$inferInsert;
