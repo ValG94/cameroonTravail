@@ -12,14 +12,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft,
+  BarChart3,
+  Briefcase,
   CheckCircle2,
   Clock,
   Headphones,
   Info,
+  Mail,
   Phone,
   ShieldCheck,
   Smartphone,
   Sparkles,
+  Star,
+  Users,
   Zap,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -127,16 +132,20 @@ function getFormuleTheme(nom: string): FormuleTheme {
     return {
       variant: "advantage",
       layout: "hero",
-      cardBorder: "rgba(246, 195, 67, 0.45)",
-      accentColor: C.goldDark,
-      accentBg: "rgba(246, 195, 67, 0.08)",
+      // Avantage utilise une bordure et un accent vert (pas or)
+      // car toute la page reste light/ivoire pour cohérence avec
+      // la maquette desktop. L'or restera réservé à Premium.
+      cardBorder: "rgba(0, 155, 90, 0.25)",
+      accentColor: C.greenBright,
+      accentBg: "rgba(0, 155, 90, 0.06)",
       badgeBg: "rgba(246, 195, 67, 0.18)",
       badgeText: "#A37200",
       badgeBorder: "rgba(246, 195, 67, 0.40)",
-      checkColor: C.goldDark,
-      taglineColor: C.goldDark,
+      checkColor: C.greenBright,
+      taglineColor: C.green,
       heroImage: "/images/recruteur/offre-avantage.webp",
-      reassuranceBg: "dark",
+      // Bandeau réassurance light (fond ivoire, pas dark green)
+      reassuranceBg: "light",
     };
   }
   // Default : Découverte (basique, vert)
@@ -153,6 +162,18 @@ function getFormuleTheme(nom: string): FormuleTheme {
     taglineColor: C.green,
     reassuranceBg: "light",
   };
+}
+
+/**
+ * Mapping icône par position de fonctionnalité dans la liste,
+ * pour donner un rendu plus visuel que des checkmarks répétés.
+ * L'ordre des bullets dans formules_tarifaires.fonctionnalites suit
+ * une logique métier cohérente (ex Découverte : offres, candidatures
+ * email, tableau de bord, support standard).
+ */
+const FEATURE_ICONS = [Briefcase, Mail, BarChart3, Headphones, Star, Users];
+function getFeatureIcon(index: number) {
+  return FEATURE_ICONS[index % FEATURE_ICONS.length];
 }
 
 export default function PaiementEmployeur() {
@@ -283,94 +304,68 @@ export default function PaiementEmployeur() {
 
   return (
     <div
-      className="min-h-screen"
+      className="min-h-screen relative overflow-hidden"
       style={{
         background: pageBackground,
         color: theme.layout === "premium" ? "white" : C.textMain,
         fontFamily: "'Manrope', 'Inter', sans-serif",
       }}
     >
-      <SiteHeader />
-
-      {/* ╭───────────────────────────────────────────────────────────────╮ */}
-      {/* │ HERO BAND vert profond — uniquement layout "hero" (Avantage). │ */}
-      {/* │ Premium : pas de hero séparé, toute la page est déjà dark.    │ */}
-      {/* │ Basic : header simple dans le container ci-dessous.            │ */}
-      {/* ╰───────────────────────────────────────────────────────────────╯ */}
-      {theme.layout === "hero" && (
-        <section
-          className="relative overflow-hidden text-white"
-          style={{ backgroundColor: C.deepGreen }}
-        >
-          {/* Halo or animé en haut droite */}
+      {/* Décorations feuilles SVG subtiles en arrière-plan, uniquement
+          pour les layouts light (split + hero, pas premium). Donne un
+          rendu organique cohérent avec la maquette ivoire. */}
+      {theme.layout !== "premium" && (
+        <>
+          <svg
+            aria-hidden="true"
+            className="absolute bottom-0 left-0 w-[280px] h-[280px] opacity-[0.08] pointer-events-none"
+            viewBox="0 0 200 200"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M 30 180 Q 50 130 80 110 Q 110 90 130 50 M 50 170 Q 70 130 100 120 M 30 180 Q 80 170 120 140"
+              stroke={C.greenBright}
+              strokeWidth="2"
+              fill="none"
+            />
+            <ellipse cx="80" cy="110" rx="8" ry="22" fill={C.greenBright} transform="rotate(-30 80 110)" />
+            <ellipse cx="100" cy="120" rx="6" ry="18" fill={C.greenBright} transform="rotate(-20 100 120)" />
+            <ellipse cx="120" cy="140" rx="7" ry="20" fill={C.greenBright} transform="rotate(-15 120 140)" />
+          </svg>
+          <svg
+            aria-hidden="true"
+            className="absolute bottom-0 right-0 w-[260px] h-[260px] opacity-[0.08] pointer-events-none"
+            viewBox="0 0 200 200"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M 170 180 Q 150 130 120 110 Q 90 90 70 50 M 150 170 Q 130 130 100 120"
+              stroke={C.greenBright}
+              strokeWidth="2"
+              fill="none"
+            />
+            <ellipse cx="120" cy="110" rx="8" ry="22" fill={C.greenBright} transform="rotate(30 120 110)" />
+            <ellipse cx="100" cy="120" rx="6" ry="18" fill={C.greenBright} transform="rotate(20 100 120)" />
+          </svg>
+          {/* Points décoratifs supplémentaires (visibles sur la maquette) */}
           <div
             aria-hidden="true"
-            className="absolute -top-20 -right-20 w-[480px] h-[480px] rounded-full blur-[140px] opacity-25 pointer-events-none"
-            style={{ backgroundColor: C.gold }}
-          />
-
-          <div className="relative max-w-[1180px] mx-auto px-4 sm:px-6 lg:px-10 py-8 lg:py-14">
-            <button
-              type="button"
-              onClick={handleBackToPricing}
-              className="inline-flex items-center gap-2 text-sm font-medium mb-6 transition-colors hover:underline text-white/85 hover:text-white"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              {t("bo.employerPayment.backToPrices")}
-            </button>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-              {/* Côté gauche : titre + tagline */}
-              <div>
-                <Badge
-                  className="mb-5 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em]"
-                  style={{
-                    backgroundColor: "rgba(255, 255, 255, 0.10)",
-                    color: C.gold,
-                    border: "1px solid rgba(246, 195, 67, 0.40)",
-                  }}
-                >
-                  {formule.nom}
-                </Badge>
-                <h1
-                  className="font-extrabold leading-[1.05] tracking-tight"
-                  style={{ fontSize: "clamp(34px, 4.6vw, 52px)" }}
-                >
-                  {t("bo.employerPayment.title")}{" "}
-                  <span
-                    style={{
-                      background: `linear-gradient(135deg, ${C.gold} 0%, #FFE390 100%)`,
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      backgroundClip: "text",
-                    }}
-                  >
-                    {formule.nom}
-                  </span>
-                </h1>
-                <p className="mt-4 text-base sm:text-[17px] text-white/85 leading-relaxed max-w-[520px]">
-                  {t("bo.employerPayment.subtitle")}
-                </p>
-              </div>
-
-              {/* Côté droit : image (Avantage = recruteuse) */}
-              {theme.heroImage && (
-                <div className="relative hidden lg:flex justify-end">
-                  <img
-                    src={theme.heroImage}
-                    alt=""
-                    aria-hidden="true"
-                    className="max-h-[340px] w-auto object-contain rounded-2xl shadow-2xl"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).style.display = "none";
-                    }}
-                  />
-                </div>
-              )}
-            </div>
+            className="absolute top-1/3 left-8 grid grid-cols-4 gap-2 opacity-30 pointer-events-none"
+          >
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i} className="w-1 h-1 rounded-full" style={{ backgroundColor: C.greenBright }} />
+            ))}
           </div>
-        </section>
+        </>
       )}
+
+      <div className="relative z-10">
+        <SiteHeader />
+
+      {/* Layout "hero" (Avantage) : pas de hero band vert au-dessus
+          contrairement aux premières itérations. Le header (retour
+          + badge + titre + desc) est rendu DANS la 1ère colonne du
+          grid 3-col ci-dessous, sur fond ivoire. */}
 
       {/* ╭───────────────────────────────────────────────────────────────╮ */}
       {/* │ HERO PREMIUM : header + couronne, dans le flux dark de la     │ */}
@@ -451,23 +446,29 @@ export default function PaiementEmployeur() {
       <div className={
         theme.layout === "premium"
           ? "max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-10 pb-12 lg:pb-16"
+          : theme.layout === "hero"
+          ? "max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-10 py-8 lg:py-12"
           : "max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-10 py-10 lg:py-14"
       }>
-        {/* Header simple — uniquement layout "basic" (Découverte).
-            En "hero", le header est déjà rendu dans la bande verte
-            au-dessus. */}
+        {/* Header bouton retour — pour "split" (Découverte) et "hero"
+            (Avantage). Premium gère son retour dans son hero band. */}
+        {(theme.layout === "split" || theme.layout === "hero") && (
+          <button
+            type="button"
+            onClick={handleBackToPricing}
+            className="inline-flex items-center gap-2 text-sm font-medium mb-6 hover:underline"
+            style={{ color: theme.variant === "advantage" ? C.green : C.textMuted }}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {t("bo.employerPayment.backToPrices")}
+          </button>
+        )}
+
+        {/* Header titre — uniquement "split" (Découverte). Pour
+            "hero" (Avantage), le titre est dans la 1ère colonne du
+            grid 3-col ci-dessous. */}
         {theme.layout === "split" && (
           <>
-            <button
-              type="button"
-              onClick={handleBackToPricing}
-              className="inline-flex items-center gap-2 text-sm font-medium mb-6 hover:underline"
-              style={{ color: C.textMuted }}
-            >
-              <ArrowLeft className="w-4 h-4" />
-              {t("bo.employerPayment.backToPrices")}
-            </button>
-
             <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-2">
               {t("bo.employerPayment.title")} <span style={{ color: C.green }}>{formule.nom}</span>
             </h1>
@@ -478,24 +479,74 @@ export default function PaiementEmployeur() {
         )}
 
         {/* Grid layout par variante :
-            - basic   : split classique recap | paiement
-            - hero    : vertical stack centré (Avantage)
-            - premium : 2-col side-by-side recap_dark | paiement_white,
-              avec le paiement légèrement plus large pour respirer */}
+            - basic   : split classique recap | paiement (2-col)
+            - hero    : 3-col Avantage : [titre+recap] | [photo] | [paiement]
+            - premium : 2-col dark recap_dark | paiement_white */}
         <div
           className={
             theme.layout === "hero"
-              ? "flex flex-col gap-8 max-w-[820px] mx-auto"
+              ? "grid grid-cols-1 lg:grid-cols-[1fr_1.1fr_1fr] lg:grid-rows-[auto_1fr] gap-6 lg:gap-8 items-stretch"
               : theme.layout === "premium"
               ? "grid grid-cols-1 lg:grid-cols-2 gap-8 items-start"
               : "grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-8"
           }
         >
+          {/* Pour layout="hero" : badge + titre + desc en tête de la
+              colonne 1, AVANT la recap card (qui suit ci-dessous via
+              le rendu existant). Pour split/premium, ce bloc est dans
+              le header au-dessus. */}
+          {theme.layout === "hero" && (
+            <div className="flex flex-col gap-6">
+              <div>
+                <Badge
+                  className="mb-4 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] inline-block"
+                  style={{
+                    backgroundColor: theme.badgeBg,
+                    color: theme.badgeText,
+                    border: `1px solid ${theme.badgeBorder}`,
+                  }}
+                >
+                  {formule.nom}
+                </Badge>
+                <h1
+                  className="font-extrabold leading-[1.05] tracking-tight"
+                  style={{ fontSize: "clamp(30px, 3.6vw, 42px)", color: C.textMain }}
+                >
+                  {t("bo.employerPayment.title")}{" "}
+                  <span style={{ color: C.green }}>{formule.nom}</span>
+                </h1>
+                <p className="mt-3 text-sm leading-relaxed" style={{ color: C.textMuted }}>
+                  {t("bo.employerPayment.subtitle")}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Pour layout="hero" : image centrale pleine hauteur de la
+              colonne (col 2 row-span 2 pour englober titre + recap). */}
+          {theme.layout === "hero" && theme.heroImage && (
+            <div className="hidden lg:flex items-stretch order-2 lg:order-none lg:col-start-2 lg:row-start-1 lg:row-span-2">
+              <img
+                src={theme.heroImage}
+                alt=""
+                aria-hidden="true"
+                className="w-full h-full object-cover rounded-3xl shadow-xl"
+                style={{ minHeight: "100%" }}
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.display = "none";
+                }}
+              />
+            </div>
+          )}
+
           {/* ─── Récap formule (thème par tier) ─────────────────── */}
           {/* Premium = card dark transparente (texte blanc, border or).
-              Découverte/Avantage = card blanche. */}
+              Découverte/Avantage = card blanche.
+              Pour layout "hero" : col 1 row 2 (sous le titre). */}
           <Card
-            className="rounded-3xl border-2 shadow-sm h-fit overflow-hidden"
+            className={`rounded-3xl border-2 shadow-sm h-fit overflow-hidden ${
+              theme.layout === "hero" ? "lg:col-start-1 lg:row-start-2" : ""
+            }`}
             style={{
               borderColor: theme.cardBorder,
               backgroundColor: theme.recapDark ? "rgba(3, 31, 22, 0.78)" : undefined,
@@ -554,28 +605,54 @@ export default function PaiementEmployeur() {
                 </p>
               )}
 
-              {/* Liste fonctionnalités avec checkmarks colorés selon
-                  le tier. Si la liste est vide, on n'affiche rien. */}
+              {/* Liste fonctionnalités. Premium = checkmarks or sur
+                  fond dark. Découverte/Avantage = icônes thématiques
+                  (Briefcase, Mail, BarChart, Headphones) dans des
+                  cercles vert pâle, plus visuel et moins répétitif
+                  que 4 checkmarks identiques. Séparée par dividers
+                  fins pour aérer. */}
               {fonctionnalites.length > 0 && (
-                <ul className="space-y-3">
-                  {fonctionnalites.map((f, i) => (
-                    <li key={i} className="flex items-start gap-2.5 text-sm">
-                      <CheckCircle2
-                        className="w-[18px] h-[18px] mt-0.5 shrink-0"
-                        style={{ color: theme.checkColor }}
-                      />
-                      <span style={{ color: theme.recapDark ? "rgba(255, 255, 255, 0.92)" : C.textMain }}>
-                        {f}
-                      </span>
-                    </li>
-                  ))}
+                <ul className={theme.recapDark ? "space-y-3" : "space-y-1"}>
+                  {fonctionnalites.map((f, i) => {
+                    if (theme.recapDark) {
+                      // Premium : checkmarks or simples sur fond dark
+                      return (
+                        <li key={i} className="flex items-start gap-2.5 text-sm">
+                          <CheckCircle2
+                            className="w-[18px] h-[18px] mt-0.5 shrink-0"
+                            style={{ color: theme.checkColor }}
+                          />
+                          <span style={{ color: "rgba(255, 255, 255, 0.92)" }}>{f}</span>
+                        </li>
+                      );
+                    }
+                    // Découverte + Avantage : icônes en cercles
+                    const Icon = getFeatureIcon(i);
+                    return (
+                      <li
+                        key={i}
+                        className="flex items-center gap-3 py-2.5 border-b last:border-0"
+                        style={{ borderColor: "rgba(0, 155, 90, 0.10)" }}
+                      >
+                        <span
+                          className="inline-flex items-center justify-center w-10 h-10 rounded-full shrink-0"
+                          style={{ backgroundColor: theme.accentBg }}
+                        >
+                          <Icon className="w-4 h-4" style={{ color: theme.checkColor }} />
+                        </span>
+                        <span className="text-sm font-medium" style={{ color: C.textMain }}>
+                          {f}
+                        </span>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
 
-              {/* Micro-réassurance affichée uniquement en variant dark
-                  (Premium) — donne le code premium avec un texte de
-                  confiance discret en bas de la card. */}
-              {theme.recapDark && (
+              {/* Micro-réassurance "paiement vérifié manuellement"
+                  affichée sous le recap pour les 3 tiers, adaptée
+                  selon le variant dark/light. */}
+              {theme.recapDark ? (
                 <div
                   className="mt-6 pt-5 border-t flex items-center gap-2 text-xs"
                   style={{ borderColor: "rgba(246, 195, 67, 0.20)", color: "rgba(255, 255, 255, 0.55)" }}
@@ -583,12 +660,27 @@ export default function PaiementEmployeur() {
                   <ShieldCheck className="w-3.5 h-3.5" style={{ color: C.gold }} />
                   {t("bo.employerPayment.secureNote")}
                 </div>
+              ) : (
+                <div
+                  className="mt-5 pt-4 border-t flex items-center gap-2 text-xs"
+                  style={{ borderColor: "rgba(0, 155, 90, 0.15)", color: C.textMuted }}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" style={{ color: theme.checkColor }} />
+                  {t("bo.employerPayment.secureNote")}
+                </div>
               )}
             </CardContent>
           </Card>
 
-          {/* ─── Form paiement ──────────────────────────────────── */}
-          <Card className="rounded-3xl border shadow-lg" style={{ borderColor: C.border }}>
+          {/* ─── Form paiement ────────────────────────────────────
+              Pour layout "hero" : col 3 row-span 2 (full height,
+              aligné avec [titre + recap card] sur la colonne 1). */}
+          <Card
+            className={`rounded-3xl border shadow-lg ${
+              theme.layout === "hero" ? "lg:col-start-3 lg:row-start-1 lg:row-span-2" : ""
+            }`}
+            style={{ borderColor: C.border }}
+          >
             <CardContent className="p-7 sm:p-9">
               <h2 className="text-xl font-bold mb-1" style={{ color: C.textMain }}>
                 {t("bo.employerPayment.howToPay")}
@@ -798,24 +890,29 @@ export default function PaiementEmployeur() {
           );
         }
 
-        // Variant light (Découverte) : cards blanches avec dividers
+        // Variant light (Découverte + Avantage) : 4 items horizontaux
+        // aérés sur fond ivoire avec icônes vertes circulaires
+        // (cohérent avec maquette).
+        const containerWidth = theme.layout === "hero" ? "max-w-[1280px]" : "max-w-[1100px]";
         return (
-          <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-10 pb-12 lg:pb-16">
-            <div
-              className="grid grid-cols-2 lg:grid-cols-4 gap-px rounded-3xl overflow-hidden"
-              style={{ backgroundColor: C.border }}
+          <div className={`${containerWidth} mx-auto px-4 sm:px-6 lg:px-10 pb-12 lg:pb-16`}>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 py-8 px-4 lg:px-8 rounded-3xl border bg-white/50"
+              style={{ borderColor: "rgba(0, 155, 90, 0.15)" }}
             >
               {items.map(({ icon: Icon, title, desc }) => (
-                <div key={title} className="bg-white p-5 lg:p-6 flex items-start gap-3">
+                <div key={title} className="flex items-center gap-4">
                   <div
-                    className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0"
-                    style={{ backgroundColor: "rgba(0, 155, 90, 0.10)" }}
+                    className="w-14 h-14 rounded-full flex items-center justify-center shrink-0 border-2"
+                    style={{
+                      backgroundColor: "rgba(0, 155, 90, 0.06)",
+                      borderColor: "rgba(0, 155, 90, 0.25)",
+                    }}
                   >
-                    <Icon className="w-5 h-5" style={{ color: C.greenBright }} />
+                    <Icon className="w-6 h-6" style={{ color: C.greenBright }} />
                   </div>
                   <div className="min-w-0">
-                    <div className="font-bold text-sm" style={{ color: C.textMain }}>{title}</div>
-                    <div className="text-xs mt-0.5 leading-relaxed" style={{ color: C.textMuted }}>{desc}</div>
+                    <div className="font-bold text-[15px]" style={{ color: C.textMain }}>{title}</div>
+                    <div className="text-xs mt-1 leading-relaxed" style={{ color: C.textMuted }}>{desc}</div>
                   </div>
                 </div>
               ))}
@@ -825,6 +922,7 @@ export default function PaiementEmployeur() {
       })()}
 
       <SiteFooter />
+      </div>
     </div>
   );
 }
