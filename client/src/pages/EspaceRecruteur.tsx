@@ -735,28 +735,32 @@ export default function EspaceRecruteur() {
               </Button>
             </Reveal>
 
-            {/* Droite : 2 images SIDE BY SIDE (pas superposées) + badges */}
+            {/* Droite : 2 images côte-à-côte avec ratio 4/3 (paysage) pour
+                ne pas couper le contenu, badges semi-transparents posés
+                dans les coins comme demandé. */}
             <Reveal delay={0.2}>
               <div className="grid grid-cols-2 gap-3 sm:gap-4 relative">
-                {/* Image 1 : réunion d'équipe avec badge vert "+3 200 candidats" en bas */}
+                {/* Image 1 (gauche) : entretien — badge VERT semi-transparent
+                    en bas-gauche */}
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.3 }}
-                  className="relative rounded-[24px] overflow-hidden shadow-xl aspect-[4/5]"
+                  className="relative rounded-[24px] overflow-hidden shadow-xl aspect-[4/3]"
                 >
                   <img
-                    src={IMG_MEETING}
-                    alt="Équipe en réunion"
+                    src={IMG_INTERVIEW}
+                    alt="Entretien d'embauche"
                     className="w-full h-full object-cover"
                   />
-                  {/* Badge "+3 200 candidats actifs" — bandeau VERT en bas de l'image */}
+                  {/* Badge "+3 200" — coin bas-gauche, fond vert à ~70% +
+                      backdrop-blur pour laisser transparaitre la photo. */}
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.5 }}
-                    className="absolute left-3 right-3 bottom-3 sm:left-4 sm:right-4 sm:bottom-4 rounded-2xl px-4 py-3 text-white shadow-lg"
-                    style={{ backgroundColor: C.green }}
+                    className="absolute left-3 bottom-3 sm:left-4 sm:bottom-4 rounded-2xl px-4 py-3 text-white shadow-lg backdrop-blur-sm"
+                    style={{ backgroundColor: "rgba(0, 155, 90, 0.78)" }}
                   >
                     <div
                       className="text-xl sm:text-2xl font-extrabold leading-tight"
@@ -764,34 +768,37 @@ export default function EspaceRecruteur() {
                     >
                       +3 200
                     </div>
-                    <div className="text-[11px] sm:text-xs text-white/90">
+                    <div className="text-[11px] sm:text-xs text-white/95">
                       candidats actifs ce mois
                     </div>
                   </motion.div>
                 </motion.div>
 
-                {/* Image 2 : entretien avec badge blanc "+42%" en haut droite */}
+                {/* Image 2 (droite) : réunion d'équipe — badge BLANC semi-
+                    transparent collé au bord haut-droit */}
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.3 }}
-                  className="relative rounded-[24px] overflow-hidden shadow-xl aspect-[4/5]"
+                  className="relative rounded-[24px] overflow-hidden shadow-xl aspect-[4/3]"
                 >
                   <img
-                    src={IMG_INTERVIEW}
-                    alt="Entretien d'embauche"
+                    src={IMG_MEETING}
+                    alt="Équipe en réunion"
                     className="w-full h-full object-cover"
                   />
-                  {/* Badge "+42% de recrutements réussis" — petite card blanche */}
+                  {/* Badge "+42%" — coin haut-droit, fond blanc ~85% +
+                      backdrop-blur pour effet glassmorphism premium. */}
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.55 }}
-                    className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-white rounded-xl px-3 py-2 shadow-lg flex items-center gap-2 max-w-[160px]"
+                    className="absolute top-3 right-3 sm:top-4 sm:right-4 rounded-xl px-3 py-2 shadow-lg flex items-center gap-2 max-w-[170px] backdrop-blur-md"
+                    style={{ backgroundColor: "rgba(255, 255, 255, 0.85)" }}
                   >
                     <div
                       className="p-1 rounded-md shrink-0"
-                      style={{ backgroundColor: "rgba(0, 155, 90, 0.10)" }}
+                      style={{ backgroundColor: "rgba(0, 155, 90, 0.12)" }}
                     >
                       <TrendingUp className="w-3.5 h-3.5" style={{ color: C.green }} />
                     </div>
