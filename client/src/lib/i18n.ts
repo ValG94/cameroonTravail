@@ -1268,6 +1268,17 @@ const fr = {
           b4Title: "Accompagnement",
           b4Desc: "Support prioritaire.",
         },
+        // Bénéfices spécifiques Offre Premium (bandeau dark premium)
+        premiumBenefits: {
+          b1Title: "Visibilité maximale",
+          b1Desc: "Votre marque en avant.",
+          b2Title: "Recrutement illimité",
+          b2Desc: "Sans aucune restriction.",
+          b3Title: "Données avancées",
+          b3Desc: "Analytics puissants.",
+          b4Title: "Accompagnement VIP",
+          b4Desc: "Conseiller dédié.",
+        },
       },
       mySubscriptions: {
         title: "Mes souscriptions",
@@ -2595,6 +2606,16 @@ const en = {
           b3Desc: "Advanced tracking tools.",
           b4Title: "Dedicated support",
           b4Desc: "Priority assistance.",
+        },
+        premiumBenefits: {
+          b1Title: "Maximum visibility",
+          b1Desc: "Your brand at the forefront.",
+          b2Title: "Unlimited recruitment",
+          b2Desc: "No restrictions whatsoever.",
+          b3Title: "Advanced data",
+          b3Desc: "Powerful analytics.",
+          b4Title: "VIP support",
+          b4Desc: "Dedicated advisor.",
         },
       },
       mySubscriptions: {

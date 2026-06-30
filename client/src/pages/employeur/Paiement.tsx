@@ -72,8 +72,7 @@ const C = {
 type FormuleTheme = {
   variant: "basic" | "advantage" | "premium";
   /** "split" = recap à gauche + paiement à droite (Découverte).
-   *  "hero" = hero pleine largeur vert profond + paiement centré
-   *  dessous (Avantage, future Premium). */
+   *  "hero" = hero pleine largeur en tête + paiement empilés dessous. */
   layout: "split" | "hero";
   cardBorder: string;
   accentColor: string;
@@ -83,10 +82,22 @@ type FormuleTheme = {
   badgeBorder: string;
   checkColor: string;
   taglineColor: string;
-  /** Image hero affichée à droite du bloc vert si layout === "hero". */
+  /** Image hero affichée à droite du bloc hero (Avantage). */
   heroImage?: string;
-  /** Couleur de fond du bandeau réassurance. Dark pour Avantage,
-   *  light pour Découverte. */
+  /** SVG décoratif au lieu d'une image photo (Premium = couronne). */
+  heroDecoration?: "crown";
+  /** Background du hero band :
+   *  'deepGreen' (Avantage) ou 'darkPremium' (Premium, plus noir + gold). */
+  heroBg?: "deepGreen" | "darkPremium";
+  /** Si true, la card récap utilise un fond sombre transparent +
+   *  border or + texte blanc (Premium). */
+  recapDark?: boolean;
+  /** Gradient du bouton CTA principal de soumission. Par défaut
+   *  vert profond → vert vif. Pour Premium : or → or sombre. */
+  ctaGradient?: string;
+  ctaTextColor?: string;
+  /** Couleur de fond du bandeau réassurance. Dark pour Avantage +
+   *  Premium, light pour Découverte. */
   reassuranceBg: "light" | "dark";
 };
 
@@ -96,14 +107,20 @@ function getFormuleTheme(nom: string): FormuleTheme {
     return {
       variant: "premium",
       layout: "hero",
-      cardBorder: "rgba(124, 58, 237, 0.30)",
-      accentColor: "#7C3AED",
-      accentBg: "rgba(124, 58, 237, 0.06)",
-      badgeBg: "rgba(124, 58, 237, 0.10)",
-      badgeText: "#6D28D9",
-      badgeBorder: "rgba(124, 58, 237, 0.25)",
-      checkColor: "#7C3AED",
-      taglineColor: "#7C3AED",
+      cardBorder: "rgba(246, 195, 67, 0.35)",
+      accentColor: C.gold,
+      accentBg: "rgba(246, 195, 67, 0.10)",
+      badgeBg: "rgba(246, 195, 67, 0.15)",
+      badgeText: C.gold,
+      badgeBorder: "rgba(246, 195, 67, 0.40)",
+      checkColor: C.gold,
+      taglineColor: C.gold,
+      heroDecoration: "crown",
+      heroBg: "darkPremium",
+      recapDark: true,
+      // CTA or pour différencier de l'Avantage (vert).
+      ctaGradient: `linear-gradient(135deg, ${C.gold} 0%, ${C.goldDark} 100%)`,
+      ctaTextColor: "#0F172A",
       reassuranceBg: "dark",
     };
   }
@@ -120,6 +137,7 @@ function getFormuleTheme(nom: string): FormuleTheme {
       checkColor: C.goldDark,
       taglineColor: C.goldDark,
       heroImage: "/images/recruteur/offre-avantage.webp",
+      heroBg: "deepGreen",
       reassuranceBg: "dark",
     };
   }
@@ -268,19 +286,37 @@ export default function PaiementEmployeur() {
       {theme.layout === "hero" && (
         <section
           className="relative overflow-hidden text-white"
-          style={{ backgroundColor: C.deepGreen }}
+          style={{
+            // Premium = quasi-noir + halo or radial ; Avantage = vert profond.
+            background:
+              theme.heroBg === "darkPremium"
+                ? "radial-gradient(circle at 75% 25%, rgba(246,195,67,0.20), transparent 38%), linear-gradient(135deg, #031F16 0%, #063F24 55%, #020617 100%)"
+                : C.deepGreen,
+          }}
         >
-          {/* Halo or animé subtil */}
+          {/* Halo or animé en haut droite (présent sur les 2 variants) */}
           <div
             aria-hidden="true"
             className="absolute -top-20 -right-20 w-[480px] h-[480px] rounded-full blur-[140px] opacity-25 pointer-events-none"
             style={{ backgroundColor: C.gold }}
           />
+          {/* Particules or pour Premium uniquement */}
+          {theme.heroBg === "darkPremium" && (
+            <div aria-hidden="true" className="absolute top-1/3 right-1/4 grid grid-cols-6 gap-3 opacity-30 pointer-events-none">
+              {Array.from({ length: 18 }).map((_, i) => (
+                <span key={i} className="w-1 h-1 rounded-full" style={{ backgroundColor: C.gold }} />
+              ))}
+            </div>
+          )}
+
           <div className="relative max-w-[1180px] mx-auto px-4 sm:px-6 lg:px-10 py-8 lg:py-14">
             <button
               type="button"
               onClick={handleBackToPricing}
-              className="inline-flex items-center gap-2 text-sm font-medium mb-6 text-white/85 hover:text-white hover:underline transition-colors"
+              className="inline-flex items-center gap-2 text-sm font-medium mb-6 transition-colors hover:underline"
+              style={{
+                color: theme.variant === "premium" ? C.gold : "rgba(255,255,255,0.85)",
+              }}
             >
               <ArrowLeft className="w-4 h-4" />
               {t("bo.employerPayment.backToPrices")}
@@ -293,8 +329,8 @@ export default function PaiementEmployeur() {
                   className="mb-5 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em]"
                   style={{
                     backgroundColor: "rgba(255, 255, 255, 0.10)",
-                    color: theme.variant === "advantage" ? C.gold : "white",
-                    border: `1px solid ${theme.variant === "advantage" ? "rgba(246, 195, 67, 0.40)" : "rgba(255, 255, 255, 0.25)"}`,
+                    color: theme.variant === "basic" ? "white" : C.gold,
+                    border: `1px solid ${theme.variant === "basic" ? "rgba(255, 255, 255, 0.25)" : "rgba(246, 195, 67, 0.40)"}`,
                   }}
                 >
                   {formule.nom}
@@ -306,13 +342,20 @@ export default function PaiementEmployeur() {
                   {t("bo.employerPayment.title")}{" "}
                   <span
                     style={{
-                      background: theme.variant === "advantage"
-                        ? `linear-gradient(135deg, ${C.gold} 0%, #FFE390 100%)`
-                        : undefined,
-                      WebkitBackgroundClip: theme.variant === "advantage" ? "text" : undefined,
-                      WebkitTextFillColor: theme.variant === "advantage" ? "transparent" : undefined,
-                      backgroundClip: theme.variant === "advantage" ? "text" : undefined,
-                      color: theme.variant === "advantage" ? undefined : C.greenBright,
+                      background:
+                        theme.variant === "advantage" || theme.variant === "premium"
+                          ? `linear-gradient(135deg, ${C.gold} 0%, #FFE390 100%)`
+                          : undefined,
+                      WebkitBackgroundClip:
+                        theme.variant === "advantage" || theme.variant === "premium" ? "text" : undefined,
+                      WebkitTextFillColor:
+                        theme.variant === "advantage" || theme.variant === "premium" ? "transparent" : undefined,
+                      backgroundClip:
+                        theme.variant === "advantage" || theme.variant === "premium" ? "text" : undefined,
+                      color:
+                        theme.variant === "advantage" || theme.variant === "premium"
+                          ? undefined
+                          : C.greenBright,
                     }}
                   >
                     {formule.nom}
@@ -323,7 +366,7 @@ export default function PaiementEmployeur() {
                 </p>
               </div>
 
-              {/* Côté droit : image hero (Avantage : photo recruteur) */}
+              {/* Côté droit : image OU couronne SVG selon le tier */}
               {theme.heroImage && (
                 <div className="relative hidden lg:flex justify-end">
                   <img
@@ -337,6 +380,7 @@ export default function PaiementEmployeur() {
                   />
                 </div>
               )}
+              {theme.heroDecoration === "crown" && <CrownSvg />}
             </div>
           </div>
         </section>
@@ -377,12 +421,22 @@ export default function PaiementEmployeur() {
           }
         >
           {/* ─── Récap formule (thème par tier) ─────────────────── */}
+          {/* Premium = card dark transparente (texte blanc, border or).
+              Découverte/Avantage = card blanche. */}
           <Card
             className="rounded-3xl border-2 shadow-sm h-fit overflow-hidden"
-            style={{ borderColor: theme.cardBorder }}
+            style={{
+              borderColor: theme.cardBorder,
+              backgroundColor: theme.recapDark ? "rgba(3, 31, 22, 0.78)" : undefined,
+              backdropFilter: theme.recapDark ? "blur(8px)" : undefined,
+              WebkitBackdropFilter: theme.recapDark ? "blur(8px)" : undefined,
+              boxShadow: theme.recapDark
+                ? "0 30px 80px -10px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(246, 195, 67, 0.15)"
+                : undefined,
+            }}
           >
             <CardContent className="p-7">
-              {/* Badge tier (vert/or/violet selon formule) */}
+              {/* Badge tier (vert/or selon formule) */}
               <Badge
                 className="mb-5 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.15em]"
                 style={{
@@ -396,14 +450,23 @@ export default function PaiementEmployeur() {
 
               {/* Prix + période */}
               <div className="flex items-end gap-1.5 mb-2">
-                <span className="text-5xl font-extrabold tracking-tight leading-none" style={{ color: C.textMain }}>
+                <span
+                  className="text-5xl font-extrabold tracking-tight leading-none"
+                  style={{ color: theme.recapDark ? "white" : C.textMain }}
+                >
                   {prix}
                 </span>
-                <span className="text-base font-medium pb-1.5" style={{ color: C.textMuted }}>
+                <span
+                  className="text-base font-medium pb-1.5"
+                  style={{ color: theme.recapDark ? "rgba(255, 255, 255, 0.65)" : C.textMuted }}
+                >
                   {formule.devise}
                 </span>
               </div>
-              <div className="text-sm mb-5" style={{ color: C.textMuted }}>
+              <div
+                className="text-sm mb-5"
+                style={{ color: theme.recapDark ? "rgba(255, 255, 255, 0.65)" : C.textMuted }}
+              >
                 /
                 {" "}
                 {formule.periode === "annuel"
@@ -430,10 +493,25 @@ export default function PaiementEmployeur() {
                         className="w-[18px] h-[18px] mt-0.5 shrink-0"
                         style={{ color: theme.checkColor }}
                       />
-                      <span style={{ color: C.textMain }}>{f}</span>
+                      <span style={{ color: theme.recapDark ? "rgba(255, 255, 255, 0.92)" : C.textMain }}>
+                        {f}
+                      </span>
                     </li>
                   ))}
                 </ul>
+              )}
+
+              {/* Micro-réassurance affichée uniquement en variant dark
+                  (Premium) — donne le code premium avec un texte de
+                  confiance discret en bas de la card. */}
+              {theme.recapDark && (
+                <div
+                  className="mt-6 pt-5 border-t flex items-center gap-2 text-xs"
+                  style={{ borderColor: "rgba(246, 195, 67, 0.20)", color: "rgba(255, 255, 255, 0.55)" }}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" style={{ color: C.gold }} />
+                  {t("bo.employerPayment.secureNote")}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -558,9 +636,17 @@ export default function PaiementEmployeur() {
                 <Button
                   type="submit"
                   disabled={demanderMutation.isPending}
-                  className="w-full h-13 text-base font-bold text-white shadow-lg"
+                  className="w-full h-13 text-base font-bold shadow-lg transition-all hover:-translate-y-0.5"
                   style={{
-                    background: `linear-gradient(135deg, ${C.deepGreen} 0%, ${C.greenBright} 100%)`,
+                    // CTA or pour Premium (différenciation visuelle),
+                    // vert profond → vert vif pour les autres tiers.
+                    background:
+                      theme.ctaGradient ?? `linear-gradient(135deg, ${C.deepGreen} 0%, ${C.greenBright} 100%)`,
+                    color: theme.ctaTextColor ?? "white",
+                    boxShadow:
+                      theme.variant === "premium"
+                        ? "0 14px 30px rgba(246, 195, 67, 0.40)"
+                        : "0 14px 30px rgba(0, 155, 90, 0.25)",
                     height: "52px",
                   }}
                 >
@@ -586,27 +672,37 @@ export default function PaiementEmployeur() {
             sensation premium recherchée. */}
       {(() => {
         const isDark = theme.reassuranceBg === "dark";
-        // Bénéfices spécifiques Avantage si tier === "advantage",
-        // sinon génériques (Découverte + Premium fallback).
-        const items = theme.variant === "advantage"
-          ? [
-              { icon: Sparkles, title: t("bo.employerPayment.advantageBenefits.b1Title"), desc: t("bo.employerPayment.advantageBenefits.b1Desc") },
-              { icon: ShieldCheck, title: t("bo.employerPayment.advantageBenefits.b2Title"), desc: t("bo.employerPayment.advantageBenefits.b2Desc") },
-              { icon: Zap, title: t("bo.employerPayment.advantageBenefits.b3Title"), desc: t("bo.employerPayment.advantageBenefits.b3Desc") },
-              { icon: Headphones, title: t("bo.employerPayment.advantageBenefits.b4Title"), desc: t("bo.employerPayment.advantageBenefits.b4Desc") },
-            ]
-          : [
-              { icon: ShieldCheck, title: t("bo.employerPayment.reassurance.b1Title"), desc: t("bo.employerPayment.reassurance.b1Desc") },
-              { icon: Zap, title: t("bo.employerPayment.reassurance.b2Title"), desc: t("bo.employerPayment.reassurance.b2Desc") },
-              { icon: Sparkles, title: t("bo.employerPayment.reassurance.b3Title"), desc: t("bo.employerPayment.reassurance.b3Desc") },
-              { icon: Headphones, title: t("bo.employerPayment.reassurance.b4Title"), desc: t("bo.employerPayment.reassurance.b4Desc") },
-            ];
+        // Bénéfices spécifiques par tier. Découverte = génériques.
+        const items =
+          theme.variant === "premium"
+            ? [
+                { icon: Sparkles, title: t("bo.employerPayment.premiumBenefits.b1Title"), desc: t("bo.employerPayment.premiumBenefits.b1Desc") },
+                { icon: Zap, title: t("bo.employerPayment.premiumBenefits.b2Title"), desc: t("bo.employerPayment.premiumBenefits.b2Desc") },
+                { icon: ShieldCheck, title: t("bo.employerPayment.premiumBenefits.b3Title"), desc: t("bo.employerPayment.premiumBenefits.b3Desc") },
+                { icon: Headphones, title: t("bo.employerPayment.premiumBenefits.b4Title"), desc: t("bo.employerPayment.premiumBenefits.b4Desc") },
+              ]
+            : theme.variant === "advantage"
+            ? [
+                { icon: Sparkles, title: t("bo.employerPayment.advantageBenefits.b1Title"), desc: t("bo.employerPayment.advantageBenefits.b1Desc") },
+                { icon: ShieldCheck, title: t("bo.employerPayment.advantageBenefits.b2Title"), desc: t("bo.employerPayment.advantageBenefits.b2Desc") },
+                { icon: Zap, title: t("bo.employerPayment.advantageBenefits.b3Title"), desc: t("bo.employerPayment.advantageBenefits.b3Desc") },
+                { icon: Headphones, title: t("bo.employerPayment.advantageBenefits.b4Title"), desc: t("bo.employerPayment.advantageBenefits.b4Desc") },
+              ]
+            : [
+                { icon: ShieldCheck, title: t("bo.employerPayment.reassurance.b1Title"), desc: t("bo.employerPayment.reassurance.b1Desc") },
+                { icon: Zap, title: t("bo.employerPayment.reassurance.b2Title"), desc: t("bo.employerPayment.reassurance.b2Desc") },
+                { icon: Sparkles, title: t("bo.employerPayment.reassurance.b3Title"), desc: t("bo.employerPayment.reassurance.b3Desc") },
+                { icon: Headphones, title: t("bo.employerPayment.reassurance.b4Title"), desc: t("bo.employerPayment.reassurance.b4Desc") },
+              ];
 
         if (isDark) {
+          // Pour Premium : fond encore plus dark (#031F16) ;
+          // Avantage : vert profond #063F24.
+          const bgDark = theme.variant === "premium" ? "#031F16" : C.deepGreen;
           return (
             <section
               className="relative overflow-hidden"
-              style={{ backgroundColor: C.deepGreen }}
+              style={{ backgroundColor: bgDark }}
             >
               <div className="max-w-[1180px] mx-auto px-4 sm:px-6 lg:px-10 py-12 lg:py-14">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
@@ -658,6 +754,100 @@ export default function PaiementEmployeur() {
       })()}
 
       <SiteFooter />
+    </div>
+  );
+}
+
+// ─── Sous-composants décoratifs ──────────────────────────────────────────────
+
+/**
+ * Couronne SVG or sur halo radial pour le hero Premium.
+ * Génération inline (pas de fichier image) pour rester scalable et léger.
+ */
+function CrownSvg() {
+  return (
+    <div className="relative hidden lg:flex justify-center items-center">
+      <svg viewBox="0 0 240 240" className="w-[280px] h-[280px]" aria-hidden="true">
+        <defs>
+          <radialGradient id="crown-halo" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#F6C343" stopOpacity="0.45" />
+            <stop offset="60%" stopColor="#F6C343" stopOpacity="0.10" />
+            <stop offset="100%" stopColor="#F6C343" stopOpacity="0" />
+          </radialGradient>
+          <linearGradient id="crown-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#FFE390" />
+            <stop offset="55%" stopColor="#F6C343" />
+            <stop offset="100%" stopColor="#C98A00" />
+          </linearGradient>
+          <linearGradient id="crown-band-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#D99200" />
+            <stop offset="100%" stopColor="#8C5A00" />
+          </linearGradient>
+        </defs>
+
+        {/* Halo radial */}
+        <circle cx="120" cy="120" r="118" fill="url(#crown-halo)" />
+
+        {/* Cercle orbital fin */}
+        <circle
+          cx="120"
+          cy="120"
+          r="92"
+          fill="none"
+          stroke="#F6C343"
+          strokeOpacity="0.25"
+          strokeWidth="1"
+        />
+        <circle
+          cx="120"
+          cy="120"
+          r="80"
+          fill="none"
+          stroke="#F6C343"
+          strokeOpacity="0.18"
+          strokeWidth="0.5"
+        />
+
+        {/* Couronne — base + pointes */}
+        <g transform="translate(120 130)">
+          {/* Pointes (5 triangles + courbes liantes) */}
+          <path
+            d="M -52 0
+               L -52 -22
+               L -28 -8
+               L -16 -38
+               L 0 -50
+               L 16 -38
+               L 28 -8
+               L 52 -22
+               L 52 0
+               Z"
+            fill="url(#crown-grad)"
+            stroke="#C98A00"
+            strokeWidth="1"
+            strokeLinejoin="round"
+          />
+          {/* Bandeau base */}
+          <rect
+            x="-54"
+            y="0"
+            width="108"
+            height="18"
+            rx="3"
+            fill="url(#crown-band-grad)"
+            stroke="#8C5A00"
+            strokeWidth="0.6"
+          />
+          {/* Gemmes sur les pointes */}
+          <circle cx="-28" cy="-8" r="3.5" fill="#FFE390" stroke="#C98A00" strokeWidth="0.5" />
+          <circle cx="0" cy="-44" r="5" fill="#FFE390" stroke="#C98A00" strokeWidth="0.6" />
+          <circle cx="28" cy="-8" r="3.5" fill="#FFE390" stroke="#C98A00" strokeWidth="0.5" />
+          {/* Gemmes sur la base */}
+          <circle cx="-30" cy="9" r="2.2" fill="#FFE390" opacity="0.85" />
+          <circle cx="0" cy="9" r="2.5" fill="#FFE390" opacity="0.9" />
+          <circle cx="30" cy="9" r="2.2" fill="#FFE390" opacity="0.85" />
+        </g>
+      </svg>
     </div>
   );
 }
