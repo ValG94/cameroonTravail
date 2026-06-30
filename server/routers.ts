@@ -519,7 +519,9 @@ export const appRouter = router({
     register: publicProcedure
       .input(z.object({
         email: z.string().email(),
-        password: z.string().min(6),
+        // Politique sécurité : 8 caractères minimum (côté serveur =
+        // garde-fou même si le client est contourné).
+        password: z.string().min(8),
         name: z.string(),
         profileType: z.enum(["candidat", "employeur"]),
         telephone: z.string().optional(),

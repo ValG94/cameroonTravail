@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import { motion, useReducedMotion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
 import { SECTEURS } from "@/lib/secteurs";
+import { isCameroonCity } from "@/lib/villesCameroun";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -94,7 +95,7 @@ function passwordStrength(pwd: string): 0 | 1 | 2 | 3 {
   if (pwd.length >= 8) score++;
   if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) score++;
   if (/\d/.test(pwd) && /[^A-Za-z0-9]/.test(pwd)) score++;
-  if (pwd.length < 6) return 0;
+  if (pwd.length < 8) return 0;
   return Math.min(score, 3) as 0 | 1 | 2 | 3;
 }
 
@@ -151,6 +152,25 @@ export default function InscriptionEmployeur() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Validations renforcées : prénom/nom ≥ 2 caractères, mot de
+    // passe ≥ 8 caractères, ville obligatoirement camerounaise (la
+    // plateforme est dédiée à l'emploi au Cameroun).
+    if (formData.prenom.trim().length < 2) {
+      toast.error(t("employerRegister.form.errors.firstNameTooShort"));
+      return;
+    }
+    if (formData.nom.trim().length < 2) {
+      toast.error(t("employerRegister.form.errors.lastNameTooShort"));
+      return;
+    }
+    if (!isCameroonCity(formData.ville)) {
+      toast.error(t("employerRegister.form.errors.cityNotCameroon"));
+      return;
+    }
+    if (formData.password.length < 8) {
+      toast.error(t("employerRegister.form.errors.passwordTooShort"));
+      return;
+    }
     if (formData.password !== formData.confirmPassword) {
       toast.error(t("employerRegister.form.errors.passwordMismatch"));
       return;

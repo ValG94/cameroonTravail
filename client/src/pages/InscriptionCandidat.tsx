@@ -78,7 +78,7 @@ function passwordStrength(pwd: string): 0 | 1 | 2 | 3 {
   if (pwd.length >= 8) score++;
   if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) score++;
   if (/\d/.test(pwd) && /[^A-Za-z0-9]/.test(pwd)) score++;
-  if (pwd.length < 6) return 0;
+  if (pwd.length < 8) return 0;
   return Math.min(score, 3) as 0 | 1 | 2 | 3;
 }
 
@@ -128,13 +128,18 @@ export default function InscriptionCandidat() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Validation côté client — messages traduits
+    // Validation côté client — messages traduits.
+    // Règles renforcées : prénom/nom ≥ 2 caractères (évite saisies
+    // type "G"), mot de passe ≥ 8 caractères (alignement sécurité
+    // avec la nouvelle politique).
     if (!formData.prenom.trim()) return toast.error(t("signup.form.errors.firstNameRequired"));
+    if (formData.prenom.trim().length < 2) return toast.error(t("signup.form.errors.firstNameTooShort"));
     if (!formData.nom.trim()) return toast.error(t("signup.form.errors.lastNameRequired"));
+    if (formData.nom.trim().length < 2) return toast.error(t("signup.form.errors.lastNameTooShort"));
     if (!formData.email.trim()) return toast.error(t("signup.form.errors.emailRequired"));
     if (!formData.telephone.trim()) return toast.error(t("signup.form.errors.phoneRequired"));
     if (!formData.password) return toast.error(t("signup.form.errors.passwordRequired"));
-    if (formData.password.length < 6) return toast.error(t("signup.form.errors.passwordTooShort"));
+    if (formData.password.length < 8) return toast.error(t("signup.form.errors.passwordTooShort"));
     if (formData.password !== formData.confirmPassword) return toast.error(t("signup.form.errors.passwordMismatch"));
     if (!formData.acceptTerms) return toast.error(t("signup.form.errors.termsRequired"));
 
