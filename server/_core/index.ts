@@ -11,10 +11,10 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { appRouter } from "../routers";
+import { appRouter } from tupVite } from "./vite";
+import { initStorageBuc"../routers";
 import { createContext } from "./context";
-import { serveStatic, setupVite } from "./vite";
-import { initStorageBuckets } from "../storage";
+import { serveStatic, sekets } from "../storage";
 import { ENV } from "./env";
 import { sdk } from "./sdk";
 

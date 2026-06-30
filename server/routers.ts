@@ -509,7 +509,13 @@ export const appRouter = router({
       } as const;
     }),
     
-    // Inscription avec email et mot de passe
+    // Inscription avec email et mot de passe.
+    // Pour `profileType: "employeur"`, on accepte les champs entreprise
+    // saisis dans le formulaire d'inscription afin de pré-remplir le
+    // profil recruteur (et son dashboard) dès la création du compte —
+    // sinon le recruteur devrait tout ressaisir ensuite. Tous ces
+    // champs sont optionnels pour préserver la rétro-compat de l'API
+    // (anciens clients ou inscription candidat).
     register: publicProcedure
       .input(z.object({
         email: z.string().email(),
@@ -517,6 +523,12 @@ export const appRouter = router({
         name: z.string(),
         profileType: z.enum(["candidat", "employeur"]),
         telephone: z.string().optional(),
+        // ─── Champs employeur (optionnels, ignorés pour candidat) ────
+        nomEntreprise: z.string().optional(),
+        secteurActivite: z.string().optional(),
+        taille: z.string().optional(),
+        ville: z.string().optional(),
+        posteContact: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         try {
@@ -527,14 +539,14 @@ export const appRouter = router({
             input.name,
             input.profileType
           );
-          
+
           // Récupérer l'utilisateur créé
           const user = await authenticateUser(input.email, input.password);
-          
+
           if (!user) {
             throw new Error("Erreur lors de la création du compte");
           }
-          
+
           // Créer le profil correspondant
           if (input.profileType === "candidat") {
             await db.createCandidat({
@@ -544,9 +556,24 @@ export const appRouter = router({
               telephone: input.telephone || null,
             });
           } else {
+            // Persiste l'ensemble des infos entreprise + contact saisies
+            // dans le formulaire d'inscription. On dérive aussi
+            // prenom/nom du `name` complet pour pré-remplir les
+            // colonnes contact (utilisées par le dashboard).
+            const [prenomContact, ...rest] = input.name.split(' ');
+            const nomContact = rest.join(' ');
             await db.createEmployeur({
               userId: user.id,
-              nomEntreprise: "",
+              nomEntreprise: input.nomEntreprise || "",
+              secteurActivite: input.secteurActivite || null,
+              taille: input.taille || null,
+              ville: input.ville || null,
+              telephone: input.telephone || null,
+              posteContact: input.posteContact || null,
+              prenomContact: prenomContact || null,
+              nomContact: nomContact || null,
+              emailContact: input.email,
+              telephoneContact: input.telephone || null,
             });
           }
           

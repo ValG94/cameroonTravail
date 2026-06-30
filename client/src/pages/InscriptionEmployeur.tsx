@@ -159,12 +159,21 @@ export default function InscriptionEmployeur() {
       toast.error(t("employerRegister.form.errors.termsRequired"));
       return;
     }
-    // Payload INCHANGÉ — backend reçoit {email, password, name, profileType}
+    // Payload étendu : on envoie aussi les infos entreprise + contact
+    // pour que le dashboard recruteur soit pré-rempli dès la première
+    // connexion (sinon le recruteur devrait tout ressaisir). Le backend
+    // mappe ces champs sur la table `employeurs`.
     await registerMutation.mutateAsync({
       email: formData.email,
       password: formData.password,
       name: `${formData.prenom} ${formData.nom}`.trim(),
       profileType: "employeur",
+      telephone: formData.telephone,
+      nomEntreprise: formData.nomEntreprise,
+      secteurActivite: formData.secteur,
+      taille: formData.tailleEntreprise,
+      ville: formData.ville,
+      posteContact: formData.poste,
     });
   };
 
