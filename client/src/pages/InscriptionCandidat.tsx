@@ -103,11 +103,17 @@ export default function InscriptionCandidat() {
   const strengthLabel = ["", t("signup.form.passwordStrength.weak"), t("signup.form.passwordStrength.medium"), t("signup.form.passwordStrength.strong")][strength];
   const strengthColor = ["#E2E8F0", "#EF4444", "#F59E0B", C.green][strength];
 
-  // Mutation tRPC — payload INCHANGÉ (compat backend)
+  // Mutation tRPC. Après succès : invalider `auth.me` pour que le
+  // hook useAuth récupère le user fraîchement créé AVANT de naviguer
+  // — sinon les guards des pages cibles (qui redirigent vers
+  // /connexion si user===null) éjectent l'utilisateur. On l'envoie
+  // directement sur son BO personnalisé /candidat/dashboard.
+  const utils = trpc.useUtils();
   const registerMutation = trpc.auth.register.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success(t("signup.form.success"));
-      setLocation("/");
+      await utils.auth.me.invalidate();
+      setLocation("/candidat/dashboard");
     },
     onError: (error: { message?: string }) => {
       const msg = error.message || t("signup.form.errors.generic");

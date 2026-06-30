@@ -139,10 +139,19 @@ export default function InscriptionEmployeur() {
   ][strength];
   const strengthColor = ["#E2E8F0", "#EF4444", "#F59E0B", C.greenBright][strength];
 
-  // Mutation tRPC — payload INCHANGÉ (compat backend)
+  // Mutation tRPC — le payload backend reçoit aussi les infos
+  // entreprise (cf. server/routers.ts auth.register).
+  // /!\ Race condition critique : la page /employeur/bienvenue a un
+  // guard qui redirige vers /connexion si `user` est null. Or après
+  // register, useAuth (basé sur trpc.auth.me) garde encore son
+  // ancienne valeur null. On invalide DONC la query auth.me et on
+  // attend qu'elle ait refetch AVANT de naviguer — sinon le guard
+  // de la page d'arrivée éjecte l'utilisateur vers la connexion.
+  const utils = trpc.useUtils();
   const registerMutation = trpc.auth.register.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success(t("employerRegister.form.success"));
+      await utils.auth.me.invalidate();
       setLocation("/employeur/bienvenue");
     },
     onError: (error: { message?: string }) => {
