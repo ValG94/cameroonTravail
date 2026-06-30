@@ -28,6 +28,7 @@ import ToutesLesOffres from "./pages/ToutesLesOffres";
 import EmployeurPublier from "./pages/employeur/Publier";
 import EmployeurProfil from "./pages/employeur/Profil";
 import EmployeurPaiement from "./pages/employeur/Paiement";
+import MesSouscriptions from "./pages/employeur/MesSouscriptions";
 import ModifierOffre from "./pages/employeur/ModifierOffre";
 import Connexion from "./pages/Connexion";
 import RechercheEmploi from "./pages/RechercheEmploi";
@@ -82,6 +83,7 @@ function Router() {
       <Route path="/employeur/publier" component={EmployeurPublier} />
       <Route path="/employeur/profil" component={EmployeurProfil} />
       <Route path="/employeur/paiement" component={EmployeurPaiement} />
+      <Route path="/employeur/mes-souscriptions" component={MesSouscriptions} />
       <Route path="/employeur/offres/:id/modifier" component={ModifierOffre} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/souscriptions" component={AdminSouscriptions} />

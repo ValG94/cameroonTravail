@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { LanguageSelector } from "@/components/LanguageSelector";
-import { BookOpen, Briefcase, FileText, LayoutDashboard, LogOut, Users, User, ChevronDown } from "lucide-react";
+import { BookOpen, Briefcase, FileText, LayoutDashboard, LogOut, Users, User, ChevronDown, Wallet } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -89,6 +89,10 @@ export function EmployeurNav() {
                 <DropdownMenuItem onClick={() => setLocation("/employeur/profil")}>
                   <User className="mr-2 h-4 w-4" />
                   Mon Profil
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLocation("/employeur/mes-souscriptions")}>
+                  <Wallet className="mr-2 h-4 w-4" />
+                  Mes souscriptions
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="text-red-600">

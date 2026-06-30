@@ -605,6 +605,42 @@ export const appRouter = router({
           validatedAt: now,
         });
 
+        // Notification email au recruteur (best-effort : ne casse pas
+        // la validation si Resend tombe en erreur).
+        try {
+          const { users } = await import('../drizzle/schema');
+          const [emp] = await dbInstance
+            .select()
+            .from(employeurs)
+            .where(eq(employeurs.id, demande.employeurId))
+            .limit(1);
+          if (emp) {
+            const [u] = await dbInstance
+              .select({ email: users.email, name: users.name })
+              .from(users)
+              .where(eq(users.id, emp.userId))
+              .limit(1);
+            if (u?.email) {
+              const { sendEmail, templateSouscriptionValidee } = await import("./_core/email");
+              const appUrl = ENV.frontendUrl || "";
+              await sendEmail({
+                to: u.email,
+                subject: `Votre formule ${formule.nom} est active — Cameroon Travail`,
+                html: templateSouscriptionValidee({
+                  recruteurNom: u.name || emp.prenomContact || "",
+                  nomEntreprise: emp.nomEntreprise || "",
+                  nomFormule: formule.nom,
+                  montant: Number(demande.montant).toLocaleString("fr-FR"),
+                  devise: demande.devise,
+                  appUrl,
+                }),
+              });
+            }
+          }
+        } catch (e) {
+          console.error("[souscription] email validation failed:", e);
+        }
+
         return { success: true };
       }),
 
@@ -622,6 +658,48 @@ export const appRouter = router({
           validatedByAdminId: ctx.user.id,
           validatedAt: new Date(),
         });
+
+        // Notification email au recruteur (best-effort).
+        try {
+          const dbInstance = await db.getDb();
+          if (dbInstance) {
+            const { employeurs, formulesTarifaires, users } = await import('../drizzle/schema');
+            const { eq } = await import('drizzle-orm');
+            const [emp] = await dbInstance
+              .select()
+              .from(employeurs)
+              .where(eq(employeurs.id, demande.employeurId))
+              .limit(1);
+            const [formule] = await dbInstance
+              .select({ nom: formulesTarifaires.nom })
+              .from(formulesTarifaires)
+              .where(eq(formulesTarifaires.id, demande.formuleId))
+              .limit(1);
+            if (emp) {
+              const [u] = await dbInstance
+                .select({ email: users.email, name: users.name })
+                .from(users)
+                .where(eq(users.id, emp.userId))
+                .limit(1);
+              if (u?.email) {
+                const { sendEmail, templateSouscriptionRefusee } = await import("./_core/email");
+                const appUrl = ENV.frontendUrl || "";
+                await sendEmail({
+                  to: u.email,
+                  subject: `Demande de souscription refusée — Cameroon Travail`,
+                  html: templateSouscriptionRefusee({
+                    recruteurNom: u.name || emp.prenomContact || "",
+                    nomFormule: formule?.nom ?? "",
+                    raison: input.raison,
+                    appUrl,
+                  }),
+                });
+              }
+            }
+          }
+        } catch (e) {
+          console.error("[souscription] email refus failed:", e);
+        }
 
         return { success: true };
       }),
@@ -2051,11 +2129,27 @@ export const appRouter = router({
         return { success: true, demandeId: id };
       }),
 
-    // Liste des demandes du recruteur connecté (pour suivi côté BO)
+    // Liste des demandes du recruteur connecté (pour suivi côté BO),
+    // enrichies du nom de la formule pour affichage direct.
     mesDemandesSouscription: protectedProcedure.query(async ({ ctx }) => {
       const employeur = await db.getEmployeurByUserId(ctx.user.id);
       if (!employeur) return [];
-      return await db.listDemandesSouscription({ employeurId: employeur.id });
+      const demandes = await db.listDemandesSouscription({ employeurId: employeur.id });
+      if (demandes.length === 0) return [];
+      const dbInstance = await db.getDb();
+      if (!dbInstance) return demandes.map((d) => ({ ...d, nomFormule: "" }));
+      const { formulesTarifaires } = await import("../drizzle/schema");
+      const { inArray } = await import("drizzle-orm");
+      const formIds = Array.from(new Set(demandes.map((d) => d.formuleId)));
+      const forms = await dbInstance
+        .select()
+        .from(formulesTarifaires)
+        .where(inArray(formulesTarifaires.id, formIds));
+      const formById = new Map(forms.map((f) => [f.id, f]));
+      return demandes.map((d) => ({
+        ...d,
+        nomFormule: formById.get(d.formuleId)?.nom ?? "",
+      }));
     }),
   }),
 

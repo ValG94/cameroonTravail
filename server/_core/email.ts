@@ -349,3 +349,131 @@ export function templateNouvelleOffre(data: {
 </html>
   `;
 }
+
+// ─── Templates souscription (Mobile Money, Option B) ──────────────────────────
+
+const baseStyle = `
+  body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f3f4f6; }
+  .container { max-width: 600px; margin: 24px auto; background: white; border-radius: 12px; overflow: hidden; }
+  .content { padding: 32px 28px; }
+  .info-box { background: #f9fafb; border-left: 4px solid #16a34a; padding: 16px; border-radius: 6px; margin: 18px 0; }
+  .info-box.warning { border-left-color: #dc2626; background: #fef2f2; }
+  .info-box ul { margin: 6px 0; padding-left: 18px; }
+  .info-box li { margin: 4px 0; }
+  .button { display: inline-block; background: #16a34a; color: white !important; padding: 12px 26px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 16px 0; }
+  .footer { text-align: center; padding: 18px; color: #6b7280; font-size: 12px; border-top: 1px solid #e5e7eb; }
+  .meta { color: #6b7280; font-size: 14px; }
+`;
+
+/**
+ * Email envoyé au recruteur quand sa demande de souscription est
+ * validée par l'admin (la formule devient active immédiatement).
+ */
+export function templateSouscriptionValidee(data: {
+  recruteurNom: string;
+  nomEntreprise: string;
+  nomFormule: string;
+  montant: string;
+  devise: string;
+  appUrl: string;
+}): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>${baseStyle}
+    .header { background: linear-gradient(135deg, #063F24 0%, #009B5A 100%); color: white; padding: 28px; text-align: center; }
+    .header h1 { margin: 0; font-size: 22px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Votre formule est active</h1>
+    </div>
+    <div class="content">
+      <p>Bonjour <strong>${data.recruteurNom}</strong>,</p>
+
+      <p>Bonne nouvelle ! Votre paiement a été vérifié et votre formule <strong>${data.nomFormule}</strong> est désormais active sur votre compte recruteur <strong>${data.nomEntreprise}</strong>.</p>
+
+      <div class="info-box">
+        <strong>Détails de votre souscription</strong>
+        <ul>
+          <li>Formule : <strong>${data.nomFormule}</strong></li>
+          <li>Montant payé : <strong>${data.montant} ${data.devise}</strong></li>
+        </ul>
+      </div>
+
+      <p>Vous pouvez dès maintenant publier vos offres et accéder à la CVthèque.</p>
+
+      <div style="text-align: center;">
+        <a href="${data.appUrl}/employeur/dashboard" class="button">Accéder à mon tableau de bord</a>
+      </div>
+
+      <p class="meta">Vous pourrez retrouver l'historique de vos souscriptions dans la section "Mes souscriptions" de votre back-office.</p>
+    </div>
+    <div class="footer">
+      <p><strong>Cameroon Travail</strong> — La plateforme de recrutement au Cameroun</p>
+      <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre.</p>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+}
+
+/**
+ * Email envoyé au recruteur quand sa demande de souscription est
+ * refusée par l'admin (paiement non vérifié, montant incorrect, etc.).
+ */
+export function templateSouscriptionRefusee(data: {
+  recruteurNom: string;
+  nomFormule: string;
+  raison: string;
+  appUrl: string;
+}): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>${baseStyle}
+    .header { background: #dc2626; color: white; padding: 28px; text-align: center; }
+    .header h1 { margin: 0; font-size: 22px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Demande de souscription refusée</h1>
+    </div>
+    <div class="content">
+      <p>Bonjour <strong>${data.recruteurNom}</strong>,</p>
+
+      <p>Nous n'avons pas pu valider votre demande de souscription à la formule <strong>${data.nomFormule}</strong>.</p>
+
+      <div class="info-box warning">
+        <strong>Raison du refus :</strong>
+        <p style="margin: 6px 0 0">${data.raison}</p>
+      </div>
+
+      <p>Vous pouvez :</p>
+      <ul>
+        <li>Vérifier votre référence de transaction et soumettre une nouvelle demande</li>
+        <li>Nous contacter à <a href="mailto:contact@cameroon-travail.cm">contact@cameroon-travail.cm</a> pour clarifier la situation</li>
+      </ul>
+
+      <div style="text-align: center;">
+        <a href="${data.appUrl}/employeur/mes-souscriptions" class="button">Voir mes souscriptions</a>
+      </div>
+    </div>
+    <div class="footer">
+      <p><strong>Cameroon Travail</strong> — La plateforme de recrutement au Cameroun</p>
+      <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre.</p>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+}
