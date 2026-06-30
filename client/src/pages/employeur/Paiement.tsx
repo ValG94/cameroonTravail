@@ -279,18 +279,33 @@ export default function PaiementEmployeur() {
   const prix = Number(formule.prix).toLocaleString("fr-FR");
   const numero = methodePaiement === "autre" ? null : PAYMENT_NUMBERS[methodePaiement];
   const theme = getFormuleTheme(formule.nom);
-  // Liste des fonctionnalités stockées dans formule.fonctionnalites
-  // (string multilignes, une par ligne). Parsée 1 fois.
-  const fonctionnalites = formule.fonctionnalites
-    ? String(formule.fonctionnalites).split("\n").map((s) => s.trim()).filter(Boolean)
-    : [];
+  // Liste des fonctionnalités : la DB stocke parfois un JSON array
+  // stringifié ["item1","item2"], parfois du texte multilignes.
+  // On essaie JSON.parse d'abord, fallback split par newlines.
+  const fonctionnalites = (() => {
+    const raw = formule.fonctionnalites;
+    if (!raw) return [] as string[];
+    try {
+      const parsed = JSON.parse(String(raw));
+      if (Array.isArray(parsed)) return parsed.map((s) => String(s).trim()).filter(Boolean);
+    } catch {
+      /* fall through */
+    }
+    return String(raw).split("\n").map((s) => s.trim()).filter(Boolean);
+  })();
 
-  // Handler partagé : retour vers /tarifs avec scroll smooth sur #tarifs
+  // Handler partagé : retour vers /tarifs avec scroll smooth sur la
+  // section #tarifs. On utilise l'URL hash + un handler côté
+  // EspaceRecruteur (qui écoute hashchange + initial mount). Plus
+  // robuste qu'un setTimeout aveugle car EspaceRecruteur a beaucoup
+  // d'animations et de queries qui décalent son render.
   const handleBackToPricing = () => {
     setLocation("/tarifs");
+    // Force le hash après que wouter ait navigué — EspaceRecruteur
+    // détecte le hash et scroll quand sa section #tarifs est prête.
     setTimeout(() => {
-      document.getElementById("tarifs")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 80);
+      window.location.hash = "tarifs";
+    }, 40);
   };
 
   // Background global : dark premium VERT (pas noir) pour Premium —
@@ -311,46 +326,79 @@ export default function PaiementEmployeur() {
         fontFamily: "'Manrope', 'Inter', sans-serif",
       }}
     >
-      {/* Décorations feuilles SVG subtiles en arrière-plan, uniquement
-          pour les layouts light (split + hero, pas premium). Donne un
-          rendu organique cohérent avec la maquette ivoire. */}
+      {/* Décorations élégantes en arrière-plan pour les layouts light
+          (split + hero). Halo radial vert flouté en bas + petits
+          points + ligne courbe stylisée. Donne du relief à la page
+          sans la surcharger. */}
       {theme.layout !== "premium" && (
         <>
-          <svg
-            aria-hidden="true"
-            className="absolute bottom-0 left-0 w-[280px] h-[280px] opacity-[0.08] pointer-events-none"
-            viewBox="0 0 200 200"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M 30 180 Q 50 130 80 110 Q 110 90 130 50 M 50 170 Q 70 130 100 120 M 30 180 Q 80 170 120 140"
-              stroke={C.greenBright}
-              strokeWidth="2"
-              fill="none"
-            />
-            <ellipse cx="80" cy="110" rx="8" ry="22" fill={C.greenBright} transform="rotate(-30 80 110)" />
-            <ellipse cx="100" cy="120" rx="6" ry="18" fill={C.greenBright} transform="rotate(-20 100 120)" />
-            <ellipse cx="120" cy="140" rx="7" ry="20" fill={C.greenBright} transform="rotate(-15 120 140)" />
-          </svg>
-          <svg
-            aria-hidden="true"
-            className="absolute bottom-0 right-0 w-[260px] h-[260px] opacity-[0.08] pointer-events-none"
-            viewBox="0 0 200 200"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M 170 180 Q 150 130 120 110 Q 90 90 70 50 M 150 170 Q 130 130 100 120"
-              stroke={C.greenBright}
-              strokeWidth="2"
-              fill="none"
-            />
-            <ellipse cx="120" cy="110" rx="8" ry="22" fill={C.greenBright} transform="rotate(30 120 110)" />
-            <ellipse cx="100" cy="120" rx="6" ry="18" fill={C.greenBright} transform="rotate(20 100 120)" />
-          </svg>
-          {/* Points décoratifs supplémentaires (visibles sur la maquette) */}
+          {/* Halo radial vert flouté en bas-gauche */}
           <div
             aria-hidden="true"
-            className="absolute top-1/3 left-8 grid grid-cols-4 gap-2 opacity-30 pointer-events-none"
+            className="absolute -bottom-32 -left-32 w-[520px] h-[520px] rounded-full blur-[100px] opacity-[0.18] pointer-events-none"
+            style={{ backgroundColor: C.greenBright }}
+          />
+          {/* Halo radial vert flouté en bas-droite */}
+          <div
+            aria-hidden="true"
+            className="absolute -bottom-40 -right-40 w-[480px] h-[480px] rounded-full blur-[100px] opacity-[0.15] pointer-events-none"
+            style={{ backgroundColor: C.greenBright }}
+          />
+          {/* Halo or très subtil en haut centré */}
+          <div
+            aria-hidden="true"
+            className="absolute -top-24 left-1/2 -translate-x-1/2 w-[480px] h-[280px] rounded-full blur-[120px] opacity-[0.12] pointer-events-none"
+            style={{ backgroundColor: C.gold }}
+          />
+          {/* Courbes organiques SVG */}
+          <svg
+            aria-hidden="true"
+            className="absolute bottom-0 left-0 w-[600px] h-[400px] opacity-[0.10] pointer-events-none"
+            viewBox="0 0 600 400"
+            xmlns="http://www.w3.org/2000/svg"
+            preserveAspectRatio="xMinYMax meet"
+          >
+            <path
+              d="M -50 400 C 80 350 150 280 200 200 C 240 130 280 80 350 60 C 420 40 480 80 540 120"
+              stroke={C.greenBright}
+              strokeWidth="2"
+              fill="none"
+            />
+            <path
+              d="M -20 380 C 100 340 180 290 240 230 C 280 190 320 150 380 130"
+              stroke={C.greenBright}
+              strokeWidth="1.5"
+              fill="none"
+              opacity="0.6"
+            />
+          </svg>
+          <svg
+            aria-hidden="true"
+            className="absolute bottom-0 right-0 w-[500px] h-[360px] opacity-[0.10] pointer-events-none"
+            viewBox="0 0 500 360"
+            xmlns="http://www.w3.org/2000/svg"
+            preserveAspectRatio="xMaxYMax meet"
+          >
+            <path
+              d="M 540 360 C 420 320 340 260 290 200 C 250 140 220 100 160 80 C 100 60 60 80 20 110"
+              stroke={C.greenBright}
+              strokeWidth="2"
+              fill="none"
+            />
+          </svg>
+          {/* Grille de petits points or en haut-gauche */}
+          <div
+            aria-hidden="true"
+            className="absolute top-32 left-12 grid grid-cols-5 gap-2.5 opacity-30 pointer-events-none"
+          >
+            {Array.from({ length: 20 }).map((_, i) => (
+              <div key={i} className="w-1 h-1 rounded-full" style={{ backgroundColor: C.gold }} />
+            ))}
+          </div>
+          {/* Grille de petits points verts en bas-milieu */}
+          <div
+            aria-hidden="true"
+            className="absolute bottom-48 left-1/3 grid grid-cols-4 gap-2 opacity-30 pointer-events-none"
           >
             {Array.from({ length: 12 }).map((_, i) => (
               <div key={i} className="w-1 h-1 rounded-full" style={{ backgroundColor: C.greenBright }} />
@@ -466,16 +514,22 @@ export default function PaiementEmployeur() {
 
         {/* Header titre — uniquement "split" (Découverte). Pour
             "hero" (Avantage), le titre est dans la 1ère colonne du
-            grid 3-col ci-dessous. */}
+            grid 3-col ci-dessous. Titre + subtitle limités à
+            max-w-[640px] pour ne pas s'étaler en pleine largeur
+            (mise en page maquette : titre prend ~50% de la largeur). */}
         {theme.layout === "split" && (
-          <>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-2">
-              {t("bo.employerPayment.title")} <span style={{ color: C.green }}>{formule.nom}</span>
+          <div className="max-w-[680px] mb-10">
+            <h1
+              className="font-extrabold tracking-tight leading-[1.05] mb-3"
+              style={{ fontSize: "clamp(34px, 4.5vw, 48px)", color: C.textMain }}
+            >
+              {t("bo.employerPayment.title")}{" "}
+              <span style={{ color: C.green }}>{formule.nom}</span>
             </h1>
-            <p className="mb-10 text-base" style={{ color: C.textMuted }}>
+            <p className="text-base sm:text-[17px] leading-relaxed" style={{ color: C.textMuted }}>
               {t("bo.employerPayment.subtitle")}
             </p>
-          </>
+          </div>
         )}
 
         {/* Grid layout par variante :
@@ -488,7 +542,9 @@ export default function PaiementEmployeur() {
               ? "grid grid-cols-1 lg:grid-cols-[1fr_1.1fr_1fr] lg:grid-rows-[auto_1fr] gap-6 lg:gap-8 items-stretch"
               : theme.layout === "premium"
               ? "grid grid-cols-1 lg:grid-cols-2 gap-8 items-start"
-              : "grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-8"
+              : // split (Découverte) : recap plus étroit (1) que paiement (1.5)
+                // pour matcher la maquette
+                "grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-6 lg:gap-8 items-start"
           }
         >
           {/* Pour layout="hero" : badge + titre + desc en tête de la

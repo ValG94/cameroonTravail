@@ -196,6 +196,30 @@ export default function EspaceRecruteur() {
   const { data: articlesData } = trpc.conseils.getAll.useQuery({ limit: 3, offset: 0 });
   const articles = articlesData?.articles ?? [];
 
+  // Scroll vers la section #tarifs si l'URL contient le hash. Utilisé
+  // par les boutons "Retour aux tarifs" des pages de souscription
+  // (/employeur/paiement). On retry jusqu'à ce que la section soit
+  // dans le DOM (cas où les formules tRPC ne sont pas encore arrivées).
+  useEffect(() => {
+    const scrollIfHash = () => {
+      if (window.location.hash !== "#tarifs") return;
+      let attempts = 0;
+      const tryScroll = () => {
+        const el = document.getElementById("tarifs");
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+          return;
+        }
+        attempts += 1;
+        if (attempts < 20) setTimeout(tryScroll, 150); // ~3s max
+      };
+      tryScroll();
+    };
+    scrollIfHash();
+    window.addEventListener("hashchange", scrollIfHash);
+    return () => window.removeEventListener("hashchange", scrollIfHash);
+  }, []);
+
   function handleInscription(e: React.FormEvent) {
     e.preventDefault();
     if (!formData.entreprise || !formData.email) {
