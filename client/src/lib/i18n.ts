@@ -1247,6 +1247,16 @@ const fr = {
         periodMonth: "mois",
         periodYear: "an",
         periodOnce: "unique",
+        reassurance: {
+          b1Title: "Paiement sécurisé",
+          b1Desc: "Vos données sont protégées",
+          b2Title: "Activation rapide",
+          b2Desc: "Votre compte activé sous 24h",
+          b3Title: "Sans engagement",
+          b3Desc: "Résiliable à tout moment",
+          b4Title: "Support réactif",
+          b4Desc: "Notre équipe vous accompagne",
+        },
       },
       mySubscriptions: {
         title: "Mes souscriptions",
@@ -2555,6 +2565,16 @@ const en = {
         periodMonth: "month",
         periodYear: "year",
         periodOnce: "one-time",
+        reassurance: {
+          b1Title: "Secure payment",
+          b1Desc: "Your data is protected",
+          b2Title: "Fast activation",
+          b2Desc: "Your account activated within 24h",
+          b3Title: "No commitment",
+          b3Desc: "Cancel anytime",
+          b4Title: "Responsive support",
+          b4Desc: "Our team is here to help",
+        },
       },
       mySubscriptions: {
         title: "My subscriptions",

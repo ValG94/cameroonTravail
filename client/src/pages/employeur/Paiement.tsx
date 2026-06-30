@@ -14,10 +14,13 @@ import {
   ArrowLeft,
   CheckCircle2,
   Clock,
+  Headphones,
   Info,
   Phone,
   ShieldCheck,
   Smartphone,
+  Sparkles,
+  Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -51,10 +54,74 @@ const C = {
   green: "#007A3D",
   greenBright: "#009B5A",
   gold: "#F6C343",
+  goldDark: "#D99200",
   textMain: "#0F172A",
   textMuted: "#64748B",
   border: "#E2E8F0",
 };
+
+/**
+ * Thème visuel par formule. Mapping basé sur le nom commercial
+ * (insensible à la casse) :
+ *  - "découverte" → green basic (entrée de gamme)
+ *  - "avantage"   → gold accent (intermédiaire)
+ *  - "premium"    → violet/indigo (haut de gamme)
+ * Tout est isolé ici pour permettre d'étendre facilement les visuels
+ * de chaque tier au fil des maquettes reçues.
+ */
+type FormuleTheme = {
+  variant: "basic" | "advantage" | "premium";
+  cardBorder: string;
+  accentColor: string;
+  accentBg: string;
+  badgeBg: string;
+  badgeText: string;
+  badgeBorder: string;
+  checkColor: string;
+  taglineColor: string;
+};
+
+function getFormuleTheme(nom: string): FormuleTheme {
+  const lower = nom.toLowerCase();
+  if (lower.includes("premium")) {
+    return {
+      variant: "premium",
+      cardBorder: "rgba(124, 58, 237, 0.30)",
+      accentColor: "#7C3AED",
+      accentBg: "rgba(124, 58, 237, 0.06)",
+      badgeBg: "rgba(124, 58, 237, 0.10)",
+      badgeText: "#6D28D9",
+      badgeBorder: "rgba(124, 58, 237, 0.25)",
+      checkColor: "#7C3AED",
+      taglineColor: "#7C3AED",
+    };
+  }
+  if (lower.includes("avantage")) {
+    return {
+      variant: "advantage",
+      cardBorder: "rgba(246, 195, 67, 0.45)",
+      accentColor: C.goldDark,
+      accentBg: "rgba(246, 195, 67, 0.08)",
+      badgeBg: "rgba(246, 195, 67, 0.18)",
+      badgeText: "#A37200",
+      badgeBorder: "rgba(246, 195, 67, 0.40)",
+      checkColor: C.goldDark,
+      taglineColor: C.goldDark,
+    };
+  }
+  // Default : Découverte (basique, vert)
+  return {
+    variant: "basic",
+    cardBorder: "rgba(0, 155, 90, 0.30)",
+    accentColor: C.greenBright,
+    accentBg: "rgba(0, 155, 90, 0.06)",
+    badgeBg: "rgba(0, 155, 90, 0.10)",
+    badgeText: C.green,
+    badgeBorder: "rgba(0, 155, 90, 0.25)",
+    checkColor: C.greenBright,
+    taglineColor: C.green,
+  };
+}
 
 export default function PaiementEmployeur() {
   const { t } = useTranslation();
@@ -82,6 +149,14 @@ export default function PaiementEmployeur() {
       setLocation("/");
     }
   }, [user, authLoading, planId, setLocation]);
+
+  // Force scroll en haut au mount : sinon wouter préserve la position
+  // du scroll de la page précédente (si on vient de /tarifs en cliquant
+  // 'Choisir ce plan' depuis la grille en bas, on arrive ici au niveau
+  // du footer au lieu d'en haut).
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const formulesQuery = trpc.formules.getActives.useQuery({ cible: "employeur" });
   const formule = useMemo(
@@ -150,6 +225,12 @@ export default function PaiementEmployeur() {
 
   const prix = Number(formule.prix).toLocaleString("fr-FR");
   const numero = methodePaiement === "autre" ? null : PAYMENT_NUMBERS[methodePaiement];
+  const theme = getFormuleTheme(formule.nom);
+  // Liste des fonctionnalités stockées dans formule.fonctionnalites
+  // (string multilignes, une par ligne). Parsée 1 fois.
+  const fonctionnalites = formule.fonctionnalites
+    ? String(formule.fonctionnalites).split("\n").map((s) => s.trim()).filter(Boolean)
+    : [];
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: C.ivory, color: C.textMain, fontFamily: "'Manrope', 'Inter', sans-serif" }}>
@@ -158,7 +239,14 @@ export default function PaiementEmployeur() {
       <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-10 py-10 lg:py-14">
         <button
           type="button"
-          onClick={() => setLocation("/tarifs")}
+          onClick={() => {
+            setLocation("/tarifs");
+            setTimeout(() => {
+              document
+                .getElementById("tarifs")
+                ?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 80);
+          }}
           className="inline-flex items-center gap-2 text-sm font-medium mb-6 hover:underline"
           style={{ color: C.textMuted }}
         >
@@ -174,48 +262,65 @@ export default function PaiementEmployeur() {
         </p>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-8">
-          {/* ─── Récap formule ──────────────────────────────────── */}
-          <Card className="rounded-3xl border shadow-sm h-fit" style={{ borderColor: C.border }}>
+          {/* ─── Récap formule (thème par tier) ─────────────────── */}
+          <Card
+            className="rounded-3xl border-2 shadow-sm h-fit overflow-hidden"
+            style={{ borderColor: theme.cardBorder }}
+          >
             <CardContent className="p-7">
+              {/* Badge tier (vert/or/violet selon formule) */}
               <Badge
-                className="mb-3 px-3 py-1 text-xs font-bold uppercase tracking-wider"
-                style={{ backgroundColor: "rgba(0, 155, 90, 0.10)", color: C.green, border: "1px solid rgba(0, 155, 90, 0.30)" }}
+                className="mb-5 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.15em]"
+                style={{
+                  backgroundColor: theme.badgeBg,
+                  color: theme.badgeText,
+                  border: `1px solid ${theme.badgeBorder}`,
+                }}
               >
                 {formule.nom}
               </Badge>
-              <div className="flex items-end gap-1 mb-3">
-                <span className="text-4xl font-extrabold tracking-tight" style={{ color: C.textMain }}>
+
+              {/* Prix + période */}
+              <div className="flex items-end gap-1.5 mb-2">
+                <span className="text-5xl font-extrabold tracking-tight leading-none" style={{ color: C.textMain }}>
                   {prix}
                 </span>
-                <span className="text-sm mb-2" style={{ color: C.textMuted }}>
-                  {formule.devise} / {formule.periode === "annuel" ? t("bo.employerPayment.periodYear") : formule.periode === "unique" ? t("bo.employerPayment.periodOnce") : t("bo.employerPayment.periodMonth")}
+                <span className="text-base font-medium pb-1.5" style={{ color: C.textMuted }}>
+                  {formule.devise}
                 </span>
               </div>
+              <div className="text-sm mb-5" style={{ color: C.textMuted }}>
+                /
+                {" "}
+                {formule.periode === "annuel"
+                  ? t("bo.employerPayment.periodYear")
+                  : formule.periode === "unique"
+                  ? t("bo.employerPayment.periodOnce")
+                  : t("bo.employerPayment.periodMonth")}
+              </div>
+
+              {/* Tagline (description courte) en accent color du tier */}
               {formule.description && (
-                <p className="text-sm leading-relaxed mb-5" style={{ color: C.textMuted }}>
+                <p className="text-sm font-medium mb-6" style={{ color: theme.taglineColor }}>
                   {formule.description}
                 </p>
               )}
 
-              {formule.fonctionnalites && (
-                <ul className="space-y-2.5">
-                  {String(formule.fonctionnalites)
-                    .split("\n")
-                    .map((s: string) => s.trim())
-                    .filter(Boolean)
-                    .map((f: string, i: number) => (
-                      <li key={i} className="flex items-start gap-2 text-sm">
-                        <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" style={{ color: C.greenBright }} />
-                        <span style={{ color: C.textMain }}>{f}</span>
-                      </li>
-                    ))}
+              {/* Liste fonctionnalités avec checkmarks colorés selon
+                  le tier. Si la liste est vide, on n'affiche rien. */}
+              {fonctionnalites.length > 0 && (
+                <ul className="space-y-3">
+                  {fonctionnalites.map((f, i) => (
+                    <li key={i} className="flex items-start gap-2.5 text-sm">
+                      <CheckCircle2
+                        className="w-[18px] h-[18px] mt-0.5 shrink-0"
+                        style={{ color: theme.checkColor }}
+                      />
+                      <span style={{ color: C.textMain }}>{f}</span>
+                    </li>
+                  ))}
                 </ul>
               )}
-
-              <div className="mt-6 pt-5 border-t flex items-center gap-2 text-xs" style={{ borderColor: C.border, color: C.textMuted }}>
-                <ShieldCheck className="w-4 h-4" style={{ color: C.green }} />
-                {t("bo.employerPayment.secureNote")}
-              </div>
             </CardContent>
           </Card>
 
@@ -247,15 +352,15 @@ export default function PaiementEmployeur() {
                           onClick={() => setMethodePaiement(m.key as any)}
                           className="relative flex items-center gap-2.5 h-12 px-3 rounded-xl border-2 text-sm font-semibold transition-all"
                           style={{
-                            borderColor: active ? C.green : C.border,
-                            backgroundColor: active ? "rgba(0, 155, 90, 0.06)" : "white",
+                            borderColor: active ? theme.accentColor : C.border,
+                            backgroundColor: active ? theme.accentBg : "white",
                             color: C.textMain,
                           }}
                         >
                           <Smartphone className="w-4 h-4" style={{ color: m.color }} />
                           {m.label}
                           {active && (
-                            <CheckCircle2 className="w-4 h-4 ml-auto" style={{ color: C.green }} />
+                            <CheckCircle2 className="w-4 h-4 ml-auto" style={{ color: theme.accentColor }} />
                           )}
                         </button>
                       );
@@ -263,14 +368,14 @@ export default function PaiementEmployeur() {
                   </div>
                 </div>
 
-                {/* Instructions paiement */}
+                {/* Instructions paiement (couleur tier-aware) */}
                 {numero && (
                   <div
                     className="rounded-xl border p-4"
-                    style={{ borderColor: "rgba(0, 155, 90, 0.25)", backgroundColor: "rgba(0, 155, 90, 0.05)" }}
+                    style={{ borderColor: theme.badgeBorder, backgroundColor: theme.accentBg }}
                   >
                     <div className="flex items-start gap-3">
-                      <Info className="w-5 h-5 mt-0.5 shrink-0" style={{ color: C.green }} />
+                      <Info className="w-5 h-5 mt-0.5 shrink-0" style={{ color: theme.accentColor }} />
                       <div className="text-sm leading-relaxed" style={{ color: C.textMain }}>
                         <p className="font-semibold mb-2">{t("bo.employerPayment.instructionsTitle")}</p>
                         <ol className="list-decimal pl-4 space-y-1.5 text-[13px]" style={{ color: C.textMuted }}>
@@ -354,6 +459,34 @@ export default function PaiementEmployeur() {
               </form>
             </CardContent>
           </Card>
+        </div>
+
+        {/* ─── Bandeau réassurance 4 items (cohérent avec le reste
+            du site). Couleurs neutres : on ne theme PAS ce bloc, il
+            sert de signal de confiance général. */}
+        <div
+          className="mt-12 grid grid-cols-2 lg:grid-cols-4 gap-px rounded-3xl overflow-hidden"
+          style={{ backgroundColor: C.border }}
+        >
+          {[
+            { icon: ShieldCheck, title: t("bo.employerPayment.reassurance.b1Title"), desc: t("bo.employerPayment.reassurance.b1Desc") },
+            { icon: Zap, title: t("bo.employerPayment.reassurance.b2Title"), desc: t("bo.employerPayment.reassurance.b2Desc") },
+            { icon: Sparkles, title: t("bo.employerPayment.reassurance.b3Title"), desc: t("bo.employerPayment.reassurance.b3Desc") },
+            { icon: Headphones, title: t("bo.employerPayment.reassurance.b4Title"), desc: t("bo.employerPayment.reassurance.b4Desc") },
+          ].map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="bg-white p-5 lg:p-6 flex items-start gap-3">
+              <div
+                className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0"
+                style={{ backgroundColor: "rgba(0, 155, 90, 0.10)" }}
+              >
+                <Icon className="w-5 h-5" style={{ color: C.greenBright }} />
+              </div>
+              <div className="min-w-0">
+                <div className="font-bold text-sm" style={{ color: C.textMain }}>{title}</div>
+                <div className="text-xs mt-0.5 leading-relaxed" style={{ color: C.textMuted }}>{desc}</div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
