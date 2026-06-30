@@ -178,8 +178,35 @@ export default function Connexion() {
               initial={reduced ? false : { opacity: 0, x: -16 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.55 }}
-              className="order-2 lg:order-1"
+              className="order-2 lg:order-1 relative"
             >
+              {/* Image hero en arrière-plan flouté de la colonne gauche.
+                  Overlay ivoire dégradé pour garantir la lisibilité du
+                  texte tout en gardant l'ambiance visuelle premium.
+                  Désactivée < lg pour ne pas surcharger le mobile. */}
+              <div
+                aria-hidden="true"
+                className="hidden lg:block absolute -inset-x-6 -inset-y-10 rounded-[40px] overflow-hidden pointer-events-none -z-10"
+              >
+                <img
+                  src="/images/login-hero.webp"
+                  alt=""
+                  className="w-full h-full object-cover object-center"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.display = "none";
+                  }}
+                />
+                {/* Overlay ivoire dégradé : opaque à gauche pour lire le
+                    titre + bénéfices, plus léger à droite pour laisser
+                    voir un peu l'image. */}
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background: `linear-gradient(105deg, ${C.ivory} 0%, ${C.ivory}EE 50%, ${C.ivory}AA 100%)`,
+                  }}
+                />
+              </div>
+
               {/* Badge */}
               <div
                 className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-semibold mb-5"
