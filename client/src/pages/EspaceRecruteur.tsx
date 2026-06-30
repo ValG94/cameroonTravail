@@ -217,42 +217,48 @@ export default function EspaceRecruteur() {
       {/* ╭───────────────────────────────────────────────────────────────╮ */}
       {/* │ 1. HERO RECRUTEUR                                              │ */}
       {/* ╰───────────────────────────────────────────────────────────────╯ */}
-      <section className="relative overflow-hidden">
-        {/* Background image + dégradé "fenêtre" pour laisser le couple visible
-            au milieu (entre le texte à gauche et le formulaire à droite). */}
-        <div className="absolute inset-0">
-          <img
-            src={IMG_HERO}
-            alt=""
-            aria-hidden="true"
-            className="w-full h-full object-cover"
-            style={{ objectPosition: "center center" }}
-          />
-          {/* Voile dégradé : très dark sur 0-30% (texte lisible) → quasi
-              transparent sur 38-65% (le couple respire) → léger voile à
-              droite sous le formulaire blanc. */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(90deg, rgba(3, 52, 30, 0.95) 0%, rgba(5, 76, 43, 0.86) 26%, rgba(5, 76, 43, 0.32) 40%, rgba(5, 76, 43, 0.10) 55%, rgba(5, 76, 43, 0.06) 100%)",
-            }}
-          />
-          {/* Voile haut→bas TRÈS subtil pour ne pas surcharger la moitié
-              droite (où le formulaire blanc apporte déjà du contraste). */}
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background:
-                "linear-gradient(180deg, rgba(3, 52, 30, 0.10) 0%, transparent 30%, transparent 70%, rgba(3, 52, 30, 0.15) 100%)",
-            }}
-          />
-        </div>
+      <section
+        className="relative overflow-hidden"
+        style={{ backgroundColor: C.deepGreen, minHeight: "680px" }}
+      >
+        {/* Background ABSTRAIT (pas de photo en bg) : pattern topographique
+            SVG + halos lumineux. Plus aucun risque de masquage de visages.
+            La photo des recruteurs est intégrée comme card distincte dans
+            la colonne droite (cf. plus bas). */}
+        <svg
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full opacity-[0.07] pointer-events-none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <pattern id="recruteur-topo" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+              <circle cx="40" cy="40" r="36" stroke={C.gold} strokeWidth="0.5" fill="none" />
+              <circle cx="40" cy="40" r="24" stroke={C.gold} strokeWidth="0.5" fill="none" />
+              <circle cx="40" cy="40" r="12" stroke={C.gold} strokeWidth="0.5" fill="none" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#recruteur-topo)" />
+        </svg>
 
-        <div className="relative max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20">
-          {/* Grille 54%/40% : laisse une zone tampon de 6% + gap-12 au milieu
-              pour que le couple sur la photo reste visible entre texte et form. */}
-          <div className="grid lg:grid-cols-[54%_40%] gap-8 lg:gap-12 items-center">
+        {/* Halos lumineux animés (or + vert) */}
+        <motion.div
+          aria-hidden="true"
+          className="absolute -top-32 right-0 w-[40rem] h-[40rem] rounded-full blur-[120px]"
+          style={{ backgroundColor: C.gold, opacity: 0.12 }}
+          animate={{ scale: [1, 1.1, 1], opacity: [0.10, 0.16, 0.10] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          aria-hidden="true"
+          className="absolute bottom-0 -left-20 w-96 h-96 rounded-full blur-[100px]"
+          style={{ backgroundColor: C.green, opacity: 0.25 }}
+          animate={{ scale: [1, 1.15, 1], opacity: [0.20, 0.30, 0.20] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        />
+
+        <div className="relative max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20">
+          {/* Grille 52%/44% — composition équilibrée comme demandé par le brief. */}
+          <div className="grid lg:grid-cols-[52%_44%] gap-10 lg:gap-16 items-center">
             {/* ─── Colonne gauche : texte + CTAs ─────────────────── */}
             <motion.div initial="hidden" animate="visible" variants={stagger} className="text-white">
               {/* Badge */}
@@ -346,14 +352,38 @@ export default function EspaceRecruteur() {
               </motion.div>
             </motion.div>
 
-            {/* ─── Colonne droite : carte formulaire ─────────────── */}
-            <motion.div
-              id="hero-form"
-              initial={{ opacity: 0, y: 30, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              className="relative w-full max-w-[420px] mx-auto lg:mx-0 lg:ml-auto"
-            >
+            {/* ─── Colonne droite : photo card showcase + formulaire ── */}
+            <div className="flex flex-col gap-4 lg:gap-5 w-full max-w-[460px] mx-auto lg:mx-0 lg:ml-auto">
+              {/* Photo card SHOWCASE : recruteurs visibles, jamais masqués
+                  par le formulaire (le form est en dessous). */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+                className="relative rounded-3xl overflow-hidden shadow-2xl hidden lg:block"
+                style={{ aspectRatio: "16 / 9" }}
+              >
+                <img
+                  src={IMG_HERO}
+                  alt="Recruteurs au travail au Cameroun"
+                  className="w-full h-full object-cover"
+                  style={{ objectPosition: "center 35%" }}
+                />
+                {/* Léger dégradé bottom pour transition vers le form */}
+                <div
+                  className="absolute inset-x-0 bottom-0 h-1/3 pointer-events-none"
+                  style={{ background: "linear-gradient(180deg, transparent 0%, rgba(3,52,30,0.20) 100%)" }}
+                />
+              </motion.div>
+
+              {/* Carte formulaire */}
+              <motion.div
+                id="hero-form"
+                initial={{ opacity: 0, y: 30, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.7, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                className="relative"
+              >
               {/* Halo */}
               <div
                 aria-hidden="true"
@@ -361,8 +391,12 @@ export default function EspaceRecruteur() {
                 style={{ background: `linear-gradient(135deg, ${C.gold} 0%, ${C.green} 100%)` }}
               />
               <div
-                className="relative rounded-3xl border bg-white p-7 sm:p-8 shadow-2xl"
-                style={{ borderColor: "rgba(255,255,255,0.40)" }}
+                className="relative rounded-3xl border p-7 sm:p-8 shadow-2xl backdrop-blur-md"
+                style={{
+                  borderColor: "rgba(255,255,255,0.40)",
+                  backgroundColor: "rgba(255, 255, 255, 0.96)",
+                  boxShadow: "0 30px 80px rgba(0, 0, 0, 0.28)",
+                }}
               >
                 <h2
                   className="text-xl font-bold mb-1"
@@ -449,7 +483,8 @@ export default function EspaceRecruteur() {
                   </a>
                 </p>
               </div>
-            </motion.div>
+              </motion.div>
+            </div>
           </div>
         </div>
       </section>
