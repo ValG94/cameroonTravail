@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
 import { Badge } from "@/components/ui/badge";
-import { Briefcase, Crown, Eye, FileText, Plus, Sparkles, TrendingUp, Users, Zap } from "lucide-react";
+import { AlertTriangle, Briefcase, Crown, Eye, FileText, Plus, Sparkles, TrendingUp, Users, Zap } from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
@@ -96,6 +96,60 @@ export default function EmployeurDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Bannière quota faible / épuisé. Affichée uniquement si une
+            formule est active (sinon la bannière "Aucune formule" qui
+            suit suffit) et que le quota est ≤ 3 offres. Couleur :
+            ambre pour avertissement (1-3), rouge pour épuisé (0). */}
+        {(() => {
+          const formule = employeur?.formuleAbonnement;
+          const quota = employeur?.nombreOffresRestantes ?? 0;
+          const hasActiveFormule = formule && formule !== "gratuit";
+          if (!hasActiveFormule || quota > 3) return null;
+          const isEmpty = quota === 0;
+          return (
+            <Card
+              className="border-2 mb-6"
+              style={{
+                borderColor: isEmpty ? "#FCA5A5" : "#FCD34D",
+                backgroundColor: isEmpty ? "#FEF2F2" : "#FFFBEB",
+              }}
+            >
+              <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+                <div
+                  className="w-12 h-12 rounded-full flex items-center justify-center shrink-0"
+                  style={{ backgroundColor: isEmpty ? "#DC2626" : "#F59E0B" }}
+                >
+                  <AlertTriangle className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-base" style={{ color: isEmpty ? "#7F1D1D" : "#78350F" }}>
+                    {isEmpty
+                      ? "Quota d'offres épuisé"
+                      : `Plus que ${quota} offre${quota > 1 ? "s" : ""} disponible${quota > 1 ? "s" : ""}`}
+                  </h3>
+                  <p className="text-sm mt-0.5" style={{ color: isEmpty ? "#991B1B" : "#92400E" }}>
+                    {isEmpty
+                      ? "Renouvelez votre formule ou passez à un palier supérieur pour continuer à publier des offres."
+                      : "Pensez à renouveler votre formule pour ne pas interrompre vos publications."}
+                  </p>
+                </div>
+                <Button
+                  onClick={() => {
+                    setLocation("/tarifs");
+                    setTimeout(() => {
+                      document.getElementById("tarifs")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }, 80);
+                  }}
+                  className="text-white shrink-0"
+                  style={{ backgroundColor: isEmpty ? "#DC2626" : "#F59E0B" }}
+                >
+                  {isEmpty ? "Souscrire maintenant" : "Renouveler"}
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         {/* Formule actuelle */}
         {(() => {

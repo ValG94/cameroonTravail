@@ -29,6 +29,7 @@ import {
   Pencil,
   X,
   CreditCard,
+  Wallet,
 } from "lucide-react";
 import AdminFormules from "./AdminFormules";
 import { useState as useStateLocal } from "react";
@@ -431,6 +432,13 @@ export default function AdminDashboard() {
     enabled: !!user && user.role === "admin",
   });
 
+  // Compteur de demandes de souscription en attente (badge sur l'onglet)
+  const { data: demandesEnAttente } = trpc.admin.listDemandesSouscription.useQuery(
+    { statut: "en_attente" },
+    { enabled: !!user && user.role === "admin", refetchInterval: 30000 }
+  );
+  const nbDemandesAttente = demandesEnAttente?.length ?? 0;
+
   // Redirection si non admin
   if (!authLoading && (!user || user.role !== "admin")) {
     setLocation("/");
@@ -524,7 +532,7 @@ export default function AdminDashboard() {
       {/* Navigation onglets */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-0">
+          <div className="flex gap-0 overflow-x-auto">
             {[
               { key: "overview", label: "Vue d'ensemble", icon: BarChart3 },
               { key: "users", label: "Utilisateurs", icon: Users },
@@ -535,7 +543,7 @@ export default function AdminDashboard() {
               <button
                 key={key}
                 onClick={() => setActiveTab(key as typeof activeTab)}
-                className={`flex items-center gap-2 px-5 py-4 text-sm font-medium border-b-2 transition-colors ${
+                className={`flex items-center gap-2 px-5 py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                   activeTab === key
                     ? "border-green-600 text-green-600"
                     : "border-transparent text-gray-500 hover:text-gray-700"
@@ -545,6 +553,20 @@ export default function AdminDashboard() {
                 {label}
               </button>
             ))}
+            {/* Onglet Souscriptions — page dédiée avec badge si demandes
+                en attente (refresh auto toutes les 30s). */}
+            <button
+              onClick={() => setLocation("/admin/souscriptions")}
+              className="flex items-center gap-2 px-5 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 transition-colors whitespace-nowrap relative"
+            >
+              <Wallet className="h-4 w-4" />
+              Souscriptions
+              {nbDemandesAttente > 0 && (
+                <span className="ml-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-amber-500 text-white text-xs font-bold">
+                  {nbDemandesAttente}
+                </span>
+              )}
+            </button>
           </div>
         </div>
       </div>
