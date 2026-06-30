@@ -667,18 +667,21 @@ export default function EspaceRecruteur() {
                 Comment ça marche
               </Badge>
               <h2
-                className="font-extrabold tracking-tight leading-tight"
+                className="font-extrabold tracking-tight leading-[1.1]"
                 style={{
                   fontSize: "clamp(30px, 4.5vw, 48px)",
                   color: C.textMain,
                   fontFamily: "'Manrope', 'Inter', sans-serif",
                 }}
               >
-                Recrutez en 3 étapes simples.
+                Recrutez en
+                <br />
+                <span style={{ color: C.green }}>3 étapes</span> simples.
               </h2>
 
               <div className="space-y-5 mt-8">
                 {[
+                  // Numéros aux couleurs du drapeau camerounais (vert/jaune/rouge)
                   {
                     n: "01",
                     title: "Créez votre compte",
@@ -689,13 +692,13 @@ export default function EspaceRecruteur() {
                     n: "02",
                     title: "Publiez vos offres",
                     desc: "Rédigez et publiez vos annonces visibles par des milliers de candidats qualifiés.",
-                    color: C.blue,
+                    color: C.gold,
                   },
                   {
                     n: "03",
                     title: "Sélectionnez les talents",
                     desc: "Parcourez les candidatures, consultez les CV et contactez les profils pertinents.",
-                    color: C.violet,
+                    color: C.red,
                   },
                 ].map(({ n, title, desc, color }, i) => (
                   <Reveal key={n} delay={i * 0.1}>
@@ -732,73 +735,78 @@ export default function EspaceRecruteur() {
               </Button>
             </Reveal>
 
-            {/* Droite : collage 2 images + badges flottants */}
+            {/* Droite : 2 images SIDE BY SIDE (pas superposées) + badges */}
             <Reveal delay={0.2}>
-              <div className="relative h-[480px] sm:h-[520px]">
-                {/* Image principale (réunion) en haut gauche */}
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 relative">
+                {/* Image 1 : réunion d'équipe avec badge vert "+3 200 candidats" en bas */}
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.3 }}
-                  className="absolute top-0 left-0 w-[72%] h-[68%] rounded-[28px] overflow-hidden shadow-xl"
+                  className="relative rounded-[24px] overflow-hidden shadow-xl aspect-[4/5]"
                 >
-                  <img src={IMG_MEETING} alt="Équipe en réunion" className="w-full h-full object-cover" />
-                </motion.div>
-
-                {/* Image secondaire (entretien) en bas droite */}
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ duration: 0.3 }}
-                  className="absolute bottom-0 right-0 w-[64%] h-[58%] rounded-[28px] overflow-hidden shadow-xl border-4 border-white"
-                >
-                  <img src={IMG_INTERVIEW} alt="Entretien d'embauche" className="w-full h-full object-cover" />
-                </motion.div>
-
-                {/* Badge flottant : candidats actifs */}
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.4 }}
-                  className="absolute bottom-[42%] left-[-10px] sm:left-0 bg-white rounded-2xl p-3.5 shadow-2xl border z-10"
-                  style={{ borderColor: C.border }}
-                >
-                  <div
-                    className="text-lg font-extrabold leading-tight"
-                    style={{ color: C.green, fontFamily: "'Manrope', 'Inter', sans-serif" }}
+                  <img
+                    src={IMG_MEETING}
+                    alt="Équipe en réunion"
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Badge "+3 200 candidats actifs" — bandeau VERT en bas de l'image */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.5 }}
+                    className="absolute left-3 right-3 bottom-3 sm:left-4 sm:right-4 sm:bottom-4 rounded-2xl px-4 py-3 text-white shadow-lg"
+                    style={{ backgroundColor: C.green }}
                   >
-                    +3 200
-                  </div>
-                  <div className="text-[11px]" style={{ color: C.textMuted }}>
-                    candidats actifs ce mois
-                  </div>
-                </motion.div>
-
-                {/* Badge flottant : recrutements réussis */}
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.55 }}
-                  className="absolute top-[-12px] right-0 bg-white rounded-2xl p-3.5 shadow-2xl border z-10 flex items-center gap-2"
-                  style={{ borderColor: C.border }}
-                >
-                  <div
-                    className="p-1.5 rounded-lg"
-                    style={{ backgroundColor: "rgba(0, 155, 90, 0.10)" }}
-                  >
-                    <TrendingUp className="w-4 h-4" style={{ color: C.green }} />
-                  </div>
-                  <div>
                     <div
-                      className="text-sm font-extrabold"
-                      style={{ color: C.green, fontFamily: "'Manrope', 'Inter', sans-serif" }}
+                      className="text-xl sm:text-2xl font-extrabold leading-tight"
+                      style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}
                     >
-                      +42%
+                      +3 200
                     </div>
-                    <div className="text-[10px]" style={{ color: C.textMuted }}>
-                      de recrutements réussis
+                    <div className="text-[11px] sm:text-xs text-white/90">
+                      candidats actifs ce mois
                     </div>
-                  </div>
+                  </motion.div>
+                </motion.div>
+
+                {/* Image 2 : entretien avec badge blanc "+42%" en haut droite */}
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.3 }}
+                  className="relative rounded-[24px] overflow-hidden shadow-xl aspect-[4/5]"
+                >
+                  <img
+                    src={IMG_INTERVIEW}
+                    alt="Entretien d'embauche"
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Badge "+42% de recrutements réussis" — petite card blanche */}
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.55 }}
+                    className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-white rounded-xl px-3 py-2 shadow-lg flex items-center gap-2 max-w-[160px]"
+                  >
+                    <div
+                      className="p-1 rounded-md shrink-0"
+                      style={{ backgroundColor: "rgba(0, 155, 90, 0.10)" }}
+                    >
+                      <TrendingUp className="w-3.5 h-3.5" style={{ color: C.green }} />
+                    </div>
+                    <div className="min-w-0">
+                      <div
+                        className="text-sm font-extrabold leading-tight"
+                        style={{ color: C.green, fontFamily: "'Manrope', 'Inter', sans-serif" }}
+                      >
+                        +42%
+                      </div>
+                      <div className="text-[9px] leading-tight" style={{ color: C.textMuted }}>
+                        de recrutements réussis
+                      </div>
+                    </div>
+                  </motion.div>
                 </motion.div>
               </div>
             </Reveal>
