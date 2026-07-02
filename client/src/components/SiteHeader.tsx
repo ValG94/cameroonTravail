@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Award, Menu, User, Users, X } from "lucide-react";
+import { Lock, Menu, User, Users, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
@@ -186,7 +186,42 @@ export function SiteHeader({ activePage }: SiteHeaderProps) {
                   <span className="hidden md:block font-medium text-gray-900 text-sm">{user.name}</span>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className="w-60">
+                {/* Bloc identité — nom + email + rôle Admin si applicable
+                    (inspiré du pattern PaieCashFan). Aide l'admin à
+                    identifier immédiatement qu'il est en mode Admin. */}
+                <div className="px-2 py-2.5 border-b">
+                  <div className="font-semibold text-sm text-gray-900 truncate">{user.name}</div>
+                  {user.email && (
+                    <div className="text-xs text-gray-500 truncate">{user.email}</div>
+                  )}
+                  {user.role === "admin" && (
+                    <div
+                      className="text-[10px] font-bold uppercase tracking-wider mt-1"
+                      style={{ color: COLORS.emerald }}
+                    >
+                      Super Admin
+                    </div>
+                  )}
+                </div>
+
+                {/* Lien Admin AVEC CADENAS — placé en haut du menu
+                    pour être immédiatement accessible, cohérent avec la
+                    maquette PaieCashFan fournie par l'utilisateur. */}
+                {user.role === "admin" && (
+                  <>
+                    <DropdownMenuItem
+                      onClick={() => setLocation("/admin/dashboard")}
+                      className="font-semibold"
+                      style={{ color: COLORS.emerald }}
+                    >
+                      <Lock className="mr-2 h-4 w-4" />
+                      <span>{t("nav.administration")}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+
                 <DropdownMenuItem
                   onClick={() => {
                     if (user.profileType === "candidat") setLocation("/candidat/dashboard");
@@ -206,12 +241,6 @@ export function SiteHeader({ activePage }: SiteHeaderProps) {
                   <User className="mr-2 h-4 w-4" />
                   <span>{t("nav.myProfile")}</span>
                 </DropdownMenuItem>
-                {user.role === "admin" && (
-                  <DropdownMenuItem onClick={() => setLocation("/admin/dashboard")}>
-                    <Award className="mr-2 h-4 w-4" />
-                    <span>{t("nav.administration")}</span>
-                  </DropdownMenuItem>
-                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => logoutMutation.mutate()}

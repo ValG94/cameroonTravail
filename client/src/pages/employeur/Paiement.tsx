@@ -49,7 +49,8 @@ import { toast } from "sonner";
 // ─── Coordonnées de paiement (à personnaliser) ────────────────────────────────
 // TODO : remplacer par les vrais numéros marchands Cameroon Travail
 const PAYMENT_NUMBERS = {
-  orange_money: "+237 6XX XX XX XX",
+  orange_money: "+237 655 42 42 42",
+  // TODO : numéro MTN MoMo réel à renseigner par le user
   mtn_momo: "+237 6XX XX XX XX",
 };
 
@@ -502,7 +503,10 @@ export default function PaiementEmployeur() {
         <div
           className={
             theme.layout === "hero" || theme.layout === "premium"
-              ? "grid grid-cols-1 lg:grid-cols-[1fr_1.1fr_1fr] lg:grid-rows-[auto_1fr] gap-6 lg:gap-8 items-stretch"
+              ? // Payment (col 3) plus large que recap (col 1) et image
+                // (col 2) : donne de l'air aux 3 boutons méthode + CTA
+                // long ('Valider ma demande de souscription').
+                "grid grid-cols-1 lg:grid-cols-[0.95fr_0.9fr_1.35fr] lg:grid-rows-[auto_1fr] gap-6 lg:gap-8 items-stretch"
               : // split (Découverte) : recap plus étroit (1) que paiement (1.5)
                 "grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-6 lg:gap-8 items-start"
           }
@@ -804,7 +808,7 @@ export default function PaiementEmployeur() {
                           key={m.key}
                           type="button"
                           onClick={() => setMethodePaiement(m.key as any)}
-                          className="relative flex items-center gap-2 min-h-[3rem] px-2.5 py-2 rounded-xl border-2 text-xs sm:text-[13px] font-semibold transition-all text-left leading-tight"
+                          className="relative flex items-center gap-1.5 min-h-[3rem] px-2 py-2 rounded-xl border-2 text-[11px] sm:text-xs lg:text-[13px] font-semibold transition-all text-left leading-tight break-words"
                           style={{
                             borderColor: active ? theme.accentColor : C.border,
                             backgroundColor: active ? theme.accentBg : "white",
@@ -815,7 +819,7 @@ export default function PaiementEmployeur() {
                             <img
                               src={m.logo}
                               alt=""
-                              className="w-5 h-5 object-contain shrink-0"
+                              className="w-4 h-4 sm:w-5 sm:h-5 object-contain shrink-0"
                               onError={(e) => {
                                 (e.currentTarget as HTMLImageElement).style.display = "none";
                               }}
@@ -823,9 +827,9 @@ export default function PaiementEmployeur() {
                           ) : (
                             <Smartphone className="w-4 h-4 shrink-0" style={{ color: C.textMuted }} />
                           )}
-                          <span className="flex-1 min-w-0">{m.label}</span>
+                          <span className="flex-1 min-w-0 break-words">{m.label}</span>
                           {active && (
-                            <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: theme.accentColor }} />
+                            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" style={{ color: theme.accentColor }} />
                           )}
                         </button>
                       );
@@ -909,7 +913,7 @@ export default function PaiementEmployeur() {
                 <Button
                   type="submit"
                   disabled={demanderMutation.isPending}
-                  className="w-full h-13 text-base font-bold shadow-lg transition-all hover:-translate-y-0.5"
+                  className="w-full text-sm sm:text-[15px] font-bold shadow-lg transition-all hover:-translate-y-0.5 whitespace-normal leading-tight px-3 py-3 h-auto min-h-[52px]"
                   style={{
                     // CTA or pour Premium (différenciation visuelle),
                     // vert profond → vert vif pour les autres tiers.
@@ -920,7 +924,6 @@ export default function PaiementEmployeur() {
                       theme.variant === "premium"
                         ? "0 14px 30px rgba(246, 195, 67, 0.40)"
                         : "0 14px 30px rgba(0, 155, 90, 0.25)",
-                    height: "52px",
                   }}
                 >
                   {demanderMutation.isPending ? t("bo.employerPayment.submitting") : t("bo.employerPayment.submitBtn")}
