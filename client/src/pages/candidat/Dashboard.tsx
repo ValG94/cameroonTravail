@@ -17,15 +17,15 @@ import {
   Eye,
   FileText,
   GraduationCap,
-  Languages,
+  Globe,
   MapPin,
   Phone,
   Search,
   Send,
-  Sparkles,
   Upload,
   User,
 } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "wouter";
 import { useEffect, useMemo } from "react";
@@ -59,10 +59,22 @@ const C = {
   bg: "#F8FAFC",
 };
 
+// Variants fade-up réutilisables — respect prefers-reduced-motion
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (i: number = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.45, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] as any },
+  }),
+};
+
 export default function CandidatDashboard() {
   const { t } = useTranslation();
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
+  const reduced = useReducedMotion();
+  const animate = (i: number = 0) => (reduced ? {} : { initial: "hidden", animate: "visible", variants: fadeUp, custom: i });
 
   const { data: profile } = trpc.candidat.getProfile.useQuery();
   const { data: experiences } = trpc.candidat.getExperiences.useQuery();
@@ -148,45 +160,49 @@ export default function CandidatDashboard() {
 
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
         {/* ─── Welcome hero compact ────────────────────────────── */}
-        <div className="relative overflow-hidden rounded-3xl mb-6 lg:mb-8">
-          <div className="relative bg-white rounded-3xl border p-6 lg:p-10" style={{ borderColor: C.border }}>
+        <motion.div className="relative overflow-hidden rounded-3xl mb-6 lg:mb-8" {...animate(0)}>
+          <div className="relative bg-white rounded-3xl border p-6 lg:p-10 overflow-hidden" style={{ borderColor: C.border }}>
             {/* Décor formes très légères */}
             <div
               aria-hidden="true"
-              className="absolute -top-16 -right-16 w-48 h-48 rounded-full blur-3xl opacity-40 pointer-events-none"
+              className="absolute -top-20 -right-20 w-56 h-56 rounded-full blur-3xl opacity-30 pointer-events-none"
               style={{ backgroundColor: C.greenSoft }}
             />
             <div
               aria-hidden="true"
-              className="absolute top-10 right-40 w-2 h-2 rounded-full opacity-40 pointer-events-none"
+              className="absolute top-10 right-56 w-2 h-2 rounded-full opacity-50 pointer-events-none hidden sm:block"
               style={{ backgroundColor: C.gold }}
             />
-            <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
+            <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+              <div className="max-w-xl">
                 <h1
                   className="font-extrabold tracking-tight mb-2"
                   style={{ fontSize: "clamp(24px, 3vw, 34px)", color: C.textMain }}
                 >
                   {t("dashboard.welcome.title", { firstName })}
                 </h1>
-                <p className="text-sm sm:text-base leading-relaxed max-w-xl" style={{ color: C.textMuted }}>
+                <p className="text-sm sm:text-base leading-relaxed" style={{ color: C.textMuted }}>
                   {t("dashboard.welcome.subtitle")}
                 </p>
               </div>
-              {/* Cercle décoratif droit */}
-              <div
-                className="hidden sm:flex w-20 h-20 rounded-2xl items-center justify-center shrink-0"
-                style={{ backgroundColor: C.greenSoft }}
-              >
-                <Sparkles className="w-8 h-8" style={{ color: C.green }} />
-              </div>
+              {/* Image décorative candidate-dashboard */}
+              <img
+                src="/images/candidat/candidate-dashboard.webp"
+                alt=""
+                aria-hidden="true"
+                className="hidden sm:block w-40 lg:w-56 h-auto object-contain shrink-0 select-none pointer-events-none"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.display = "none";
+                }}
+              />
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* ─── Bannière Premium CV ─────────────────────────────── */}
-        <div
+        <motion.div
           className="relative overflow-hidden rounded-3xl mb-6 lg:mb-8 text-white p-6 lg:p-8"
+          {...animate(1)}
           style={{
             background: `linear-gradient(135deg, ${C.deepGreen} 0%, #084C2C 100%)`,
             boxShadow: "0 20px 40px -10px rgba(6, 63, 36, 0.35)",
@@ -225,10 +241,10 @@ export default function CandidatDashboard() {
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
-        </div>
+        </motion.div>
 
         {/* ─── Grid principal 2 colonnes ─────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 lg:gap-8">
+        <motion.div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 lg:gap-8" {...animate(2)}>
           {/* ═══ Colonne gauche ═══ */}
           <div className="space-y-6">
             {/* Card complétion profil */}
@@ -413,7 +429,7 @@ export default function CandidatDashboard() {
                 ctaHref="/candidat/competences"
               />
               <ModuleCard
-                icon={Languages}
+                icon={Globe}
                 iconBg="rgba(239, 68, 68, 0.10)"
                 iconColor="#EF4444"
                 title={t("dashboard.cards.languages.title")}
@@ -515,11 +531,12 @@ export default function CandidatDashboard() {
               </CardContent>
             </Card>
           </div>
-        </div>
+        </motion.div>
 
         {/* ─── Accès rapides ────────────────────────────────── */}
-        <div
+        <motion.div
           className="mt-8 rounded-3xl p-5 lg:p-7 border"
+          {...animate(3)}
           style={{ backgroundColor: C.greenSoft, borderColor: "rgba(0, 155, 90, 0.15)" }}
         >
           <h3 className="font-bold text-base mb-4" style={{ color: C.textMain }}>
@@ -551,11 +568,12 @@ export default function CandidatDashboard() {
               href="/candidat/alertes"
             />
           </div>
-        </div>
+        </motion.div>
 
         {/* ─── CTA final ────────────────────────────────────── */}
-        <div
+        <motion.div
           className="mt-8 relative overflow-hidden rounded-3xl text-white p-6 lg:p-8"
+          {...animate(4)}
           style={{
             background: `linear-gradient(135deg, ${C.deepGreen} 0%, #084C2C 100%)`,
             boxShadow: "0 20px 40px -10px rgba(6, 63, 36, 0.35)",
@@ -592,13 +610,62 @@ export default function CandidatDashboard() {
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
 }
 
 // ─── Sous-composants ────────────────────────────────────────────────
+
+/**
+ * Sparkline SVG déterministe : génère une courbe stylisée à partir
+ * du nom du label pour que chaque stat card ait sa propre courbe
+ * cohérente (pas de random qui saute à chaque render). Purement
+ * décoratif — l'idée est de suggérer une tendance sans exiger de
+ * données historiques réelles.
+ */
+function Sparkline({ seed, color }: { seed: string; color: string }) {
+  // Génère 6 points à partir du seed pour rester déterministe
+  const points = useMemo(() => {
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+    const rng = () => {
+      hash = (hash * 1103515245 + 12345) & 0x7fffffff;
+      return (hash / 0x7fffffff);
+    };
+    const n = 7;
+    const w = 80;
+    const h = 22;
+    return Array.from({ length: n }, (_, i) => {
+      const x = (i / (n - 1)) * w;
+      // Légère tendance montante (bias) + variation
+      const bias = (i / (n - 1)) * 0.5;
+      const y = h - (rng() * 0.6 + bias) * h;
+      return { x, y: Math.max(2, Math.min(h - 2, y)) };
+    });
+  }, [seed]);
+
+  const path = points.reduce(
+    (acc, p, i) => acc + (i === 0 ? `M ${p.x} ${p.y}` : ` L ${p.x} ${p.y}`),
+    ""
+  );
+  const area = path + ` L 80 22 L 0 22 Z`;
+  const gradId = `sparkgrad-${seed.replace(/[^a-z0-9]/gi, "")}`;
+
+  return (
+    <svg viewBox="0 0 80 22" className="w-full h-5" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id={gradId} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={area} fill={`url(#${gradId})`} />
+      <path d={path} fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 function StatCard({
   icon: Icon,
@@ -617,15 +684,21 @@ function StatCard({
 }) {
   return (
     <Card
-      className="rounded-2xl border hover:shadow-md transition-shadow"
+      className="rounded-2xl border hover:shadow-md hover:-translate-y-0.5 transition-all"
       style={{ borderColor: C.border }}
     >
       <CardContent className="p-4">
-        <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
-          style={{ backgroundColor: iconBg }}
-        >
-          <Icon className="w-5 h-5" style={{ color: iconColor }} />
+        <div className="flex items-start justify-between gap-2 mb-3">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+            style={{ backgroundColor: iconBg }}
+          >
+            <Icon className="w-5 h-5" style={{ color: iconColor }} />
+          </div>
+          {/* Sparkline décorative */}
+          <div className="flex-1 max-w-[80px] pt-1">
+            <Sparkline seed={label} color={iconColor} />
+          </div>
         </div>
         <div className="text-xs font-medium mb-0.5 leading-tight" style={{ color: C.textMuted }}>
           {label}

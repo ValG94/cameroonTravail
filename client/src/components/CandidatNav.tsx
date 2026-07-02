@@ -109,26 +109,26 @@ export function CandidatNav() {
           opacity: 0.4,
         }}
       />
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-[72px]">
+      <div className="max-w-[1400px] mx-auto px-4 lg:px-6">
+        <div className="flex items-center justify-between h-[72px] gap-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0">
             <img
               src="/logo-cameroon-travail.webp"
               alt="Cameroon Travail"
-              className="h-11 w-auto object-contain"
+              className="h-12 lg:h-14 w-auto object-contain"
             />
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-1 flex-1 justify-center max-w-3xl mx-4">
+          <div className="hidden lg:flex items-center gap-0.5 flex-1 justify-center min-w-0">
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href);
               return (
                 <Link key={item.href} href={item.href}>
                   <span
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer"
+                    className="flex items-center gap-1.5 px-2.5 xl:px-3 py-2 rounded-lg text-[13px] xl:text-sm font-medium transition-colors whitespace-nowrap cursor-pointer"
                     style={{
                       backgroundColor: active ? COLORS.greenSoft : "transparent",
                       color: active ? COLORS.deepGreen : "rgb(75, 85, 99)",
@@ -140,7 +140,7 @@ export function CandidatNav() {
                       if (!active) (e.currentTarget as HTMLSpanElement).style.backgroundColor = "transparent";
                     }}
                   >
-                    <Icon className="h-4 w-4" />
+                    <Icon className="h-4 w-4 shrink-0" />
                     {item.label}
                   </span>
                 </Link>
@@ -149,7 +149,7 @@ export function CandidatNav() {
           </div>
 
           {/* Desktop Actions */}
-          <div className="hidden lg:flex items-center gap-3 shrink-0">
+          <div className="hidden lg:flex items-center gap-2 shrink-0">
             <LanguageSelector />
 
             {/* Cloche alertes avec badge */}
@@ -173,21 +173,21 @@ export function CandidatNav() {
             {/* Avatar dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">
-                  <div
-                    className="w-9 h-9 rounded-full text-white flex items-center justify-center font-semibold text-sm shrink-0"
-                    style={{ backgroundColor: COLORS.green }}
-                  >
-                    {initial}
-                  </div>
-                  <div className="text-left hidden xl:block">
-                    <div className="text-sm font-semibold text-gray-900 leading-tight">
-                      {user?.name}
+                <button className="flex items-center gap-1.5 pl-1 pr-2 py-1 rounded-lg hover:bg-gray-100 transition-colors">
+                  {(user as { photoUrl?: string })?.photoUrl ? (
+                    <img
+                      src={(user as { photoUrl?: string }).photoUrl}
+                      alt={user?.name || "User"}
+                      className="w-9 h-9 rounded-full object-cover shrink-0"
+                    />
+                  ) : (
+                    <div
+                      className="w-9 h-9 rounded-full text-white flex items-center justify-center font-semibold text-sm shrink-0"
+                      style={{ backgroundColor: COLORS.green }}
+                    >
+                      {initial}
                     </div>
-                    <div className="text-xs text-gray-500 leading-tight">
-                      {t("dashboard.nav.myAccount")}
-                    </div>
-                  </div>
+                  )}
                   <ChevronDown className="h-4 w-4 text-gray-400" />
                 </button>
               </DropdownMenuTrigger>

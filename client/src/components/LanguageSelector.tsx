@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Languages } from 'lucide-react';
+import { Globe } from 'lucide-react';
 
 export function LanguageSelector() {
   const { i18n } = useTranslation();
@@ -20,7 +20,7 @@ export function LanguageSelector() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="gap-2">
-          <Languages className="h-4 w-4" />
+          <Globe className="h-4 w-4" />
           <span className="uppercase">{i18n.language}</span>
         </Button>
       </DropdownMenuTrigger>
