@@ -323,13 +323,12 @@ export default function PaiementEmployeur() {
     }, 40);
   };
 
-  // Background global : dark premium VERT (pas noir) pour Premium —
-  // garde une teinte verte profonde uniforme dans toute la page,
-  // avec un léger halo or au centre haut pour l'ambiance premium.
-  // Ivoire pour Découverte/Avantage.
+  // Background global : NOIR premium pour Premium — donne un effet
+  // haut de gamme, ambiance nocturne. Halo or subtil autour de la
+  // couronne pour l'effet 'wahoo'. Ivoire pour Découverte/Avantage.
   const pageBackground =
     theme.layout === "premium"
-      ? "radial-gradient(circle at 50% 20%, rgba(246,195,67,0.10), transparent 45%), linear-gradient(180deg, #031F16 0%, #063F24 50%, #031F16 100%)"
+      ? "radial-gradient(circle at 50% 25%, rgba(246,195,67,0.15), transparent 40%), linear-gradient(180deg, #000000 0%, #0A0A0A 50%, #000000 100%)"
       : C.ivory;
 
   return (
@@ -337,7 +336,10 @@ export default function PaiementEmployeur() {
       className="min-h-screen relative overflow-hidden"
       style={{
         background: pageBackground,
-        color: theme.layout === "premium" ? "white" : C.textMain,
+        // Pas de color ici — le SiteHeader (rendu ci-dessous) doit
+        // garder ses propres couleurs. La couleur du contenu Premium
+        // est appliquée localement plus bas via un wrapper interne.
+        color: C.textMain,
         fontFamily: "'Manrope', 'Inter', sans-serif",
       }}
     >
@@ -425,110 +427,52 @@ export default function PaiementEmployeur() {
       <div className="relative z-10">
         <SiteHeader />
 
+      {/* Wrapper interne : applique la couleur white pour Premium
+          sur tout le contenu de la page SAUF le SiteHeader (qui doit
+          garder ses couleurs propres). */}
+      <div style={{ color: theme.layout === "premium" ? "white" : C.textMain }}>
+
       {/* Layout "hero" (Avantage) : pas de hero band vert au-dessus
           contrairement aux premières itérations. Le header (retour
           + badge + titre + desc) est rendu DANS la 1ère colonne du
           grid 3-col ci-dessous, sur fond ivoire. */}
 
-      {/* ╭───────────────────────────────────────────────────────────────╮ */}
-      {/* │ HERO PREMIUM : header + couronne, dans le flux dark de la     │ */}
-      {/* │ page (pas de section séparée car le bg est déjà dark global). │ */}
-      {/* ╰───────────────────────────────────────────────────────────────╯ */}
+      {/* Premium : le hero band séparé a été supprimé. Le titre + le
+          badge + la couronne + la recap card sont désormais rendus
+          dans le grid 3-col ci-dessous (même structure qu'Avantage).
+          Seules les particules or restent en décoration flottante. */}
       {theme.layout === "premium" && (
-        <div className="relative max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-10 pt-8 pb-4 lg:pt-12 lg:pb-6">
-          {/* Particules or subtiles */}
-          <div aria-hidden="true" className="absolute top-16 right-32 grid grid-cols-5 gap-3 opacity-30 pointer-events-none hidden lg:grid">
-            {Array.from({ length: 20 }).map((_, i) => (
-              <span key={i} className="w-1 h-1 rounded-full" style={{ backgroundColor: C.gold }} />
-            ))}
-          </div>
-
-          <button
-            type="button"
-            onClick={handleBackToPricing}
-            className="inline-flex items-center gap-2 text-sm font-medium mb-6 transition-colors hover:underline"
-            style={{ color: C.gold }}
-          >
-            <ArrowLeft className="w-4 h-4" />
-            {t("bo.employerPayment.backToPrices")}
-          </button>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            <div>
-              <Badge
-                className="mb-5 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em]"
-                style={{
-                  backgroundColor: "rgba(246, 195, 67, 0.15)",
-                  color: C.gold,
-                  border: "1px solid rgba(246, 195, 67, 0.40)",
-                }}
-              >
-                {translatedFullName.toUpperCase()}
-              </Badge>
-              <h1
-                className="font-extrabold leading-[1.05] tracking-tight text-white"
-                style={{ fontSize: "clamp(34px, 4.8vw, 56px)" }}
-              >
-                <span className="block">{t("bo.employerPayment.title")}</span>
-                <span className="block">
-                  {t("bo.employerPayment.titleSecondLine")}{" "}
-                  <span
-                    style={{
-                      background: `linear-gradient(135deg, ${C.gold} 0%, #FFE390 100%)`,
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      backgroundClip: "text",
-                    }}
-                  >
-                    {translatedShortName}
-                  </span>
-                </span>
-              </h1>
-              <p className="mt-4 text-base sm:text-[17px] text-white/80 leading-relaxed max-w-[520px]">
-                {t("bo.employerPayment.subtitle")}
-              </p>
-            </div>
-
-            {/* Couronne or — image fournie par le user, taille
-                renforcée pour avoir le rendu central et impactant
-                attendu dans la maquette (380-460px). */}
-            {theme.heroImage && (
-              <div className="relative flex justify-center lg:justify-center">
-                <img
-                  src={theme.heroImage}
-                  alt=""
-                  aria-hidden="true"
-                  className="w-[300px] h-[300px] sm:w-[380px] sm:h-[380px] lg:w-[460px] lg:h-[460px] object-contain"
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).style.display = "none";
-                  }}
-                />
-              </div>
-            )}
-          </div>
+        <div aria-hidden="true" className="absolute top-32 right-32 grid grid-cols-5 gap-3 opacity-30 pointer-events-none hidden lg:grid z-10">
+          {Array.from({ length: 20 }).map((_, i) => (
+            <span key={i} className="w-1 h-1 rounded-full" style={{ backgroundColor: C.gold }} />
+          ))}
         </div>
       )}
 
       <div className={
-        theme.layout === "premium"
-          ? "max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-10 pb-12 lg:pb-16"
-          : theme.layout === "hero"
+        theme.layout === "premium" || theme.layout === "hero"
           ? "max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-10 py-8 lg:py-12"
           : "max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-10 py-10 lg:py-14"
       }>
-        {/* Header bouton retour — pour "split" (Découverte) et "hero"
-            (Avantage). Premium gère son retour dans son hero band. */}
-        {(theme.layout === "split" || theme.layout === "hero") && (
-          <button
-            type="button"
-            onClick={handleBackToPricing}
-            className="inline-flex items-center gap-2 text-sm font-medium mb-6 hover:underline"
-            style={{ color: theme.variant === "advantage" ? C.green : C.textMuted }}
-          >
-            <ArrowLeft className="w-4 h-4" />
-            {t("bo.employerPayment.backToPrices")}
-          </button>
-        )}
+        {/* Header bouton retour — pour tous les 3 layouts. Couleur
+            adaptée : or pour Premium (dark bg), vert pour Avantage
+            (ivoire bg), muted pour Découverte. */}
+        <button
+          type="button"
+          onClick={handleBackToPricing}
+          className="inline-flex items-center gap-2 text-sm font-medium mb-6 hover:underline"
+          style={{
+            color:
+              theme.variant === "premium"
+                ? C.gold
+                : theme.variant === "advantage"
+                ? C.green
+                : C.textMuted,
+          }}
+        >
+          <ArrowLeft className="w-4 h-4" />
+          {t("bo.employerPayment.backToPrices")}
+        </button>
 
         {/* Header titre — uniquement "split" (Découverte). 2 lignes :
             'Souscription' puis 'Offre [shortName]' avec shortName en
@@ -552,17 +496,14 @@ export default function PaiementEmployeur() {
         )}
 
         {/* Grid layout par variante :
-            - basic   : split classique recap | paiement (2-col)
-            - hero    : 3-col Avantage : [titre+recap] | [photo] | [paiement]
-            - premium : 2-col dark recap_dark | paiement_white */}
+            - basic       : split 2-col recap | paiement (Découverte)
+            - hero/premium : 3-col [titre+recap] | [image/couronne] | [paiement]
+              (Avantage sur ivoire, Premium sur noir) */}
         <div
           className={
-            theme.layout === "hero"
+            theme.layout === "hero" || theme.layout === "premium"
               ? "grid grid-cols-1 lg:grid-cols-[1fr_1.1fr_1fr] lg:grid-rows-[auto_1fr] gap-6 lg:gap-8 items-stretch"
-              : theme.layout === "premium"
-              ? "grid grid-cols-1 lg:grid-cols-2 gap-8 items-start"
               : // split (Découverte) : recap plus étroit (1) que paiement (1.5)
-                // pour matcher la maquette
                 "grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-6 lg:gap-8 items-start"
           }
         >
@@ -570,7 +511,7 @@ export default function PaiementEmployeur() {
               colonne 1, AVANT la recap card (qui suit ci-dessous via
               le rendu existant). Pour split/premium, ce bloc est dans
               le header au-dessus. */}
-          {theme.layout === "hero" && (
+          {(theme.layout === "hero" || theme.layout === "premium") && (
             <div className="flex flex-col gap-6">
               <div>
                 <Badge
@@ -585,45 +526,104 @@ export default function PaiementEmployeur() {
                 </Badge>
                 <h1
                   className="font-extrabold leading-[1.05] tracking-tight"
-                  style={{ fontSize: "clamp(34px, 4vw, 48px)", color: C.textMain }}
+                  style={{
+                    fontSize: "clamp(34px, 4vw, 48px)",
+                    color: theme.variant === "premium" ? "white" : C.textMain,
+                  }}
                 >
                   <span className="block">{t("bo.employerPayment.title")}</span>
                   <span className="block">
                     {t("bo.employerPayment.titleSecondLine")}{" "}
-                    <span style={{ color: C.green }}>{translatedShortName}</span>
+                    {theme.variant === "premium" ? (
+                      <span
+                        style={{
+                          background: `linear-gradient(135deg, ${C.gold} 0%, #FFE390 100%)`,
+                          WebkitBackgroundClip: "text",
+                          WebkitTextFillColor: "transparent",
+                          backgroundClip: "text",
+                        }}
+                      >
+                        {translatedShortName}
+                      </span>
+                    ) : (
+                      <span style={{ color: C.green }}>{translatedShortName}</span>
+                    )}
                   </span>
                 </h1>
-                <p className="mt-3 text-sm leading-relaxed" style={{ color: C.textMuted }}>
+                <p
+                  className="mt-3 text-sm leading-relaxed"
+                  style={{
+                    color: theme.variant === "premium" ? "rgba(255, 255, 255, 0.75)" : C.textMuted,
+                  }}
+                >
                   {t("bo.employerPayment.subtitle")}
                 </p>
               </div>
             </div>
           )}
 
-          {/* Pour layout="hero" : image centrale pleine hauteur de la
-              colonne (col 2 row-span 2 pour englober titre + recap). */}
-          {theme.layout === "hero" && theme.heroImage && (
-            <div className="hidden lg:flex items-stretch order-2 lg:order-none lg:col-start-2 lg:row-start-1 lg:row-span-2">
-              <img
-                src={theme.heroImage}
-                alt=""
-                aria-hidden="true"
-                className="w-full h-full object-cover rounded-3xl shadow-xl"
-                style={{ minHeight: "100%" }}
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).style.display = "none";
-                }}
-              />
+          {/* Col 2 row-span 2 : image (photo Avantage / couronne Premium).
+              - Avantage : photo recruteuse, object-cover, rounded-3xl
+              - Premium  : couronne agrandie, object-contain, halo or
+                radial en arrière-plan pour l'effet 'wahoo' */}
+          {(theme.layout === "hero" || theme.layout === "premium") && theme.heroImage && (
+            <div
+              className={`hidden lg:flex justify-center order-2 lg:order-none lg:col-start-2 lg:row-start-1 lg:row-span-2 relative ${
+                // Premium : couronne alignée en haut pour matcher le
+                // haut des 2 autres blocs (titre col 1, paiement col 3).
+                // Avantage : photo pleine hauteur (items-stretch).
+                theme.variant === "premium" ? "items-start" : "items-stretch"
+              }`}
+            >
+              {theme.variant === "premium" ? (
+                <div className="relative flex justify-center">
+                  {/* Halo or radial derrière la couronne (effet lumineux) */}
+                  <div
+                    aria-hidden="true"
+                    className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                  >
+                    <div
+                      className="w-[560px] h-[560px] rounded-full blur-[80px]"
+                      style={{
+                        background:
+                          "radial-gradient(circle, rgba(246,195,67,0.35) 0%, rgba(246,195,67,0.15) 40%, transparent 70%)",
+                      }}
+                    />
+                  </div>
+                  <img
+                    src={theme.heroImage}
+                    alt=""
+                    aria-hidden="true"
+                    className="relative w-[440px] h-[440px] lg:w-[540px] lg:h-[540px] xl:w-[620px] xl:h-[620px] object-contain drop-shadow-[0_0_60px_rgba(246,195,67,0.4)]"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                </div>
+              ) : (
+                <img
+                  src={theme.heroImage}
+                  alt=""
+                  aria-hidden="true"
+                  className="w-full h-full object-cover rounded-3xl shadow-xl"
+                  style={{ minHeight: "100%" }}
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.display = "none";
+                  }}
+                />
+              )}
             </div>
           )}
 
           {/* ─── Récap formule (thème par tier) ─────────────────── */}
           {/* Premium = card dark transparente (texte blanc, border or).
               Découverte/Avantage = card blanche.
-              Pour layout "hero" : col 1 row 2 (sous le titre). */}
+              Pour layout "hero" ou "premium" : col 1 row 2 (sous titre). */}
           <Card
             className={`rounded-3xl border-2 shadow-sm h-fit overflow-hidden ${
-              theme.layout === "hero" ? "lg:col-start-1 lg:row-start-2" : ""
+              theme.layout === "hero" || theme.layout === "premium"
+                ? "lg:col-start-1 lg:row-start-2"
+                : ""
             }`}
             style={{
               borderColor: theme.cardBorder,
@@ -754,13 +754,13 @@ export default function PaiementEmployeur() {
           </Card>
 
           {/* ─── Form paiement ────────────────────────────────────
-              Pour layout "hero" : col 3 row-span 2 (full height,
-              aligné avec [titre + recap card] sur la colonne 1).
+              Pour layout "hero"/"premium" : col 3 row-span 2 (full
+              height, alignée avec [titre + recap card] sur la col 1).
               Pour layout "split" : h-full pour prendre la hauteur
               du grid (titre + recap colonne 1). */}
           <Card
             className={`rounded-3xl border shadow-lg ${
-              theme.layout === "hero"
+              theme.layout === "hero" || theme.layout === "premium"
                 ? "lg:col-start-3 lg:row-start-1 lg:row-span-2 h-full"
                 : theme.layout === "split"
                 ? "lg:h-full"
@@ -971,7 +971,9 @@ export default function PaiementEmployeur() {
         if (isDark) {
           // Pour Premium : fond encore plus dark (#031F16) ;
           // Avantage : vert profond #063F24.
-          const bgDark = theme.variant === "premium" ? "#031F16" : C.deepGreen;
+          // Premium : bandeau noir cohérent avec la page noire.
+          // Avantage : vert profond #063F24 (contraste avec l'ivoire).
+          const bgDark = theme.variant === "premium" ? "#0A0A0A" : C.deepGreen;
           return (
             <section
               className="relative overflow-hidden"
@@ -1030,6 +1032,8 @@ export default function PaiementEmployeur() {
           </div>
         );
       })()}
+
+      </div>{/* fin wrapper couleur Premium interne */}
 
       <SiteFooter />
       </div>
