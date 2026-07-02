@@ -829,6 +829,134 @@ const fr = {
     // recruteur, Bienvenue, Profil, Offres, Candidatures, Publier,
     // ModifierOffre, Paiement, MesSouscriptions, Admin Dashboard,
     // Admin Souscriptions). Structure : bo.<page>.<section>.<key>
+
+    // ─── Dashboard candidat (refonte premium) ─────────────────────
+    dashboard: {
+      nav: {
+        dashboard: "Tableau de bord",
+        jobs: "Offres",
+        applications: "Mes candidatures",
+        uploadCv: "Déposer mon CV",
+        premiumTemplates: "Modèles Premium",
+        alerts: "Alertes",
+        myAccount: "Mon compte",
+        logout: "Déconnexion",
+      },
+      welcome: {
+        title: "Bienvenue, {{firstName}} !",
+        subtitle: "Gérez votre profil, suivez vos opportunités et trouvez l'emploi qui vous correspond.",
+      },
+      premiumBanner: {
+        title: "Boostez votre carrière avec les",
+        titleHighlight: "modèles Premium",
+        subtitle: "Des modèles de CV conçus par des experts pour vous démarquer et attirer l'attention des recruteurs.",
+        cta: "Découvrir les modèles",
+      },
+      profileCompletion: {
+        title: "Complétion de votre profil",
+        subtitle: "Un profil complet augmente vos chances d'être contacté par les recruteurs.",
+        ctaComplete: "Compléter mon profil",
+        ctaUpdate: "Mettre à jour mon profil",
+      },
+      stats: {
+        profileViews: "Vues totales du profil",
+        profileViewsSubtitle: "Depuis le début",
+        weeklyViews: "Vues cette semaine",
+        weeklyViewsSubtitle: "vs semaine dernière",
+        applicationsSent: "Candidatures envoyées",
+        applicationsSentSubtitle: "Ce mois",
+        activeAlerts: "Alertes actives",
+        activeAlertsSubtitle: "Notifications e-mail",
+      },
+      cards: {
+        personalInfo: {
+          title: "Informations personnelles",
+          edit: "Modifier",
+        },
+        myCv: {
+          title: "Mon CV",
+          statusUploaded: "CV téléchargé",
+          statusMissing: "CV à déposer",
+          lastUpdate: "Dernière mise à jour : {{date}}",
+          today: "Aujourd'hui",
+          viewCv: "Voir mon CV",
+          uploadCv: "Déposer mon CV",
+        },
+        experiences: {
+          title: "Expériences",
+          count_one: "{{count}} expérience",
+          count_other: "{{count}} expériences",
+          statusOk: "Informations à jour",
+          manage: "Gérer mes expériences",
+        },
+        education: {
+          title: "Formations",
+          count_one: "{{count}} formation",
+          count_other: "{{count}} formations",
+          statusOk: "Informations à jour",
+          manage: "Gérer mes formations",
+        },
+        skills: {
+          title: "Compétences",
+          count_one: "{{count}} compétence",
+          count_other: "{{count}} compétences",
+          statusOk: "Informations à jour",
+          manage: "Gérer mes compétences",
+        },
+        languages: {
+          title: "Langues",
+          count_one: "{{count}} langue",
+          count_other: "{{count}} langues",
+          statusOk: "Informations à jour",
+          manage: "Gérer mes langues",
+        },
+      },
+      progress: {
+        title: "Ma progression",
+        profileUpToDate: {
+          title: "Profil à jour",
+          subtitle: "Toutes vos informations sont complètes",
+        },
+        recommendedJobs: {
+          title: "{{count}} offres recommandées",
+          subtitle: "Basées sur votre profil et vos compétences",
+        },
+        activeAlerts: {
+          title_one: "{{count}} alerte active",
+          title_other: "{{count}} alertes actives",
+          subtitle: "Recevez des opportunités par e-mail",
+        },
+        cvReady: {
+          title: "CV prêt à être envoyé",
+          subtitle: "Votre CV est complet et optimisé",
+        },
+        publicProfile: "Voir mon profil public",
+      },
+      recommendedJobs: {
+        title: "Offres recommandées",
+        viewAll: "Voir toutes",
+        publishedToday: "Publié aujourd'hui",
+        publishedYesterday: "Publié hier",
+        publishedDaysAgo: "Publié il y a {{days}} jours",
+      },
+      quickAccess: {
+        title: "Accès rapides",
+        searchJobs: "Rechercher un emploi",
+        searchJobsSubtitle: "Trouvez des offres qui vous correspondent",
+        updateCv: "Mettre à jour mon CV",
+        updateCvSubtitle: "Actualisez votre CV facilement",
+        premiumTemplates: "Explorer les modèles Premium",
+        premiumTemplatesSubtitle: "Des modèles pour vous démarquer",
+        manageAlerts: "Gérer mes alertes",
+        manageAlertsSubtitle: "Configurez vos notifications",
+      },
+      finalCta: {
+        title: "Prêt à saisir de nouvelles opportunités ?",
+        subtitle: "Des milliers d'offres privées vous attendent. Trouvez le poste qui correspond à vos ambitions.",
+        button: "Explorer les offres privées",
+      },
+    },
+
     bo: {
       common: {
         loading: "Chargement...",
@@ -2210,6 +2338,132 @@ const en = {
         invalidEmail: "Please enter a valid email address",
       },
       copyright: "All rights reserved.",
+    },
+    // ─── Candidate dashboard (premium refonte) ─────────────────────
+    dashboard: {
+      nav: {
+        dashboard: "Dashboard",
+        jobs: "Jobs",
+        applications: "My applications",
+        uploadCv: "Upload my CV",
+        premiumTemplates: "Premium templates",
+        alerts: "Alerts",
+        myAccount: "My account",
+        logout: "Log out",
+      },
+      welcome: {
+        title: "Welcome, {{firstName}}!",
+        subtitle: "Manage your profile, track your opportunities and find the job that matches you.",
+      },
+      premiumBanner: {
+        title: "Boost your career with",
+        titleHighlight: "Premium templates",
+        subtitle: "CV templates designed by experts to help you stand out and grab recruiters' attention.",
+        cta: "Discover the templates",
+      },
+      profileCompletion: {
+        title: "Your profile completion",
+        subtitle: "A complete profile increases your chances of being contacted by recruiters.",
+        ctaComplete: "Complete my profile",
+        ctaUpdate: "Update my profile",
+      },
+      stats: {
+        profileViews: "Total profile views",
+        profileViewsSubtitle: "Since the beginning",
+        weeklyViews: "Views this week",
+        weeklyViewsSubtitle: "vs last week",
+        applicationsSent: "Applications sent",
+        applicationsSentSubtitle: "This month",
+        activeAlerts: "Active alerts",
+        activeAlertsSubtitle: "Email notifications",
+      },
+      cards: {
+        personalInfo: {
+          title: "Personal information",
+          edit: "Edit",
+        },
+        myCv: {
+          title: "My CV",
+          statusUploaded: "CV uploaded",
+          statusMissing: "CV to upload",
+          lastUpdate: "Last update: {{date}}",
+          today: "Today",
+          viewCv: "View my CV",
+          uploadCv: "Upload my CV",
+        },
+        experiences: {
+          title: "Experiences",
+          count_one: "{{count}} experience",
+          count_other: "{{count}} experiences",
+          statusOk: "Information up to date",
+          manage: "Manage my experiences",
+        },
+        education: {
+          title: "Education",
+          count_one: "{{count}} degree",
+          count_other: "{{count}} degrees",
+          statusOk: "Information up to date",
+          manage: "Manage my education",
+        },
+        skills: {
+          title: "Skills",
+          count_one: "{{count}} skill",
+          count_other: "{{count}} skills",
+          statusOk: "Information up to date",
+          manage: "Manage my skills",
+        },
+        languages: {
+          title: "Languages",
+          count_one: "{{count}} language",
+          count_other: "{{count}} languages",
+          statusOk: "Information up to date",
+          manage: "Manage my languages",
+        },
+      },
+      progress: {
+        title: "My progress",
+        profileUpToDate: {
+          title: "Profile up to date",
+          subtitle: "All your information is complete",
+        },
+        recommendedJobs: {
+          title: "{{count}} recommended jobs",
+          subtitle: "Based on your profile and skills",
+        },
+        activeAlerts: {
+          title_one: "{{count}} active alert",
+          title_other: "{{count}} active alerts",
+          subtitle: "Receive opportunities by email",
+        },
+        cvReady: {
+          title: "CV ready to be sent",
+          subtitle: "Your CV is complete and optimized",
+        },
+        publicProfile: "View my public profile",
+      },
+      recommendedJobs: {
+        title: "Recommended jobs",
+        viewAll: "View all",
+        publishedToday: "Published today",
+        publishedYesterday: "Published yesterday",
+        publishedDaysAgo: "Published {{days}} days ago",
+      },
+      quickAccess: {
+        title: "Quick access",
+        searchJobs: "Search for a job",
+        searchJobsSubtitle: "Find jobs that match you",
+        updateCv: "Update my CV",
+        updateCvSubtitle: "Easily refresh your CV",
+        premiumTemplates: "Explore Premium templates",
+        premiumTemplatesSubtitle: "Templates to help you stand out",
+        manageAlerts: "Manage my alerts",
+        manageAlertsSubtitle: "Configure your notifications",
+      },
+      finalCta: {
+        title: "Ready to seize new opportunities?",
+        subtitle: "Thousands of private jobs are waiting for you. Find the position that matches your ambitions.",
+        button: "Explore private jobs",
+      },
     },
     // ─── BO (back-office) — internal recruiter + admin pages ─────────
     bo: {
