@@ -228,6 +228,37 @@ export default function PaiementEmployeur() {
     },
   });
 
+  // Mutation admin utilisée par le bouton "Simuler paiement (test)"
+  // — visible uniquement pour les super admins. Enchaîne création
+  // + validation immédiate de la demande, sans échange d'argent réel.
+  const validerMutation = trpc.admin.validerDemandeSouscription.useMutation();
+
+  const handleSimulateTest = async () => {
+    if (!formule) {
+      toast.error(t("bo.employerPayment.formulaNotFound"));
+      return;
+    }
+    try {
+      // Étape 1 : créer la demande avec une référence de test
+      const testRef = `SIMULATION-TEST-${Date.now()}`;
+      const created = await demanderMutation.mutateAsync({
+        formuleId: formule.id,
+        methodePaiement: "autre",
+        referenceTransaction: testRef,
+      });
+      // Étape 2 : valider immédiatement (admin only)
+      // Le onSuccess de demanderMutation redirige déjà vers dashboard,
+      // mais on préfère faire la validation AVANT la redirection pour
+      // que la formule soit active à l'arrivée sur le dashboard.
+      if (created?.demandeId) {
+        await validerMutation.mutateAsync({ id: created.demandeId });
+        toast.success("Formule activée (mode test)");
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "Erreur simulation");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formule) {
@@ -928,6 +959,23 @@ export default function PaiementEmployeur() {
                 >
                   {demanderMutation.isPending ? t("bo.employerPayment.submitting") : t("bo.employerPayment.submitBtn")}
                 </Button>
+
+                {/* Bouton dev/test — visible uniquement pour les super
+                    admins. Enchaîne création + validation en 1 clic
+                    pour tester le flow sans échange d'argent réel. */}
+                {user?.role === "admin" && (
+                  <button
+                    type="button"
+                    onClick={handleSimulateTest}
+                    disabled={demanderMutation.isPending || validerMutation.isPending}
+                    className="w-full text-xs font-semibold border-2 border-dashed rounded-lg py-2.5 transition-colors hover:bg-slate-50 disabled:opacity-50"
+                    style={{ borderColor: "#94A3B8", color: "#64748B" }}
+                  >
+                    {validerMutation.isPending || demanderMutation.isPending
+                      ? "Simulation en cours..."
+                      : "🧪 Simuler paiement (mode test — admin uniquement)"}
+                  </button>
+                )}
 
                 <p className="text-xs text-center" style={{ color: C.textMuted }}>
                   {t("bo.employerPayment.emailNote")}
