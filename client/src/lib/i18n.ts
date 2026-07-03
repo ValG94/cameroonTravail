@@ -1011,6 +1011,87 @@ const fr = {
       },
     },
 
+    // ─── Page /candidat/templates (bibliothèque premium) ──────────
+    templates: {
+      hero: {
+        badge: "Modèles payants",
+        title: "Bibliothèque de modèles",
+        titleHighlight: "premium",
+        subtitle: "Choisissez parmi des modèles de CV professionnels conçus pour vous démarquer et maximiser vos chances d'être sélectionné.",
+        priceBenefit: "1 000 FCFA / modèle",
+        designBenefit: "Design professionnel",
+        pdfBenefit: "Téléchargement PDF",
+        applicationBenefit: "Candidature plus percutante",
+        primaryCta: "Voir les modèles",
+        secondaryCta: "Créer mon CV",
+        imageAlt: "Modèles de CV premium Cameroon Travail",
+      },
+      search: { placeholder: "Rechercher un modèle" },
+      filters: {
+        all: "Tous",
+        corporate: "Corporate",
+        modern: "Moderne",
+        minimalist: "Minimaliste",
+        creative: "Créatif",
+        executive: "Exécutif",
+      },
+      sort: {
+        label: "Trier par :",
+        latest: "Plus récents",
+        popular: "Populaires",
+        price: "Prix",
+        az: "A-Z",
+      },
+      benefits: {
+        pdf: {
+          title: "Téléchargement PDF",
+          description: "Fichiers PDF prêts à l'emploi",
+        },
+        design: {
+          title: "Design premium",
+          description: "Mises en page élégantes et modernes",
+        },
+        ats: {
+          title: "Compatible ATS",
+          description: "Optimisés pour les logiciels de recrutement",
+        },
+        customization: {
+          title: "Personnalisation rapide",
+          description: "Modifiez en quelques clics",
+        },
+      },
+      badge: {
+        popular: "Populaire",
+        new: "Nouveau",
+        premium: "Premium",
+      },
+      card: {
+        preview: "Prévisualiser",
+        use: "Utiliser ce modèle",
+        purchased: "Acheté",
+        price: "1 000",
+        fcfa: "FCFA",
+        previewAlt: "Aperçu du modèle CV {{name}}",
+      },
+      preview: {
+        title: "Aperçu du modèle",
+        close: "Fermer",
+      },
+      reassurance: "Paiement 100% sécurisé. Accès immédiat après achat.",
+      empty: "Aucun modèle ne correspond à votre recherche.",
+      payment: {
+        title: "Débloquer ce modèle",
+        description: "Paiement unique de 1 000 FCFA — accès à ce modèle pendant 6 mois.",
+        method: "Méthode de paiement",
+        phone: "Numéro de téléphone",
+        phoneHint: "Vous recevrez une notification de paiement sur ce numéro.",
+        testMode: "Phase de test — le paiement est simulé pour l'instant.",
+        cancel: "Annuler",
+        pay: "Payer 1 000 FCFA",
+        paying: "Traitement...",
+      },
+    },
+
     bo: {
       common: {
         loading: "Chargement...",
@@ -2571,6 +2652,86 @@ const en = {
         title: "Ready to seize new opportunities?",
         subtitle: "Thousands of private jobs are waiting for you. Find the position that matches your ambitions.",
         button: "Explore private jobs",
+      },
+    },
+    // ─── /candidat/templates (premium library) ───────────────────
+    templates: {
+      hero: {
+        badge: "Paid templates",
+        title: "Premium template",
+        titleHighlight: "library",
+        subtitle: "Choose from professional CV templates designed to help you stand out and increase your chances of being selected.",
+        priceBenefit: "1,000 FCFA / template",
+        designBenefit: "Professional design",
+        pdfBenefit: "PDF download",
+        applicationBenefit: "Stronger applications",
+        primaryCta: "View templates",
+        secondaryCta: "Create my CV",
+        imageAlt: "Cameroon Travail premium CV templates",
+      },
+      search: { placeholder: "Search for a template" },
+      filters: {
+        all: "All",
+        corporate: "Corporate",
+        modern: "Modern",
+        minimalist: "Minimalist",
+        creative: "Creative",
+        executive: "Executive",
+      },
+      sort: {
+        label: "Sort by:",
+        latest: "Latest",
+        popular: "Popular",
+        price: "Price",
+        az: "A-Z",
+      },
+      benefits: {
+        pdf: {
+          title: "PDF download",
+          description: "Ready-to-use PDF files",
+        },
+        design: {
+          title: "Premium design",
+          description: "Elegant and modern layouts",
+        },
+        ats: {
+          title: "ATS compatible",
+          description: "Optimized for recruitment software",
+        },
+        customization: {
+          title: "Quick customization",
+          description: "Edit in just a few clicks",
+        },
+      },
+      badge: {
+        popular: "Popular",
+        new: "New",
+        premium: "Premium",
+      },
+      card: {
+        preview: "Preview",
+        use: "Use this template",
+        purchased: "Purchased",
+        price: "1,000",
+        fcfa: "FCFA",
+        previewAlt: "Preview of {{name}} CV template",
+      },
+      preview: {
+        title: "Template preview",
+        close: "Close",
+      },
+      reassurance: "Secure payment. Instant access after purchase.",
+      empty: "No template matches your search.",
+      payment: {
+        title: "Unlock this template",
+        description: "One-off payment of 1,000 FCFA — access to this template for 6 months.",
+        method: "Payment method",
+        phone: "Phone number",
+        phoneHint: "You will receive a payment notification on this number.",
+        testMode: "Test phase — payment is simulated for now.",
+        cancel: "Cancel",
+        pay: "Pay 1,000 FCFA",
+        paying: "Processing...",
       },
     },
     // ─── BO (back-office) — internal recruiter + admin pages ─────────
