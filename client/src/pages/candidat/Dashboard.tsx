@@ -159,42 +159,68 @@ export default function CandidatDashboard() {
       <CandidatNav />
 
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
-        {/* ─── Welcome hero compact ────────────────────────────── */}
-        <motion.div className="relative overflow-hidden rounded-3xl mb-6 lg:mb-8" {...animate(0)}>
-          <div className="relative bg-white rounded-3xl border p-6 lg:p-10 overflow-hidden" style={{ borderColor: C.border }}>
-            {/* Décor formes très légères */}
+        {/* ─── Welcome hero compact ──────────────────────────────
+            Image carnet positionnée en absolute overflow top-right,
+            avec rotation légère (~8°) et shadow pour donner de la
+            profondeur comme sur la maquette. La card est overflow-
+            hidden pour couper le bord droit du carnet et créer
+            l'illusion d'intégration au décor. */}
+        <motion.div className="relative rounded-3xl mb-6 lg:mb-8" {...animate(0)}>
+          <div
+            className="relative bg-white rounded-3xl border p-6 lg:p-10 overflow-hidden"
+            style={{ borderColor: C.border, minHeight: "220px" }}
+          >
+            {/* Décor : halo vert clair floue en fond droit + point or */}
             <div
               aria-hidden="true"
-              className="absolute -top-20 -right-20 w-56 h-56 rounded-full blur-3xl opacity-30 pointer-events-none"
+              className="absolute -top-24 -right-24 w-72 h-72 rounded-full blur-3xl opacity-40 pointer-events-none"
               style={{ backgroundColor: C.greenSoft }}
             />
             <div
               aria-hidden="true"
-              className="absolute top-10 right-56 w-2 h-2 rounded-full opacity-50 pointer-events-none hidden sm:block"
+              className="absolute top-16 right-1/3 w-2 h-2 rounded-full opacity-60 pointer-events-none hidden lg:block"
               style={{ backgroundColor: C.gold }}
             />
-            <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-              <div className="max-w-xl">
-                <h1
-                  className="font-extrabold tracking-tight mb-2"
-                  style={{ fontSize: "clamp(24px, 3vw, 34px)", color: C.textMain }}
-                >
-                  {t("dashboard.welcome.title", { firstName })}
-                </h1>
-                <p className="text-sm sm:text-base leading-relaxed" style={{ color: C.textMuted }}>
-                  {t("dashboard.welcome.subtitle")}
-                </p>
-              </div>
-              {/* Image décorative candidate-dashboard */}
-              <img
-                src="/images/candidat/candidate-dashboard.webp"
-                alt=""
-                aria-hidden="true"
-                className="hidden sm:block w-40 lg:w-56 h-auto object-contain shrink-0 select-none pointer-events-none"
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).style.display = "none";
-                }}
-              />
+
+            {/* Image carnet — absolute pour overflow, rotation, shadow
+                et MASK-IMAGE pour fondre les bords dans le fond de la
+                card (évite de voir la bordure du fond photo). */}
+            <img
+              src="/images/candidat/candidate-dashboard.webp"
+              alt=""
+              aria-hidden="true"
+              className="hidden md:block absolute select-none pointer-events-none"
+              style={{
+                right: "-30px",
+                top: "50%",
+                transform: "translateY(-50%) rotate(8deg)",
+                width: "clamp(280px, 32vw, 460px)",
+                height: "auto",
+                filter: "drop-shadow(0 20px 40px rgba(15, 23, 42, 0.15))",
+                // Mask radial : garde le carnet net au centre, fond
+                // dégressif vers les bords → l'image "fusionne" avec
+                // le fond blanc de la card sans coupure visible.
+                maskImage:
+                  "radial-gradient(ellipse 62% 62% at 50% 50%, black 55%, transparent 92%)",
+                WebkitMaskImage:
+                  "radial-gradient(ellipse 62% 62% at 50% 50%, black 55%, transparent 92%)",
+              }}
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+              }}
+            />
+
+            {/* Contenu texte — z-10 pour rester au-dessus de l'image */}
+            <div className="relative z-10 max-w-[55%] md:max-w-[50%]">
+              <h1
+                className="font-extrabold tracking-tight mb-2"
+                style={{ fontSize: "clamp(24px, 3vw, 34px)", color: C.textMain }}
+              >
+                {t("dashboard.welcome.title", { firstName })}
+              </h1>
+              <p className="text-sm sm:text-base leading-relaxed" style={{ color: C.textMuted }}>
+                {t("dashboard.welcome.subtitle")}
+              </p>
             </div>
           </div>
         </motion.div>
