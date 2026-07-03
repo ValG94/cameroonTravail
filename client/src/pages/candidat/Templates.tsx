@@ -240,14 +240,19 @@ export default function CandidatTemplates() {
               boxShadow: "0 20px 40px -20px rgba(3, 31, 22, 0.4)",
             }}
           >
-            {/* Image droite (hero-template.webp) */}
+            {/* Image droite (hero-templates.webp) — object-contain
+                pour voir toute la photo, ancrée à droite. L'image a
+                déjà son propre fond vert qui blend avec le hero. Le
+                mask linéaire gauche fond doucement dans le fond du
+                hero, mais avec un seuil beaucoup plus court (à 8%)
+                pour ne pas rogner le CV lui-même. */}
             <img
               src="/images/candidat/hero-templates.webp"
               alt={t("templates.hero.imageAlt")}
-              className="hidden md:block absolute right-0 top-0 h-full w-1/2 object-cover object-center pointer-events-none select-none"
+              className="hidden md:block absolute right-0 top-0 h-full w-[55%] lg:w-1/2 object-contain object-right pointer-events-none select-none"
               style={{
-                maskImage: "linear-gradient(to right, transparent 0%, black 22%, black 100%)",
-                WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 22%, black 100%)",
+                maskImage: "linear-gradient(to right, transparent 0%, black 8%, black 100%)",
+                WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 8%, black 100%)",
               }}
               onError={(e) => {
                 (e.currentTarget as HTMLImageElement).style.display = "none";
