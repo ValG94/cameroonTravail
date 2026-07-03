@@ -1,28 +1,86 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { CandidatNav } from "@/components/CandidatNav";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
 import { CAMEROON_REGIONS, CAMEROON_CITIES_BY_REGION, formatCameroonPhone } from "@shared/cameroon-data";
-import { Loader2, Upload, User } from "lucide-react";
+import {
+  Bell,
+  Briefcase,
+  Camera,
+  ChevronLeft,
+  Crown,
+  Eye,
+  FileText,
+  GraduationCap,
+  Info,
+  Loader2,
+  Lock,
+  Save,
+  Settings,
+  Shield,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  Upload,
+  User,
+} from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
+
+/**
+ * Page /candidat/profil — refonte premium (sidebar + hero + main + secure).
+ *
+ * Layout :
+ *  - Sidebar gauche (280px) : back Dashboard + nav sections PROFIL/COMPTE
+ *    + card Boost Premium bas
+ *  - Contenu droite :
+ *      1) Hero blanche avec carnet en overflow (repris du Dashboard)
+ *      2) Grid 2 col : formulaire principal (2fr) + card "Vos infos
+ *         sont sécurisées" (1fr)
+ *      3) Bandeau info bas ("Garder profil à jour…")
+ *
+ * i18n : namespace profile.account.*
+ */
+
+const C = {
+  green: "#009B5A",
+  deepGreen: "#063F24",
+  greenSoft: "#EAF8F1",
+  gold: "#F6C343",
+  ivory: "#FAF7EF",
+  textMain: "#0F172A",
+  textMuted: "#64748B",
+  border: "#E2E8F0",
+  bg: "#F8FAFC",
+};
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (i: number = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.45, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] as any },
+  }),
+};
 
 export default function CandidatProfil() {
   const { t, i18n } = useTranslation();
   const { user, loading: authLoading } = useAuth();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
+  const reduced = useReducedMotion();
+  const animate = (i: number = 0) => (reduced ? {} : { initial: "hidden", animate: "visible", variants: fadeUp, custom: i });
 
   const { data: profile, isLoading } = trpc.candidat.getProfile.useQuery();
   const updateProfileMutation = trpc.candidat.updateProfile.useMutation({
     onSuccess: () => {
-      toast.success("Profil mis à jour avec succès");
+      toast.success(t("profile.account.updateSuccess"));
     },
     onError: (error) => {
       toast.error(error.message);
@@ -45,14 +103,13 @@ export default function CandidatProfil() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const utils = trpc.useUtils();
   const uploadPhotoMutation = trpc.candidat.uploadPhoto.useMutation({
     onSuccess: (data) => {
-      toast.success("Photo de profil mise à jour avec succès");
+      toast.success(t("profile.account.updateSuccess"));
       setPhotoPreview(data.photoUrl);
       setIsUploadingPhoto(false);
-      // Invalider la query auth.me pour mettre à jour le menu utilisateur
       utils.auth.me.invalidate();
     },
     onError: (error) => {
@@ -89,41 +146,36 @@ export default function CandidatProfil() {
       }
     }
   }, [profile]);
-  
+
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
-    // Vérifier la taille (max 5MB)
+
     if (file.size > 5 * 1024 * 1024) {
       toast.error("La photo ne doit pas dépasser 5MB");
       return;
     }
-    
-    // Vérifier le type
     if (!file.type.startsWith("image/")) {
       toast.error("Veuillez sélectionner une image");
       return;
     }
-    
+
     setIsUploadingPhoto(true);
-    
-    // Lire le fichier et créer un aperçu
+
     const reader = new FileReader();
     reader.onloadend = () => {
       setPhotoPreview(reader.result as string);
     };
     reader.readAsDataURL(file);
-    
-    // Convertir en base64 pour l'upload
+
     const base64 = await new Promise<string>((resolve) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result as string);
       reader.readAsDataURL(file);
     });
-    
+
     uploadPhotoMutation.mutate({
-      fileData: base64.split(",")[1], // Retirer le préfixe data:image/...;base64,
+      fileData: base64.split(",")[1],
       fileName: file.name,
       mimeType: file.type,
     });
@@ -143,10 +195,10 @@ export default function CandidatProfil() {
 
   if (authLoading || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: C.bg }}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">{t("common.loading")}</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderColor: C.green }}></div>
+          <p className="mt-4" style={{ color: C.textMuted }}>{t("common.loading")}</p>
         </div>
       </div>
     );
@@ -154,215 +206,508 @@ export default function CandidatProfil() {
 
   const currentLang = i18n.language;
 
+  // Nav sidebar — item actif matche l'URL courante
+  const profileNav = [
+    { href: "/candidat/profil", label: t("profile.account.sidebar.personalInfo"), icon: User },
+    { href: "/candidat/cv", label: t("profile.account.sidebar.myCv"), icon: FileText },
+    { href: "/candidat/experiences", label: t("profile.account.sidebar.experiences"), icon: Briefcase },
+    { href: "/candidat/formations", label: t("profile.account.sidebar.education"), icon: GraduationCap },
+    { href: "/candidat/competences", label: t("profile.account.sidebar.skills"), icon: Star },
+    { href: "/candidat/langues", label: t("profile.account.sidebar.languages"), icon: Sparkles },
+  ];
+  const accountNav = [
+    { href: "/candidat/alertes", label: t("profile.account.sidebar.notifications"), icon: Bell },
+    { href: "/candidat/profil?tab=privacy", label: t("profile.account.sidebar.privacy"), icon: Shield },
+    { href: "/candidat/profil?tab=settings", label: t("profile.account.sidebar.settings"), icon: Settings },
+  ];
+
+  const isActive = (href: string) => {
+    const [path] = href.split("?");
+    return location === path;
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: C.bg, fontFamily: "'Manrope', 'Inter', sans-serif" }}>
       <CandidatNav />
 
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {t("profile.personalInfo")}
-          </h1>
-          <p className="text-gray-600">
-            Complétez vos informations personnelles pour améliorer votre profil
-          </p>
-        </div>
+      <div className="max-w-[1400px] mx-auto px-4 lg:px-6 py-6 lg:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 lg:gap-8">
+          {/* ─── SIDEBAR gauche ─────────────────────────────────── */}
+          <motion.aside {...animate(0)} className="space-y-4">
+            {/* Back to dashboard */}
+            <Link href="/candidat/dashboard">
+              <button
+                className="flex items-center gap-1.5 text-sm font-medium transition-colors hover:opacity-80"
+                style={{ color: C.deepGreen }}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                {t("profile.account.sidebar.backDashboard")}
+              </button>
+            </Link>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Informations personnelles</CardTitle>
-            <CardDescription>
-              Ces informations seront visibles par les employeurs
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Photo de profil */}
-              <div className="space-y-4">
-                <Label>Photo de profil</Label>
-                <div className="flex items-center gap-6">
-                  <div className="relative">
-                    {photoPreview ? (
-                      <img
-                        src={photoPreview}
-                        alt="Photo de profil"
-                        className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
-                      />
-                    ) : (
-                      <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center">
-                        <User className="w-12 h-12 text-gray-400" />
-                      </div>
-                    )}
-                    {isUploadingPhoto && (
-                      <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
-                        <Loader2 className="w-8 h-8 text-white animate-spin" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handlePhotoChange}
-                      className="hidden"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isUploadingPhoto}
-                    >
-                      <Upload className="mr-2 h-4 w-4" />
-                      Changer la photo
-                    </Button>
-                    <p className="text-sm text-gray-500 mt-2">
-                      Format: JPG, PNG. Taille max: 5MB
+            {/* Section PROFIL */}
+            <div className="bg-white rounded-2xl border p-3" style={{ borderColor: C.border }}>
+              <p
+                className="px-3 pt-1 pb-2 text-[11px] font-bold tracking-widest"
+                style={{ color: C.textMuted }}
+              >
+                {t("profile.account.sidebar.sectionProfile")}
+              </p>
+              <ul className="space-y-0.5">
+                {profileNav.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item.href);
+                  return (
+                    <li key={item.href}>
+                      <Link href={item.href}>
+                        <span
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors"
+                          style={{
+                            backgroundColor: active ? C.greenSoft : "transparent",
+                            color: active ? C.deepGreen : C.textMain,
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!active) (e.currentTarget as HTMLSpanElement).style.backgroundColor = "rgb(243, 244, 246)";
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!active) (e.currentTarget as HTMLSpanElement).style.backgroundColor = "transparent";
+                          }}
+                        >
+                          <Icon className="h-4 w-4 shrink-0" />
+                          {item.label}
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              {/* Section COMPTE */}
+              <p
+                className="px-3 pt-4 pb-2 text-[11px] font-bold tracking-widest"
+                style={{ color: C.textMuted }}
+              >
+                {t("profile.account.sidebar.sectionAccount")}
+              </p>
+              <ul className="space-y-0.5">
+                {accountNav.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item.href);
+                  return (
+                    <li key={item.href}>
+                      <Link href={item.href}>
+                        <span
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors"
+                          style={{
+                            backgroundColor: active ? C.greenSoft : "transparent",
+                            color: active ? C.deepGreen : C.textMain,
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!active) (e.currentTarget as HTMLSpanElement).style.backgroundColor = "rgb(243, 244, 246)";
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!active) (e.currentTarget as HTMLSpanElement).style.backgroundColor = "transparent";
+                          }}
+                        >
+                          <Icon className="h-4 w-4 shrink-0" />
+                          {item.label}
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            {/* Card Boost Premium (bas sidebar) */}
+            <div
+              className="relative rounded-2xl p-5 text-center border-2 overflow-hidden"
+              style={{
+                backgroundColor: C.deepGreen,
+                borderColor: C.gold,
+              }}
+            >
+              <div
+                aria-hidden="true"
+                className="absolute -top-8 -right-8 w-24 h-24 rounded-full blur-2xl opacity-20 pointer-events-none"
+                style={{ backgroundColor: C.gold }}
+              />
+              <div
+                className="relative w-14 h-14 mx-auto mb-3 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: "rgba(246, 195, 67, 0.15)" }}
+              >
+                <Crown className="h-7 w-7" style={{ color: C.gold }} />
+              </div>
+              <h3 className="relative text-white font-bold text-[15px] leading-snug mb-2">
+                {t("profile.account.sidebar.boostTitle")}
+              </h3>
+              <p className="relative text-[12px] leading-relaxed mb-4" style={{ color: "rgba(255,255,255,0.75)" }}>
+                {t("profile.account.sidebar.boostSubtitle")}
+              </p>
+              <Link href="/candidat/templates">
+                <Button
+                  className="relative w-full font-semibold rounded-xl h-10 text-[13px] hover:opacity-90"
+                  style={{ backgroundColor: C.gold, color: C.deepGreen }}
+                >
+                  {t("profile.account.sidebar.boostCta")}
+                  <span className="ml-1">→</span>
+                </Button>
+              </Link>
+            </div>
+          </motion.aside>
+
+          {/* ─── CONTENU principal droite ───────────────────────── */}
+          <div className="min-w-0 space-y-6">
+            {/* HERO blanche + carnet overflow (repris du Dashboard) */}
+            <motion.div {...animate(1)} className="relative rounded-3xl">
+              <div
+                className="relative bg-white rounded-3xl border p-6 lg:p-8 overflow-hidden"
+                style={{ borderColor: C.border, minHeight: "180px" }}
+              >
+                <div
+                  aria-hidden="true"
+                  className="absolute -top-24 -right-24 w-72 h-72 rounded-full blur-3xl opacity-40 pointer-events-none"
+                  style={{ backgroundColor: C.greenSoft }}
+                />
+                <div
+                  aria-hidden="true"
+                  className="absolute top-14 right-1/3 w-2 h-2 rounded-full opacity-60 pointer-events-none hidden lg:block"
+                  style={{ backgroundColor: C.gold }}
+                />
+                <img
+                  src="/images/candidat/candidate-dashboard.webp"
+                  alt=""
+                  aria-hidden="true"
+                  className="hidden md:block absolute select-none pointer-events-none"
+                  style={{
+                    right: "-30px",
+                    top: "50%",
+                    transform: "translateY(-50%) rotate(8deg)",
+                    width: "clamp(240px, 26vw, 380px)",
+                    height: "auto",
+                    filter: "drop-shadow(0 20px 40px rgba(15, 23, 42, 0.15))",
+                    maskImage:
+                      "radial-gradient(ellipse 62% 62% at 50% 50%, black 55%, transparent 92%)",
+                    WebkitMaskImage:
+                      "radial-gradient(ellipse 62% 62% at 50% 50%, black 55%, transparent 92%)",
+                  }}
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.display = "none";
+                  }}
+                />
+                <div className="relative z-10 max-w-[65%] md:max-w-[55%]">
+                  <h1
+                    className="font-extrabold tracking-tight mb-2"
+                    style={{ fontSize: "clamp(22px, 2.6vw, 30px)", color: C.textMain }}
+                  >
+                    {t("profile.account.hero.title")}
+                  </h1>
+                  <p className="text-sm sm:text-base leading-relaxed" style={{ color: C.textMuted }}>
+                    {t("profile.account.hero.subtitle")}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* GRID 2 cols : formulaire (2fr) + secure card (1fr) */}
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+              {/* ─── Formulaire principal ───────────────────── */}
+              <motion.div {...animate(2)}>
+                <div
+                  className="bg-white rounded-2xl border p-6 lg:p-8"
+                  style={{ borderColor: C.border }}
+                >
+                  <div className="mb-6">
+                    <h2 className="text-xl font-bold mb-1" style={{ color: C.textMain }}>
+                      {t("profile.account.card.title")}
+                    </h2>
+                    <p className="text-sm" style={{ color: C.green }}>
+                      {t("profile.account.card.subtitle")}
                     </p>
                   </div>
-                </div>
-              </div>
 
-              {/* Nom et Prénom */}
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="prenom">{t("profile.firstName")} *</Label>
-                  <Input
-                    id="prenom"
-                    value={formData.prenom}
-                    onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="nom">{t("profile.lastName")} *</Label>
-                  <Input
-                    id="nom"
-                    value={formData.nom}
-                    onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
+                  <form onSubmit={handleSubmit} className="space-y-5">
+                    {/* Photo profil */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold" style={{ color: C.textMain }}>
+                        {t("profile.account.card.photo")}
+                      </Label>
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          {photoPreview ? (
+                            <img
+                              src={photoPreview}
+                              alt=""
+                              className="w-20 h-20 rounded-full object-cover border-2"
+                              style={{ borderColor: C.border }}
+                            />
+                          ) : (
+                            <div
+                              className="w-20 h-20 rounded-full flex items-center justify-center"
+                              style={{ backgroundColor: C.greenSoft }}
+                            >
+                              <User className="w-10 h-10" style={{ color: C.green }} />
+                            </div>
+                          )}
+                          <div
+                            className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center border-2 border-white"
+                            style={{ backgroundColor: C.green }}
+                          >
+                            <Camera className="w-3.5 h-3.5 text-white" />
+                          </div>
+                          {isUploadingPhoto && (
+                            <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                              <Loader2 className="w-6 h-6 text-white animate-spin" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handlePhotoChange}
+                            className="hidden"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={isUploadingPhoto}
+                            className="rounded-xl"
+                          >
+                            <Upload className="mr-2 h-4 w-4" />
+                            {t("profile.account.card.photoBtn")}
+                          </Button>
+                          <p className="text-xs mt-1.5" style={{ color: C.textMuted }}>
+                            {t("profile.account.card.photoFormat")}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
 
-              {/* Téléphone */}
-              <div className="space-y-2">
-                <Label htmlFor="telephone">{t("profile.phone")} *</Label>
-                <Input
-                  id="telephone"
-                  type="tel"
-                  placeholder="+237 6XX XXX XXX"
-                  value={formData.telephone}
-                  onChange={(e) => {
-                    const formatted = formatCameroonPhone(e.target.value);
-                    setFormData({ ...formData, telephone: formatted });
+                    {/* Prénom / Nom */}
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="prenom" className="text-sm font-semibold" style={{ color: C.textMain }}>
+                          {t("profile.firstName")} <span style={{ color: "#EF4444" }}>*</span>
+                        </Label>
+                        <Input
+                          id="prenom"
+                          value={formData.prenom}
+                          onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
+                          required
+                          className="rounded-xl h-11"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="nom" className="text-sm font-semibold" style={{ color: C.textMain }}>
+                          {t("profile.lastName")} <span style={{ color: "#EF4444" }}>*</span>
+                        </Label>
+                        <Input
+                          id="nom"
+                          value={formData.nom}
+                          onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+                          required
+                          className="rounded-xl h-11"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Téléphone */}
+                    <div className="space-y-1.5">
+                      <Label htmlFor="telephone" className="text-sm font-semibold" style={{ color: C.textMain }}>
+                        {t("profile.phone")} <span style={{ color: "#EF4444" }}>*</span>
+                      </Label>
+                      <Input
+                        id="telephone"
+                        type="tel"
+                        placeholder={t("profile.account.card.phonePlaceholder")}
+                        value={formData.telephone}
+                        onChange={(e) => {
+                          const formatted = formatCameroonPhone(e.target.value);
+                          setFormData({ ...formData, telephone: formatted });
+                        }}
+                        required
+                        className="rounded-xl h-11"
+                      />
+                      <p className="text-xs" style={{ color: C.textMuted }}>
+                        {t("profile.account.card.phoneFormat")}
+                      </p>
+                    </div>
+
+                    {/* Adresse */}
+                    <div className="space-y-1.5">
+                      <Label htmlFor="adresse" className="text-sm font-semibold" style={{ color: C.textMain }}>
+                        {t("profile.address")}
+                      </Label>
+                      <Textarea
+                        id="adresse"
+                        value={formData.adresse}
+                        onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
+                        rows={2}
+                        className="rounded-xl resize-none"
+                      />
+                    </div>
+
+                    {/* Région / Ville */}
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="region" className="text-sm font-semibold" style={{ color: C.textMain }}>
+                          {t("profile.region")} <span style={{ color: "#EF4444" }}>*</span>
+                        </Label>
+                        <Select value={selectedRegion} onValueChange={handleRegionChange}>
+                          <SelectTrigger className="rounded-xl h-11">
+                            <SelectValue placeholder={t("profile.account.card.regionPh")} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {CAMEROON_REGIONS.map((region) => (
+                              <SelectItem key={region.value} value={region.value}>
+                                {currentLang === "fr" ? region.labelFr : region.labelEn}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="ville" className="text-sm font-semibold" style={{ color: C.textMain }}>
+                          {t("profile.city")} <span style={{ color: "#EF4444" }}>*</span>
+                        </Label>
+                        <Select
+                          value={formData.ville}
+                          onValueChange={(value) => setFormData({ ...formData, ville: value })}
+                          disabled={!selectedRegion}
+                        >
+                          <SelectTrigger className="rounded-xl h-11">
+                            <SelectValue placeholder={t("profile.account.card.cityPh")} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableCities.map((city) => (
+                              <SelectItem key={city} value={city}>
+                                {city}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Nationalité / Situation matrimoniale */}
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="nationalite" className="text-sm font-semibold" style={{ color: C.textMain }}>
+                          {t("profile.nationality")}
+                        </Label>
+                        <Input
+                          id="nationalite"
+                          value={formData.nationalite}
+                          onChange={(e) => setFormData({ ...formData, nationalite: e.target.value })}
+                          className="rounded-xl h-11"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="situationMatrimoniale" className="text-sm font-semibold" style={{ color: C.textMain }}>
+                          {t("profile.maritalStatus")}
+                        </Label>
+                        <Select
+                          value={formData.situationMatrimoniale}
+                          onValueChange={(value) => setFormData({ ...formData, situationMatrimoniale: value })}
+                        >
+                          <SelectTrigger className="rounded-xl h-11">
+                            <SelectValue placeholder={t("profile.account.card.maritalPh")} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="celibataire">{t("profile.account.marital.single")}</SelectItem>
+                            <SelectItem value="marie">{t("profile.account.marital.married")}</SelectItem>
+                            <SelectItem value="divorce">{t("profile.account.marital.divorced")}</SelectItem>
+                            <SelectItem value="veuf">{t("profile.account.marital.widowed")}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Boutons */}
+                    <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                      <Button
+                        type="submit"
+                        disabled={updateProfileMutation.isPending}
+                        className="flex-1 rounded-xl h-12 font-semibold text-white"
+                        style={{ backgroundColor: C.green }}
+                      >
+                        {updateProfileMutation.isPending ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Save className="mr-2 h-4 w-4" />
+                        )}
+                        {t("profile.account.card.save")}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setLocation("/candidat/dashboard")}
+                        className="rounded-xl h-12 font-semibold sm:w-40"
+                      >
+                        {t("profile.account.card.cancel")}
+                      </Button>
+                    </div>
+                  </form>
+                </div>
+              </motion.div>
+
+              {/* ─── Card "Vos informations sont sécurisées" ─── */}
+              <motion.aside {...animate(3)} className="lg:sticky lg:top-[92px] self-start">
+                <div
+                  className="rounded-2xl border p-6"
+                  style={{
+                    borderColor: C.border,
+                    background: `linear-gradient(180deg, ${C.greenSoft} 0%, #ffffff 100%)`,
                   }}
-                  required
-                />
-                <p className="text-sm text-gray-500">Format: +237 6XX XXX XXX</p>
-              </div>
-
-              {/* Adresse */}
-              <div className="space-y-2">
-                <Label htmlFor="adresse">{t("profile.address")}</Label>
-                <Textarea
-                  id="adresse"
-                  value={formData.adresse}
-                  onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
-                  rows={3}
-                />
-              </div>
-
-              {/* Région et Ville */}
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="region">{t("profile.region")} *</Label>
-                  <Select value={selectedRegion} onValueChange={handleRegionChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionnez une région" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CAMEROON_REGIONS.map((region) => (
-                        <SelectItem key={region.value} value={region.value}>
-                          {currentLang === "fr" ? region.labelFr : region.labelEn}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="ville">{t("profile.city")} *</Label>
-                  <Select
-                    value={formData.ville}
-                    onValueChange={(value) => setFormData({ ...formData, ville: value })}
-                    disabled={!selectedRegion}
+                >
+                  <div
+                    className="w-11 h-11 rounded-full flex items-center justify-center mb-4"
+                    style={{ backgroundColor: "rgba(0, 155, 90, 0.12)" }}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionnez une ville" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableCities.map((city) => (
-                        <SelectItem key={city} value={city}>
-                          {city}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <ShieldCheck className="w-5 h-5" style={{ color: C.green }} />
+                  </div>
+                  <h3 className="text-[15px] font-bold mb-2" style={{ color: C.deepGreen }}>
+                    {t("profile.account.secure.title")}
+                  </h3>
+                  <p className="text-[13px] leading-relaxed mb-4" style={{ color: C.textMuted }}>
+                    {t("profile.account.secure.subtitle")}
+                  </p>
+                  <ul className="space-y-2.5">
+                    {[
+                      { icon: Eye, key: "bullet1" },
+                      { icon: Briefcase, key: "bullet2" },
+                      { icon: Lock, key: "bullet3" },
+                    ].map(({ icon: Icon, key }) => (
+                      <li key={key} className="flex items-start gap-2.5 text-[13px]" style={{ color: C.textMain }}>
+                        <Icon className="w-4 h-4 mt-0.5 shrink-0" style={{ color: C.green }} />
+                        <span>{t(`profile.account.secure.${key}`)}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              </div>
+              </motion.aside>
+            </div>
 
-              {/* Nationalité */}
-              <div className="space-y-2">
-                <Label htmlFor="nationalite">{t("profile.nationality")}</Label>
-                <Input
-                  id="nationalite"
-                  value={formData.nationalite}
-                  onChange={(e) => setFormData({ ...formData, nationalite: e.target.value })}
-                />
+            {/* Bandeau info bas */}
+            <motion.div {...animate(4)}>
+              <div
+                className="rounded-2xl border px-5 py-4 flex items-start gap-3"
+                style={{
+                  borderColor: C.border,
+                  backgroundColor: C.greenSoft,
+                }}
+              >
+                <Info className="w-5 h-5 shrink-0 mt-0.5" style={{ color: C.green }} />
+                <p className="text-[13px] leading-relaxed" style={{ color: C.deepGreen }}>
+                  {t("profile.account.footerReminder")}
+                </p>
               </div>
-
-              {/* Situation matrimoniale */}
-              <div className="space-y-2">
-                <Label htmlFor="situationMatrimoniale">{t("profile.maritalStatus")}</Label>
-                <Select
-                  value={formData.situationMatrimoniale}
-                  onValueChange={(value) => setFormData({ ...formData, situationMatrimoniale: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionnez" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="celibataire">Célibataire</SelectItem>
-                    <SelectItem value="marie">Marié(e)</SelectItem>
-                    <SelectItem value="divorce">Divorcé(e)</SelectItem>
-                    <SelectItem value="veuf">Veuf/Veuve</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Boutons */}
-              <div className="flex gap-4">
-                <Button
-                  type="submit"
-                  disabled={updateProfileMutation.isPending}
-                  className="flex-1"
-                >
-                  {updateProfileMutation.isPending && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  {t("common.save")}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setLocation("/candidat/dashboard")}
-                >
-                  {t("common.cancel")}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+            </motion.div>
+          </div>
+        </div>
       </div>
     </div>
   );
