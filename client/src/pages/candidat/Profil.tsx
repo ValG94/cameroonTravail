@@ -231,14 +231,33 @@ export default function CandidatProfil() {
       <CandidatNav />
 
       <div className="max-w-[1400px] mx-auto px-4 lg:px-6 py-6 lg:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 lg:gap-8">
-          {/* ─── SIDEBAR gauche ─────────────────────────────────── */}
-          <motion.aside {...animate(0)} className="space-y-4">
-            {/* Back to dashboard */}
+        {/* Grid principal [sidebar | contenu] — l'items-stretch fait
+            que la sidebar occupe toute la hauteur du contenu droit,
+            donc la card Boost (mt-auto) s'aligne naturellement au
+            bas du form principal. Le bandeau info bas est OUT du
+            grid pour ne pas décaler cette alignement. */}
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 lg:gap-8 items-stretch">
+          {/* ─── SIDEBAR gauche (fond vert profond entier) ────── */}
+          <motion.aside
+            {...animate(0)}
+            className="relative rounded-2xl p-5 flex flex-col overflow-hidden"
+            style={{
+              backgroundColor: C.deepGreen,
+              minHeight: "100%",
+            }}
+          >
+            {/* Décor : léger halo or en haut-droit */}
+            <div
+              aria-hidden="true"
+              className="absolute -top-16 -right-16 w-40 h-40 rounded-full blur-3xl opacity-10 pointer-events-none"
+              style={{ backgroundColor: C.gold }}
+            />
+
+            {/* Back to dashboard (en haut de la sidebar) */}
             <Link href="/candidat/dashboard">
               <button
-                className="flex items-center gap-1.5 text-sm font-medium transition-colors hover:opacity-80"
-                style={{ color: C.deepGreen }}
+                className="relative flex items-center gap-1.5 text-sm font-medium transition-opacity hover:opacity-80 mb-5"
+                style={{ color: "rgba(255,255,255,0.85)" }}
               >
                 <ChevronLeft className="h-4 w-4" />
                 {t("profile.account.sidebar.backDashboard")}
@@ -246,113 +265,116 @@ export default function CandidatProfil() {
             </Link>
 
             {/* Section PROFIL */}
-            <div className="bg-white rounded-2xl border p-3" style={{ borderColor: C.border }}>
-              <p
-                className="px-3 pt-1 pb-2 text-[11px] font-bold tracking-widest"
-                style={{ color: C.textMuted }}
-              >
-                {t("profile.account.sidebar.sectionProfile")}
-              </p>
-              <ul className="space-y-0.5">
-                {profileNav.map((item) => {
-                  const Icon = item.icon;
-                  const active = isActive(item.href);
-                  return (
-                    <li key={item.href}>
-                      <Link href={item.href}>
-                        <span
-                          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors"
-                          style={{
-                            backgroundColor: active ? C.greenSoft : "transparent",
-                            color: active ? C.deepGreen : C.textMain,
-                          }}
-                          onMouseEnter={(e) => {
-                            if (!active) (e.currentTarget as HTMLSpanElement).style.backgroundColor = "rgb(243, 244, 246)";
-                          }}
-                          onMouseLeave={(e) => {
-                            if (!active) (e.currentTarget as HTMLSpanElement).style.backgroundColor = "transparent";
-                          }}
-                        >
-                          <Icon className="h-4 w-4 shrink-0" />
-                          {item.label}
-                        </span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
+            <p
+              className="relative px-2 pb-2 text-[11px] font-bold tracking-widest"
+              style={{ color: "rgba(255,255,255,0.5)" }}
+            >
+              {t("profile.account.sidebar.sectionProfile")}
+            </p>
+            <ul className="relative space-y-0.5 mb-5">
+              {profileNav.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.href);
+                return (
+                  <li key={item.href}>
+                    <Link href={item.href}>
+                      <span
+                        className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium cursor-pointer transition-colors"
+                        style={{
+                          backgroundColor: active ? "rgba(255,255,255,0.12)" : "transparent",
+                          color: active ? "#ffffff" : "rgba(255,255,255,0.75)",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!active) (e.currentTarget as HTMLSpanElement).style.backgroundColor = "rgba(255,255,255,0.06)";
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!active) (e.currentTarget as HTMLSpanElement).style.backgroundColor = "transparent";
+                        }}
+                      >
+                        <Icon className="h-4 w-4 shrink-0" style={{ color: active ? C.gold : "rgba(255,255,255,0.75)" }} />
+                        {item.label}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
 
-              {/* Section COMPTE */}
-              <p
-                className="px-3 pt-4 pb-2 text-[11px] font-bold tracking-widest"
-                style={{ color: C.textMuted }}
-              >
-                {t("profile.account.sidebar.sectionAccount")}
-              </p>
-              <ul className="space-y-0.5">
-                {accountNav.map((item) => {
-                  const Icon = item.icon;
-                  const active = isActive(item.href);
-                  return (
-                    <li key={item.href}>
-                      <Link href={item.href}>
-                        <span
-                          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors"
-                          style={{
-                            backgroundColor: active ? C.greenSoft : "transparent",
-                            color: active ? C.deepGreen : C.textMain,
-                          }}
-                          onMouseEnter={(e) => {
-                            if (!active) (e.currentTarget as HTMLSpanElement).style.backgroundColor = "rgb(243, 244, 246)";
-                          }}
-                          onMouseLeave={(e) => {
-                            if (!active) (e.currentTarget as HTMLSpanElement).style.backgroundColor = "transparent";
-                          }}
-                        >
-                          <Icon className="h-4 w-4 shrink-0" />
-                          {item.label}
-                        </span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
+            {/* Section COMPTE */}
+            <p
+              className="relative px-2 pb-2 text-[11px] font-bold tracking-widest"
+              style={{ color: "rgba(255,255,255,0.5)" }}
+            >
+              {t("profile.account.sidebar.sectionAccount")}
+            </p>
+            <ul className="relative space-y-0.5">
+              {accountNav.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.href);
+                return (
+                  <li key={item.href}>
+                    <Link href={item.href}>
+                      <span
+                        className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium cursor-pointer transition-colors"
+                        style={{
+                          backgroundColor: active ? "rgba(255,255,255,0.12)" : "transparent",
+                          color: active ? "#ffffff" : "rgba(255,255,255,0.75)",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!active) (e.currentTarget as HTMLSpanElement).style.backgroundColor = "rgba(255,255,255,0.06)";
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!active) (e.currentTarget as HTMLSpanElement).style.backgroundColor = "transparent";
+                        }}
+                      >
+                        <Icon className="h-4 w-4 shrink-0" style={{ color: active ? C.gold : "rgba(255,255,255,0.75)" }} />
+                        {item.label}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
 
-            {/* Card Boost Premium (bas sidebar) */}
+            {/* Card Boost Premium — mt-auto → pousse tout en bas
+                pour aligner avec le bas du form principal. */}
             <div
-              className="relative rounded-2xl p-5 text-center border-2 overflow-hidden"
-              style={{
-                backgroundColor: C.deepGreen,
-                borderColor: C.gold,
-              }}
+              className="relative mt-auto pt-8"
             >
               <div
-                aria-hidden="true"
-                className="absolute -top-8 -right-8 w-24 h-24 rounded-full blur-2xl opacity-20 pointer-events-none"
-                style={{ backgroundColor: C.gold }}
-              />
-              <div
-                className="relative w-14 h-14 mx-auto mb-3 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: "rgba(246, 195, 67, 0.15)" }}
+                className="relative rounded-2xl p-7 text-center border overflow-hidden"
+                style={{
+                  backgroundColor: "rgba(0,0,0,0.25)",
+                  borderColor: C.gold,
+                }}
               >
-                <Crown className="h-7 w-7" style={{ color: C.gold }} />
-              </div>
-              <h3 className="relative text-white font-bold text-[15px] leading-snug mb-2">
-                {t("profile.account.sidebar.boostTitle")}
-              </h3>
-              <p className="relative text-[12px] leading-relaxed mb-4" style={{ color: "rgba(255,255,255,0.75)" }}>
-                {t("profile.account.sidebar.boostSubtitle")}
-              </p>
-              <Link href="/candidat/templates">
-                <Button
-                  className="relative w-full font-semibold rounded-xl h-10 text-[13px] hover:opacity-90"
-                  style={{ backgroundColor: C.gold, color: C.deepGreen }}
+                <div
+                  aria-hidden="true"
+                  className="absolute -top-8 -right-8 w-24 h-24 rounded-full blur-2xl opacity-25 pointer-events-none"
+                  style={{ backgroundColor: C.gold }}
+                />
+                <div
+                  className="relative w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: "rgba(246, 195, 67, 0.15)" }}
                 >
-                  {t("profile.account.sidebar.boostCta")}
-                  <span className="ml-1">→</span>
-                </Button>
-              </Link>
+                  <Crown className="h-8 w-8" style={{ color: C.gold }} />
+                </div>
+                <h3 className="relative text-white font-bold text-[16px] leading-snug mb-2.5">
+                  {t("profile.account.sidebar.boostTitle")}
+                </h3>
+                <p className="relative text-[12.5px] leading-relaxed mb-5" style={{ color: "rgba(255,255,255,0.75)" }}>
+                  {t("profile.account.sidebar.boostSubtitle")}
+                </p>
+                <Link href="/candidat/templates">
+                  <Button
+                    className="relative w-full font-semibold rounded-xl h-11 text-[13px] hover:opacity-90"
+                    style={{ backgroundColor: C.gold, color: C.deepGreen }}
+                  >
+                    {t("profile.account.sidebar.boostCta")}
+                    <span className="ml-1">→</span>
+                  </Button>
+                </Link>
+              </div>
             </div>
           </motion.aside>
 
@@ -631,8 +653,8 @@ export default function CandidatProfil() {
                       <Button
                         type="submit"
                         disabled={updateProfileMutation.isPending}
-                        className="flex-1 rounded-xl h-12 font-semibold text-white"
-                        style={{ backgroundColor: C.green }}
+                        className="flex-1 rounded-xl h-12 font-semibold text-white hover:opacity-90"
+                        style={{ backgroundColor: C.deepGreen }}
                       >
                         {updateProfileMutation.isPending ? (
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -691,23 +713,26 @@ export default function CandidatProfil() {
               </motion.aside>
             </div>
 
-            {/* Bandeau info bas */}
-            <motion.div {...animate(4)}>
-              <div
-                className="rounded-2xl border px-5 py-4 flex items-start gap-3"
-                style={{
-                  borderColor: C.border,
-                  backgroundColor: C.greenSoft,
-                }}
-              >
-                <Info className="w-5 h-5 shrink-0 mt-0.5" style={{ color: C.green }} />
-                <p className="text-[13px] leading-relaxed" style={{ color: C.deepGreen }}>
-                  {t("profile.account.footerReminder")}
-                </p>
-              </div>
-            </motion.div>
           </div>
         </div>
+
+        {/* Bandeau info bas — OUT du grid pour que la sidebar
+            (h-full via items-stretch) s'arrête au niveau du form/
+            secure et que la Boost card s'aligne avec leur bas. */}
+        <motion.div {...animate(4)} className="mt-6">
+          <div
+            className="rounded-2xl border px-5 py-4 flex items-start gap-3"
+            style={{
+              borderColor: C.border,
+              backgroundColor: C.greenSoft,
+            }}
+          >
+            <Info className="w-5 h-5 shrink-0 mt-0.5" style={{ color: C.green }} />
+            <p className="text-[13px] leading-relaxed" style={{ color: C.deepGreen }}>
+              {t("profile.account.footerReminder")}
+            </p>
+          </div>
+        </motion.div>
       </div>
     </div>
   );
