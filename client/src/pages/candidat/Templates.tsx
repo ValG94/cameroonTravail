@@ -230,40 +230,39 @@ export default function CandidatTemplates() {
       <CandidatNav />
 
       <div className="max-w-[1400px] mx-auto px-4 lg:px-6 py-6 lg:py-8">
-        {/* ─── 1. HERO premium ────────────────────────────────── */}
+        {/* ─── 1. HERO premium ──────────────────────────────────
+            Image full-cover en fond du hero (pas de fond vert vide,
+            pas de dégradé moche) + overlay dégradé gauche pour la
+            lisibilité du texte. Le fond de l'image est déjà vert
+            profond donc l'overlay se fond naturellement. */}
         <motion.section {...animate(0)} aria-labelledby="tpl-hero-title">
           <div
             className="relative rounded-3xl overflow-hidden"
             style={{
-              background: `linear-gradient(120deg, ${C.darkerGreen} 0%, ${C.deepGreen} 60%, ${C.deepGreen} 100%)`,
+              backgroundColor: C.darkerGreen,
               minHeight: "320px",
               boxShadow: "0 20px 40px -20px rgba(3, 31, 22, 0.4)",
             }}
           >
-            {/* Image droite (hero-templates.webp) — object-contain
-                pour voir toute la photo, ancrée à droite. L'image a
-                déjà son propre fond vert qui blend avec le hero. Le
-                mask linéaire gauche fond doucement dans le fond du
-                hero, mais avec un seuil beaucoup plus court (à 8%)
-                pour ne pas rogner le CV lui-même. */}
+            {/* Image full-cover en fond du hero */}
             <img
               src="/images/candidat/hero-templates.webp"
               alt={t("templates.hero.imageAlt")}
-              className="hidden md:block absolute right-0 top-0 h-full w-[55%] lg:w-1/2 object-contain object-right pointer-events-none select-none"
-              style={{
-                maskImage: "linear-gradient(to right, transparent 0%, black 8%, black 100%)",
-                WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 8%, black 100%)",
-              }}
+              className="absolute inset-0 w-full h-full object-cover object-right pointer-events-none select-none"
               onError={(e) => {
                 (e.currentTarget as HTMLImageElement).style.display = "none";
               }}
             />
 
-            {/* Décor : halo or discret */}
+            {/* Overlay dégradé gauche → droite : opaque à gauche
+                pour lisibilité du texte, transparent à droite pour
+                laisser voir le CV et la couronne. */}
             <div
               aria-hidden="true"
-              className="absolute -bottom-16 right-20 w-72 h-72 rounded-full blur-3xl opacity-25 pointer-events-none"
-              style={{ backgroundColor: C.gold }}
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: `linear-gradient(to right, ${C.darkerGreen} 0%, ${C.darkerGreen}F0 30%, ${C.darkerGreen}A0 50%, transparent 75%)`,
+              }}
             />
 
             {/* Contenu gauche */}
