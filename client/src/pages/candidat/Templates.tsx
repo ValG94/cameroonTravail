@@ -465,7 +465,7 @@ export default function CandidatTemplates() {
               <p className="font-medium">{t("templates.empty")}</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 lg:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filtered.map((tpl) => {
                 const badge = BADGES[tpl.slug] || "premium";
                 const badgeStyles: Record<BadgeKey, { bg: string; fg: string }> = {
@@ -540,20 +540,20 @@ export default function CandidatTemplates() {
                           type="button"
                           variant="outline"
                           onClick={() => setPreviewSlug(tpl.slug)}
-                          className="h-10 rounded-lg text-[12.5px] font-semibold"
+                          className="h-10 rounded-lg text-[13px] font-semibold min-w-0 px-2"
                           style={{ borderColor: C.border, color: C.deepGreen }}
                         >
-                          <Eye className="mr-1.5 h-3.5 w-3.5" />
-                          {t("templates.card.preview")}
+                          <Eye className="mr-1.5 h-4 w-4 shrink-0" />
+                          <span className="truncate">{t("templates.card.preview")}</span>
                         </Button>
                         <Button
                           type="button"
                           onClick={() => handleUseTemplate(tpl.slug, tpl.purchased)}
-                          className="h-10 rounded-lg text-white text-[12.5px] font-semibold hover:opacity-90"
+                          className="h-10 rounded-lg text-white text-[13px] font-semibold hover:opacity-90 min-w-0 px-2"
                           style={{ backgroundColor: C.green }}
                         >
-                          {t("templates.card.use")}
-                          <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                          <span className="truncate">{t("templates.card.use")}</span>
+                          <ArrowRight className="ml-1 h-4 w-4 shrink-0" />
                         </Button>
                       </div>
                     </div>
