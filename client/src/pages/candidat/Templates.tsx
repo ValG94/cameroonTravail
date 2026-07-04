@@ -587,10 +587,10 @@ export default function CandidatTemplates() {
           </DialogHeader>
           {previewTemplate && (
             <div
-              className="rounded-xl border overflow-hidden bg-gray-50"
+              className="rounded-xl border overflow-hidden bg-gray-100 flex items-center justify-center"
               style={{ borderColor: C.border, aspectRatio: "3/4", maxHeight: "70vh" }}
             >
-              <TemplateThumbnail slug={previewTemplate.slug} className="w-full h-full" />
+              <TemplateThumbnail slug={previewTemplate.slug} className="w-full h-full" fit="contain" />
             </div>
           )}
           <DialogFooter className="gap-2">

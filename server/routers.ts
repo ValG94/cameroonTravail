@@ -12,6 +12,23 @@ import { createUserWithPassword, authenticateUser } from "./auth";
 import { SignJWT } from "jose";
 import { ENV } from "./_core/env";
 
+/**
+ * Sanitize un nom de fichier pour l'utiliser comme clé Supabase Storage.
+ * Supabase rejette les apostrophes, espaces, caractères non-ASCII et
+ * autres caractères spéciaux dans les keys ("Invalid key" 500).
+ * On convertit en ASCII (strip diacritiques), on remplace tout ce qui
+ * n'est pas [a-zA-Z0-9._-] par "_", et on tronque à 100 caractères.
+ * Exemple : "Capture d'écran 2026-07-05 013020.png"
+ *        → "Capture_d_ecran_2026-07-05_013020.png"
+ */
+function sanitizeFileName(name: string): string {
+  const ascii = name.normalize("NFD").replace(/[̀-ͯ]/g, "");
+  const cleaned = ascii.replace(/[^a-zA-Z0-9._-]/g, "_").replace(/_+/g, "_");
+  const trimmed = cleaned.replace(/^[_.-]+|[_.-]+$/g, "");
+  const safe = trimmed || "file";
+  return safe.length > 100 ? safe.slice(-100) : safe;
+}
+
 // Helper : notifier les candidats ayant une alerte correspondant à une nouvelle offre
 async function notifyAlertesForNewOffer(offreData: {
   id: number;
@@ -1156,8 +1173,9 @@ export const appRouter = router({
           throw new Error("Seules les images sont acceptées");
         }
         
-        // Uploader la photo vers S3
-        const fileKey = `photos/${ctx.user.id}/${nanoid()}-${input.fileName}`;
+        // Uploader la photo vers S3 (fileName sanitizé : Supabase
+        // rejette apostrophes, espaces, accents dans les keys).
+        const fileKey = `photos/${ctx.user.id}/${nanoid()}-${sanitizeFileName(input.fileName)}`;
         const { url: photoUrl } = await storagePut(fileKey, buffer, input.mimeType);
         
         // Mettre à jour le profil avec l'URL de la photo
@@ -1397,8 +1415,8 @@ export const appRouter = router({
         // Extraire les données du CV avec l'IA
         const { text, data } = await processCVFile(buffer, input.mimeType);
         
-        // Uploader le CV vers S3
-        const fileKey = `cv/${ctx.user.id}/${nanoid()}-${input.fileName}`;
+        // Uploader le CV vers S3 (fileName sanitizé pour Supabase).
+        const fileKey = `cv/${ctx.user.id}/${nanoid()}-${sanitizeFileName(input.fileName)}`;
         const { url: cvUrl } = await storagePut(fileKey, buffer, input.mimeType);
         
         // Mettre à jour le profil avec l'URL du CV
@@ -2070,8 +2088,8 @@ export const appRouter = router({
           throw new Error("Seules les images sont acceptées pour le logo");
         }
         
-        // Uploader le logo vers S3
-        const fileKey = `logos/${ctx.user.id}/${nanoid()}-${input.fileName}`;
+        // Uploader le logo vers S3 (fileName sanitizé pour Supabase).
+        const fileKey = `logos/${ctx.user.id}/${nanoid()}-${sanitizeFileName(input.fileName)}`;
         const { url: logoUrl } = await storagePut(fileKey, buffer, input.mimeType);
         
         // Mettre à jour le profil avec l'URL du logo

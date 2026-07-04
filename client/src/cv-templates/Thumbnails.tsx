@@ -528,7 +528,45 @@ const THUMBS: Record<string, (props: ThumbProps) => React.ReactElement> = {
   pink_red_blobs: PinkRedBlobsThumb,
 };
 
-export function TemplateThumbnail({ slug, className }: { slug: string; className?: string }) {
+/**
+ * Slugs pour lesquels un vrai preview PNG/WebP a été fourni dans
+ * /images/cv-preview/{slug}.webp. Tant qu'un slug n'est pas listé
+ * ici, on garde le fallback CSS pour ne pas casser l'existant.
+ * Au fur et à mesure que les CV fictifs sont produits, ajouter le
+ * slug ici.
+ */
+const REAL_PREVIEW_SLUGS = new Set<string>([
+  "pink_red_blobs",
+  "sport_orange_dark",
+]);
+
+export function TemplateThumbnail({
+  slug,
+  className,
+  fit = "cover",
+}: {
+  slug: string;
+  className?: string;
+  /**
+   * `cover` (défaut) pour les mini-cards : remplit et crope au besoin.
+   * `contain` pour la modal preview : montre tout le CV avec fond.
+   */
+  fit?: "cover" | "contain";
+}) {
+  // 1) Image WebP réaliste si dispo → prioritaire
+  if (REAL_PREVIEW_SLUGS.has(slug)) {
+    return (
+      <img
+        src={`/images/cv-preview/${slug}.webp`}
+        alt=""
+        aria-hidden="true"
+        className={`w-full h-full ${fit === "contain" ? "object-contain" : "object-cover object-top"} ${className || ""}`}
+        loading="lazy"
+      />
+    );
+  }
+
+  // 2) Fallback CSS SVG (mise en page schématique)
   const Thumb = THUMBS[slug];
   if (!Thumb) {
     return (
