@@ -538,6 +538,8 @@ const THUMBS: Record<string, (props: ThumbProps) => React.ReactElement> = {
 const REAL_PREVIEW_SLUGS = new Set<string>([
   "pink_red_blobs",
   "sport_orange_dark",
+  "developer_dark_sidebar",
+  "minimal_centered",
 ]);
 
 export function TemplateThumbnail({
