@@ -220,16 +220,24 @@ export default function ProfessionalModernWhiteTemplate({
                   </div>
                 </div>
               )}
-              {data.interests.slice(0, 4).map((it, i) => (
-                <div key={i}>
-                  <div className="font-semibold" style={{ color: TEXT_DARK }}>
-                    {L.interests}
-                  </div>
-                  <div style={{ color: TEXT_LIGHT }}>{it}</div>
-                </div>
-              ))}
             </div>
           </SectionLeft>
+
+          {/* Centres d'intérêt — section dédiée avec un unique
+              en-tête (au lieu de répéter le label pour chaque
+              item, ce qui était le bug). */}
+          {data.interests.length > 0 && (
+            <SectionLeft title={L.interests} mt="mt-6">
+              <ul className="space-y-1" style={{ fontSize: "9pt", color: TEXT_LIGHT }}>
+                {data.interests.slice(0, 6).map((it, i) => (
+                  <li key={i} className="flex gap-2">
+                    <span style={{ color: TEXT_DARK, fontWeight: 700 }}>•</span>
+                    <span>{it}</span>
+                  </li>
+                ))}
+              </ul>
+            </SectionLeft>
+          )}
         </aside>
 
         {/* ─── Colonne droite ──────────────────────────────────── */}
