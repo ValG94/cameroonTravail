@@ -540,6 +540,8 @@ const REAL_PREVIEW_SLUGS = new Set<string>([
   "sport_orange_dark",
   "developer_dark_sidebar",
   "minimal_centered",
+  "colorful_warm_blocks",
+  "editorial_creative",
 ]);
 
 export function TemplateThumbnail({
