@@ -360,8 +360,28 @@ function PhotoWithDecorations({
 }
 
 /**
- * Section avec un bandeau orange vertical à gauche contenant le label
- * écrit verticalement (tourné -90°).
+ * Section avec un bandeau vertical à gauche contenant le label écrit
+ * verticalement.
+ *
+ * Layout dynamique :
+ *  - Utilise `writing-mode: vertical-rl` (au lieu de `transform:
+ *    rotate(-90deg)`) : le navigateur intègre la hauteur du texte
+ *    tourné dans le flow, ce qui fait que le bandeau grandit assez
+ *    pour contenir le label — plus de débordement dans la section
+ *    du dessus (typiquement 'EXPÉRIENCE PROFESSIONNELLE' qui est
+ *    long).
+ *  - Pas de `minHeight` fixe : la section fait exactement la
+ *    hauteur nécessaire (label OU contenu, le plus grand des deux).
+ *  - `items-stretch` sur le flex parent : les deux colonnes ont
+ *    même hauteur. La colonne contenu utilise `flex flex-col
+ *    justify-center` pour centrer verticalement les blocs quand la
+ *    section est plus haute que le contenu (typiquement une section
+ *    avec 2 formations courtes vs. un label long).
+ *  - Padding vertical `py-3` sur le bandeau pour laisser respirer
+ *    le texte aux extrémités.
+ *  - `rotate(180deg)` sur le texte : par défaut vertical-rl écrit
+ *    de haut en bas ; on inverse pour lire de bas en haut comme sur
+ *    la maquette originale.
  */
 function SectionWithVerticalLabel({
   label,
@@ -376,31 +396,31 @@ function SectionWithVerticalLabel({
 }) {
   return (
     <div className={`flex items-stretch gap-2 ${className ?? ""}`}>
-      {/* Bandeau vertical avec label rotated */}
+      {/* Bandeau vertical : hauteur = max(label rotated, contenu) */}
       <div
-        className="shrink-0 flex items-center justify-center"
+        className="shrink-0 flex items-center justify-center py-3"
         style={{
           width: "16mm",
           backgroundColor: labelBg,
-          minHeight: "60mm",
         }}
       >
         <div
-          className="uppercase whitespace-nowrap"
+          className="uppercase"
           style={{
             fontSize: "13pt",
             fontWeight: 700,
             color: TEXT_DARK,
             letterSpacing: "0.15em",
-            transform: "rotate(-90deg)",
-            transformOrigin: "center",
+            writingMode: "vertical-rl",
+            transform: "rotate(180deg)",
+            whiteSpace: "nowrap",
           }}
         >
           {label}
         </div>
       </div>
-      {/* Contenu de la section */}
-      <div className="flex-1">{children}</div>
+      {/* Contenu — centré verticalement dans l'espace disponible */}
+      <div className="flex-1 flex flex-col justify-center">{children}</div>
     </div>
   );
 }
