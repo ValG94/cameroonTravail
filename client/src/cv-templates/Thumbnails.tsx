@@ -545,6 +545,7 @@ const REAL_PREVIEW_SLUGS = new Set<string>([
   "executive_curved",
   "hospitality_timeline",
   "modern_sidebar_dark",
+  "professional_modern_white",
 ]);
 
 export function TemplateThumbnail({
