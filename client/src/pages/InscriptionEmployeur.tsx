@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import { motion, useReducedMotion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
 import { API_BASE } from "@/lib/apiBase";
+import { markJustLoggedIn } from "@/lib/authGrace";
 import { SECTEURS } from "@/lib/secteurs";
 import { isCameroonCity } from "@/lib/villesCameroun";
 import { Button } from "@/components/ui/button";
@@ -152,7 +153,11 @@ export default function InscriptionEmployeur() {
   const registerMutation = trpc.auth.register.useMutation({
     onSuccess: async () => {
       toast.success(t("employerRegister.form.success"));
+      // Grace period : ignore les UNAUTHED durant la propagation
+      // du cookie sur mobile (cf. authGrace.ts).
+      markJustLoggedIn();
       await utils.auth.me.invalidate();
+      await new Promise((resolve) => setTimeout(resolve, 500));
       setLocation("/employeur/bienvenue");
     },
     onError: (error: { message?: string }) => {

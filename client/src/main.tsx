@@ -6,6 +6,7 @@ import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
 import { getLoginUrl } from "./const";
+import { isJustLoggedIn } from "./lib/authGrace";
 import "./index.css";
 import "./lib/i18n";
 
@@ -25,6 +26,20 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
   const isUnauthorized = error.message === UNAUTHED_ERR_MSG;
 
   if (!isUnauthorized) return;
+
+  // Grace period : sur mobile (iOS Safari 4G notamment) le cookie
+  // Set-Cookie peut mettre 1-3s à être committé après un login. Les
+  // queries protégées qui partent au montage du dashboard tombent
+  // alors en UNAUTHORIZED alors que l'utilisateur vient juste de se
+  // logger. Sans ce garde-fou, main.tsx forcait un hard-redirect
+  // vers /connexion → l'utilisateur était "déconnecté" 3-5s après
+  // login (cf. retry: 1 + retryDelay: 3000ms → 2ème tentative dans
+  // la même race, fail définitif, redirect). On ignore les UNAUTHED
+  // pendant 15s après un login réussi.
+  if (isJustLoggedIn()) {
+    console.warn("[Auth] UNAUTHED ignoré (grace period post-login) — cookie probablement en cours de propagation");
+    return;
+  }
 
   window.location.href = getLoginUrl();
 };

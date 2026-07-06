@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import { motion, useReducedMotion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
 import { API_BASE } from "@/lib/apiBase";
+import { markJustLoggedIn } from "@/lib/authGrace";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -113,7 +114,11 @@ export default function InscriptionCandidat() {
   const registerMutation = trpc.auth.register.useMutation({
     onSuccess: async () => {
       toast.success(t("signup.form.success"));
+      // Grace period : ignore les UNAUTHED durant la propagation
+      // du cookie sur mobile (cf. authGrace.ts).
+      markJustLoggedIn();
       await utils.auth.me.invalidate();
+      await new Promise((resolve) => setTimeout(resolve, 500));
       setLocation("/candidat/dashboard");
     },
     onError: (error: { message?: string }) => {

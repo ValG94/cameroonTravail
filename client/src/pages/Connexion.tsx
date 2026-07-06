@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { API_BASE } from "@/lib/apiBase";
+import { markJustLoggedIn } from "@/lib/authGrace";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -93,6 +94,9 @@ export default function Connexion() {
     if (googleStatus === "success") {
       (async () => {
         toast.success(t("login.form.successToast"));
+        // Grace period : ignore les UNAUTHED durant la propagation
+        // du cookie Google OAuth sur mobile (cf. authGrace.ts).
+        markJustLoggedIn();
         await utils.auth.me.invalidate();
         const me = await utils.auth.me.fetch();
         if (me?.profileType === "candidat") setLocation("/candidat/dashboard");
@@ -120,8 +124,16 @@ export default function Connexion() {
         localStorage.removeItem(REMEMBER_EMAIL_KEY);
       }
 
+      // Grace period : signale au subscriber global (main.tsx) qu'on
+      // vient de se logger, pour ignorer les UNAUTHED transitoires
+      // durant la propagation du cookie sur mobile.
+      markJustLoggedIn();
+
       await utils.auth.me.invalidate();
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // 500ms (vs 100ms précédemment) : donne le temps au navigateur
+      // mobile 4G de committer le Set-Cookie avant que le dashboard
+      // ne monte et déclenche 9 queries protégées en batch.
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       if (data.user.profileType === "candidat") {
         setLocation("/candidat/dashboard");
