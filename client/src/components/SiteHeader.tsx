@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Lock, Menu, User, Users, X } from "lucide-react";
+import { Briefcase, Lock, Menu, User, Users, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
@@ -58,6 +58,16 @@ export function SiteHeader({ activePage }: SiteHeaderProps) {
 
   const isActive = (link: typeof navLinks[0]) =>
     activePage === link.key || location === link.path;
+
+  /**
+   * Route de destination du bouton "Espace recruteur" :
+   *  - user connecté employeur ou admin → son dashboard
+   *  - sinon (non-connecté ou candidat) → page publique /espace-recruteur
+   */
+  const recruiterHref =
+    user?.profileType === "employeur" || user?.role === "admin"
+      ? "/employeur/dashboard"
+      : "/espace-recruteur";
 
   return (
     <header
@@ -132,6 +142,33 @@ export function SiteHeader({ activePage }: SiteHeaderProps) {
           <div className="hidden sm:block">
             <LanguageSelector />
           </div>
+
+          {/* Bouton Espace recruteur — desktop uniquement, toujours
+              visible (connecté ou non). Redirige vers dashboard
+              employeur si l'utilisateur EST un recruteur/admin,
+              sinon vers la page publique /espace-recruteur. */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="hidden lg:inline-flex font-semibold gap-2 transition-colors"
+            style={
+              {
+                borderColor: COLORS.emerald,
+                color: COLORS.deepGreen,
+                backgroundColor: "transparent",
+              } as React.CSSProperties
+            }
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(0, 155, 90, 0.08)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
+            }}
+            onClick={() => setLocation(recruiterHref)}
+          >
+            <Briefcase className="h-4 w-4" />
+            {t("nav.recruiterSpace")}
+          </Button>
 
           {!authLoading && !user ? (
             <>
@@ -289,12 +326,26 @@ export function SiteHeader({ activePage }: SiteHeaderProps) {
           <div className="pt-2 mt-1 border-t border-gray-100 flex items-center justify-between">
             <LanguageSelector />
           </div>
+          {/* Espace recruteur — toujours accessible depuis le mobile */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-2 w-full font-semibold gap-2"
+            style={{ borderColor: COLORS.emerald, color: COLORS.deepGreen }}
+            onClick={() => {
+              setLocation(recruiterHref);
+              setMobileMenuOpen(false);
+            }}
+          >
+            <Briefcase className="h-4 w-4" />
+            {t("nav.recruiterSpace")}
+          </Button>
           {!authLoading && !user && (
             <>
               <Button
                 variant="outline"
                 size="sm"
-                className="mt-2 w-full border-gray-300"
+                className="mt-1.5 w-full border-gray-300"
                 onClick={() => {
                   setLocation("/connexion");
                   setMobileMenuOpen(false);
