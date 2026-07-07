@@ -1,15 +1,20 @@
 /**
- * Override d'images d'articles de conseils.
+ * Résolution de l'image d'un article de conseils.
  *
- * Certains articles n'ont pas d'image en BDD, ou ont une image qui ne
- * reflète pas bien le sujet. On force ici l'image locale appropriée
- * pour les articles dont le slug ou le titre matche les patterns
- * définis ci-dessous (case-insensitive, recherche partielle).
+ * Priorité :
+ *  1. L'image uploadée en BDD (imageUrl) — source de vérité éditée
+ *     par l'admin depuis /admin/articles. Toujours prioritaire pour
+ *     que les modifications admin soient visibles côté public.
+ *  2. Fallback : override statique local par regex sur slug/titre —
+ *     utilisé UNIQUEMENT si l'article n'a pas encore d'image uploadée
+ *     (typiquement les seeds initiaux importés en base sans image).
+ *  3. null si ni imageUrl ni override.
  *
  * Utilisé à la fois dans :
  *  - la card sur Home.tsx (section Conseils)
  *  - la page de détail ConseilDetail.tsx (hero image)
- * → garantit la cohérence visuelle card ↔ détail.
+ * → garantit la cohérence visuelle card ↔ détail tout en laissant
+ * l'admin reprendre la main via un upload dans le back-office.
  */
 
 interface ArticleLike {
@@ -24,9 +29,14 @@ const ARTICLE_IMAGE_OVERRIDES: { match: RegExp; src: string }[] = [
 ];
 
 export function getArticleImage(article: ArticleLike): string | null {
+  // 1) Image uploadée = priorité absolue (admin a la main)
+  if (article.imageUrl && article.imageUrl.trim().length > 0) {
+    return article.imageUrl;
+  }
+  // 2) Fallback statique par regex pour les seeds sans image
   const haystack = `${article.slug || ""} ${article.titre || ""}`;
   for (const { match, src } of ARTICLE_IMAGE_OVERRIDES) {
     if (match.test(haystack)) return src;
   }
-  return article.imageUrl || null;
+  return null;
 }
