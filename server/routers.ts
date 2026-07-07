@@ -319,15 +319,25 @@ export const appRouter = router({
 
     createArticle: adminProcedure
       .input(z.object({
+        // FR (source obligatoire)
         titre: z.string().min(3),
         description: z.string().min(10),
         contenu: z.string().min(20),
+        slug: z.string().min(3),
+        // EN (optionnel \u2014 traduction assist\u00e9e)
+        titreEn: z.string().optional(),
+        descriptionEn: z.string().optional(),
+        contenuEn: z.string().optional(),
+        slugEn: z.string().optional(),
+        // M\u00e9tadonn\u00e9es
         categorie: z.enum(['Entretien', 'CV', 'March\u00e9', 'N\u00e9gociation', 'Reconversion', 'Freelance']),
         auteur: z.string().min(2),
         tempsLecture: z.string().default('5 min'),
-        imageUrl: z.string().url().optional(),
+        imageUrl: z.string().url().nullable().optional(),
+        imageAlt: z.string().optional(),
+        tags: z.array(z.string()).optional(),
+        status: z.enum(['draft', 'published']).default('published'),
         featured: z.boolean().default(false),
-        slug: z.string().min(3),
         datePublication: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
@@ -339,12 +349,19 @@ export const appRouter = router({
           titre: input.titre,
           description: input.description,
           contenu: input.contenu,
+          slug: input.slug,
+          titreEn: input.titreEn || null,
+          descriptionEn: input.descriptionEn || null,
+          contenuEn: input.contenuEn || null,
+          slugEn: input.slugEn || null,
           categorie: input.categorie,
           auteur: input.auteur,
           tempsLecture: input.tempsLecture,
           imageUrl: input.imageUrl || null,
+          imageAlt: input.imageAlt || null,
+          tags: input.tags || null,
+          status: input.status,
           featured: input.featured,
-          slug: input.slug,
           datePublication,
         }).$returningId();
         return { id: article.id };
@@ -353,15 +370,25 @@ export const appRouter = router({
     updateArticle: adminProcedure
       .input(z.object({
         id: z.number(),
+        // FR
         titre: z.string().min(3).optional(),
         description: z.string().min(10).optional(),
         contenu: z.string().min(20).optional(),
+        slug: z.string().min(3).optional(),
+        // EN
+        titreEn: z.string().nullable().optional(),
+        descriptionEn: z.string().nullable().optional(),
+        contenuEn: z.string().nullable().optional(),
+        slugEn: z.string().nullable().optional(),
+        // M\u00e9tadonn\u00e9es
         categorie: z.enum(['Entretien', 'CV', 'March\u00e9', 'N\u00e9gociation', 'Reconversion', 'Freelance']).optional(),
         auteur: z.string().min(2).optional(),
         tempsLecture: z.string().optional(),
         imageUrl: z.string().url().nullable().optional(),
+        imageAlt: z.string().nullable().optional(),
+        tags: z.array(z.string()).nullable().optional(),
+        status: z.enum(['draft', 'published']).optional(),
         featured: z.boolean().optional(),
-        slug: z.string().min(3).optional(),
         datePublication: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
@@ -369,19 +396,126 @@ export const appRouter = router({
         if (!dbInstance) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
         const { articlesConseils } = await import('../drizzle/schema');
         const { eq } = await import('drizzle-orm');
-        const updateData: Record<string, unknown> = {};
+        const updateData: Record<string, unknown> = { updatedAt: new Date() };
         if (input.titre !== undefined) updateData.titre = input.titre;
         if (input.description !== undefined) updateData.description = input.description;
         if (input.contenu !== undefined) updateData.contenu = input.contenu;
+        if (input.slug !== undefined) updateData.slug = input.slug;
+        if (input.titreEn !== undefined) updateData.titreEn = input.titreEn;
+        if (input.descriptionEn !== undefined) updateData.descriptionEn = input.descriptionEn;
+        if (input.contenuEn !== undefined) updateData.contenuEn = input.contenuEn;
+        if (input.slugEn !== undefined) updateData.slugEn = input.slugEn;
         if (input.categorie !== undefined) updateData.categorie = input.categorie;
         if (input.auteur !== undefined) updateData.auteur = input.auteur;
         if (input.tempsLecture !== undefined) updateData.tempsLecture = input.tempsLecture;
         if (input.imageUrl !== undefined) updateData.imageUrl = input.imageUrl;
+        if (input.imageAlt !== undefined) updateData.imageAlt = input.imageAlt;
+        if (input.tags !== undefined) updateData.tags = input.tags;
+        if (input.status !== undefined) updateData.status = input.status;
         if (input.featured !== undefined) updateData.featured = input.featured;
-        if (input.slug !== undefined) updateData.slug = input.slug;
         if (input.datePublication !== undefined) updateData.datePublication = new Date(input.datePublication);
         await dbInstance.update(articlesConseils).set(updateData).where(eq(articlesConseils.id, input.id));
         return { success: true };
+      }),
+
+    /**
+     * Upload de l'image de couverture d'un article.
+     * Copie le pattern de candidat.uploadPhoto (fileName sanitiz\u00e9,
+     * limite 5MB, MIME image/*). Retourne l'URL publique \u00e0 assigner
+     * au champ imageUrl de l'article.
+     */
+    uploadArticleCover: adminProcedure
+      .input(z.object({
+        fileData: z.string(),
+        fileName: z.string(),
+        mimeType: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const buffer = Buffer.from(input.fileData, 'base64');
+        if (buffer.length > 5 * 1024 * 1024) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Image trop volumineuse (max 5MB)' });
+        }
+        if (!input.mimeType.startsWith('image/')) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Seules les images sont accept\u00e9es' });
+        }
+        const fileKey = `photos/articles/${nanoid()}-${sanitizeFileName(input.fileName)}`;
+        const { url } = await storagePut(fileKey, buffer, input.mimeType);
+        return { url, fileKey };
+      }),
+
+    /**
+     * Traduction assist\u00e9e FR \u2194 EN d'un article (titre + description +
+     * contenu). Utilise OpenAI GPT-4o mini (mod\u00e8le \u00e9conomique et rapide,
+     * excellent pour la traduction). La cl\u00e9 OPENAI_API_KEY reste
+     * strictement serveur \u2014 jamais expos\u00e9e c\u00f4t\u00e9 frontend.
+     *
+     * L'endpoint NE persiste RIEN \u2014 c'est un proxy stateless. La
+     * persistance se fait via updateArticle APR\u00c8S relecture manuelle
+     * de la traduction par l'admin (voir spec section 10 : traduction
+     * assist\u00e9e, pas aveugle).
+     */
+    translateArticle: adminProcedure
+      .input(z.object({
+        sourceLanguage: z.enum(['fr', 'en']),
+        targetLanguage: z.enum(['fr', 'en']),
+        title: z.string(),
+        excerpt: z.string(),
+        content: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        if (input.sourceLanguage === input.targetLanguage) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Langues source et cible identiques' });
+        }
+        if (!ENV.openaiApiKey) {
+          throw new TRPCError({
+            code: 'PRECONDITION_FAILED',
+            message: "La traduction automatique n'est pas configur\u00e9e (OPENAI_API_KEY manquante).",
+          });
+        }
+
+        const OpenAI = (await import('openai')).default;
+        const openai = new OpenAI({ apiKey: ENV.openaiApiKey });
+
+        const systemPrompt = input.targetLanguage === 'en'
+          ? 'Translate this career advice article from French to English for a professional job platform in Cameroon. Preserve the meaning, structure, headings, bullet points, professional tone, and HTML/Markdown formatting if present. Do not add information. Return ONLY a JSON object with keys "title", "excerpt", "content".'
+          : "Traduis cet article conseil carri\u00e8re de l'anglais vers le fran\u00e7ais pour une plateforme emploi professionnelle au Cameroun. Pr\u00e9serve le sens, la structure, les titres, les listes, le ton professionnel et le format HTML/Markdown si pr\u00e9sent. N'ajoute aucune information. Retourne UNIQUEMENT un objet JSON avec les cl\u00e9s \"title\", \"excerpt\", \"content\".";
+
+        const userPayload = JSON.stringify({
+          title: input.title,
+          excerpt: input.excerpt,
+          content: input.content,
+        });
+
+        try {
+          const completion = await openai.chat.completions.create({
+            model: 'gpt-4o-mini',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPayload },
+            ],
+            response_format: { type: 'json_object' },
+            temperature: 0.2,
+          });
+
+          const raw = completion.choices?.[0]?.message?.content ?? '';
+          const parsed = JSON.parse(raw) as { title?: string; excerpt?: string; content?: string };
+          return {
+            title: parsed.title || '',
+            excerpt: parsed.excerpt || '',
+            content: parsed.content || '',
+          };
+        } catch (err: any) {
+          if (err instanceof SyntaxError) {
+            throw new TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: 'La traduction a \u00e9chou\u00e9 (r\u00e9ponse invalide).',
+            });
+          }
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: err?.message || 'La traduction a \u00e9chou\u00e9.',
+          });
+        }
       }),
 
     deleteArticle: adminProcedure
@@ -2654,10 +2788,18 @@ export const appRouter = router({
 
   // ─── Router Conseils ──────────────────────────────────────────────────────
   conseils: router({
-    // Récupérer tous les articles avec filtrage optionnel par catégorie
+    // Récupérer tous les articles publiés avec filtrage optionnel par catégorie
+    // + recherche + featured. Depuis la migration 0016, on filtre par
+    // status='published' pour ne jamais exposer les brouillons.
     getAll: publicProcedure
       .input(z.object({
         categorie: z.enum(["Entretien", "CV", "Marché", "Négociation", "Reconversion", "Freelance"]).optional(),
+        search: z.string().optional(),
+        featured: z.boolean().optional(),
+        // lang réservé pour un futur filtrage serveur ; actuellement on
+        // renvoie l'objet complet avec FR + EN, le client choisit la
+        // langue à afficher côté render.
+        lang: z.enum(["fr", "en"]).optional(),
         limit: z.number().min(1).max(50).default(12),
         offset: z.number().min(0).default(0),
       }))
@@ -2665,9 +2807,22 @@ export const appRouter = router({
         const dbInstance = await db.getDb();
         if (!dbInstance) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
         const { articlesConseils } = await import("../drizzle/schema");
-        const { desc, and, eq, count } = await import("drizzle-orm");
-        const conditions = input.categorie ? [eq(articlesConseils.categorie, input.categorie)] : [];
-        const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+        const { desc, and, eq, count, or, ilike } = await import("drizzle-orm");
+
+        const conditions: any[] = [eq(articlesConseils.status, 'published')];
+        if (input.categorie) conditions.push(eq(articlesConseils.categorie, input.categorie));
+        if (input.featured !== undefined) conditions.push(eq(articlesConseils.featured, input.featured));
+        if (input.search && input.search.trim()) {
+          const q = `%${input.search.trim()}%`;
+          conditions.push(or(
+            ilike(articlesConseils.titre, q),
+            ilike(articlesConseils.description, q),
+            ilike(articlesConseils.titreEn, q),
+            ilike(articlesConseils.descriptionEn, q),
+          ));
+        }
+        const whereClause = and(...conditions);
+
         const [articles, [{ total }]] = await Promise.all([
           dbInstance
             .select()
@@ -2681,37 +2836,47 @@ export const appRouter = router({
         return { articles, total: Number(total) };
       }),
 
-    // Récupérer un article par son slug
+    // Récupérer un article par son slug FR OU EN (l'utilisateur peut
+    // arriver sur /conseils/mon-article-fr ou /conseils/my-article-en).
     getBySlug: publicProcedure
       .input(z.object({ slug: z.string() }))
       .query(async ({ input }) => {
         const dbInstance = await db.getDb();
         if (!dbInstance) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
         const { articlesConseils } = await import("../drizzle/schema");
-        const { eq } = await import("drizzle-orm");
+        const { eq, or, and } = await import("drizzle-orm");
         const [article] = await dbInstance
           .select()
           .from(articlesConseils)
-          .where(eq(articlesConseils.slug, input.slug))
+          .where(and(
+            eq(articlesConseils.status, 'published'),
+            or(
+              eq(articlesConseils.slug, input.slug),
+              eq(articlesConseils.slugEn, input.slug),
+            ),
+          ))
           .limit(1);
         if (!article) throw new TRPCError({ code: "NOT_FOUND", message: "Article introuvable" });
         return article;
       }),
 
     // Récupérer des articles similaires (même catégorie, excluant l'article courant)
+    // Le excludeSlug peut être le slug FR ou EN.
     getSimilaires: publicProcedure
       .input(z.object({ categorie: z.string(), excludeSlug: z.string(), limit: z.number().default(3) }))
       .query(async ({ input }) => {
         const dbInstance = await db.getDb();
         if (!dbInstance) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
         const { articlesConseils } = await import("../drizzle/schema");
-        const { eq, ne, and, desc } = await import("drizzle-orm");
+        const { eq, ne, and, or, desc, isNull } = await import("drizzle-orm");
         const articles = await dbInstance
           .select()
           .from(articlesConseils)
           .where(and(
+            eq(articlesConseils.status, 'published'),
             eq(articlesConseils.categorie, input.categorie as any),
-            ne(articlesConseils.slug, input.excludeSlug)
+            ne(articlesConseils.slug, input.excludeSlug),
+            or(isNull(articlesConseils.slugEn), ne(articlesConseils.slugEn, input.excludeSlug)),
           ))
           .orderBy(desc(articlesConseils.datePublication))
           .limit(input.limit);

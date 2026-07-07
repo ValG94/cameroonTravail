@@ -2,6 +2,7 @@ import {
   boolean,
   decimal,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   serial,
@@ -248,16 +249,30 @@ export const passwordResetTokens = pgTable("passwordResetTokens", {
 });
 
 // ─── Articles de conseils ─────────────────────────────────────────────────────
+// Table bilingue FR/EN depuis la migration 0016. Les champs _fr restent
+// obligatoires (source of truth, sur laquelle la traduction s'appuie),
+// les champs _en sont nullable (l'article peut être publié FR-only).
+// status = 'draft' | 'published' pour permettre les brouillons admin.
 export const articlesConseils = pgTable("articles_conseils", {
   id: serial("id").primaryKey(),
+  // FR (obligatoire — source)
   slug: varchar("slug", { length: 200 }).unique().notNull(),
   titre: varchar("titre", { length: 300 }).notNull(),
   description: text("description").notNull(),
   contenu: text("contenu").notNull(),
+  // EN (optionnel — traduction assistée)
+  slugEn: varchar("slug_en", { length: 200 }),
+  titreEn: varchar("titre_en", { length: 300 }),
+  descriptionEn: text("description_en"),
+  contenuEn: text("contenu_en"),
+  // Métadonnées communes
   categorie: categorieArticleEnum("categorie").notNull(),
   auteur: varchar("auteur", { length: 150 }).notNull(),
   tempsLecture: varchar("tempsLecture", { length: 20 }).notNull(),
   imageUrl: text("imageUrl"),
+  imageAlt: varchar("imageAlt", { length: 300 }),
+  tags: jsonb("tags"),
+  status: varchar("status", { length: 20 }).default("published").notNull(),
   featured: boolean("featured").default(false).notNull(),
   datePublication: timestamp("datePublication").defaultNow().notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

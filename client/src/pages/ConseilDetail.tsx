@@ -1,12 +1,14 @@
 import { trpc } from "@/lib/trpc";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import SiteFooter from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { getArticleImage } from "@/lib/articleImages";
+import { useTranslation } from "react-i18next";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowLeft,
+  ArrowRight,
+  BookOpen,
   Calendar,
   Clock,
   Facebook,
@@ -16,17 +18,32 @@ import {
 } from "lucide-react";
 import { useLocation, useParams } from "wouter";
 
-// Couleurs par catégorie
-const CATEGORIE_COLORS: Record<string, string> = {
-  Entretien: "bg-blue-100 text-blue-700",
-  CV: "bg-green-100 text-green-700",
-  "Marché": "bg-purple-100 text-purple-700",
-  "Négociation": "bg-orange-100 text-orange-700",
-  Reconversion: "bg-pink-100 text-pink-700",
-  Freelance: "bg-yellow-100 text-yellow-700",
+const C = {
+  green: "#009B5A",
+  deepGreen: "#063F24",
+  greenSoft: "#EAF8F1",
+  gold: "#F6C343",
+  goldSoft: "rgba(246, 195, 67, 0.15)",
+  ivory: "#FAF7EF",
+  textMain: "#0F172A",
+  textMuted: "#64748B",
+  border: "#E2E8F0",
+  bg: "#F8FAFC",
 };
 
-// Rendu simple du Markdown (titres, gras, listes, paragraphes)
+// Palette pilule catégorie
+const CAT_COLORS: Record<string, { bg: string; fg: string; border: string }> = {
+  Entretien: { bg: "#EAF3FB", fg: "#1D4ED8", border: "#93C5FD" },
+  CV: { bg: "#EAF8F1", fg: "#063F24", border: "#A7D8B9" },
+  Marche: { bg: "#F3EAFB", fg: "#5B21B6", border: "#D8B4F8" },
+  Negociation: { bg: "#FDF2E3", fg: "#8B5A00", border: "#F6C343" },
+  Reconversion: { bg: "#FDECEC", fg: "#B91C1C", border: "#F4A5A5" },
+  Freelance: { bg: "#FEF7E0", fg: "#8B5A00", border: "#F6C343" },
+};
+
+// Rendu Markdown simple (titres, gras, listes, paragraphes). Préservé de
+// l'ancienne implémentation pour ne pas casser les articles existants
+// stockés en Markdown maison.
 function renderMarkdown(text: string) {
   const lines = text.split("\n");
   const elements: React.ReactNode[] = [];
@@ -37,33 +54,31 @@ function renderMarkdown(text: string) {
 
     if (line.startsWith("## ")) {
       elements.push(
-        <h2 key={i} className="text-2xl font-bold text-gray-900 mt-8 mb-4">
+        <h2 key={i} className="text-2xl font-bold mt-8 mb-4" style={{ color: C.textMain }}>
           {line.slice(3)}
         </h2>
       );
     } else if (line.startsWith("### ")) {
       elements.push(
-        <h3 key={i} className="text-xl font-semibold text-gray-800 mt-6 mb-3">
+        <h3 key={i} className="text-xl font-semibold mt-6 mb-3" style={{ color: C.textMain }}>
           {line.slice(4)}
         </h3>
       );
     } else if (line.startsWith("**") && line.endsWith("**") && line.length > 4) {
       elements.push(
-        <p key={i} className="font-semibold text-gray-800 mt-4 mb-2">
+        <p key={i} className="font-semibold mt-4 mb-2" style={{ color: C.textMain }}>
           {line.slice(2, -2)}
         </p>
       );
     } else if (line.startsWith("- ")) {
-      // Collect consecutive list items
       const listItems: string[] = [];
       while (i < lines.length && lines[i].startsWith("- ")) {
         listItems.push(lines[i].slice(2));
         i++;
       }
       elements.push(
-        <ul key={`list-${i}`} className="list-disc list-inside space-y-1 my-3 text-gray-700 ml-4">
+        <ul key={`list-${i}`} className="list-disc list-inside space-y-1.5 my-4 ml-4" style={{ color: C.textMain }}>
           {listItems.map((item, j) => {
-            // Handle bold within list items
             const parts = item.split(/\*\*(.*?)\*\*/g);
             return (
               <li key={j}>
@@ -77,12 +92,11 @@ function renderMarkdown(text: string) {
       );
       continue;
     } else if (line.trim() === "") {
-      // Skip empty lines
+      // skip empty
     } else {
-      // Regular paragraph — handle inline bold
       const parts = line.split(/\*\*(.*?)\*\*/g);
       elements.push(
-        <p key={i} className="text-gray-700 leading-relaxed mb-3">
+        <p key={i} className="leading-relaxed mb-3 text-[15.5px]" style={{ color: C.textMain }}>
           {parts.map((part, k) =>
             k % 2 === 1 ? <strong key={k}>{part}</strong> : part
           )}
@@ -95,10 +109,36 @@ function renderMarkdown(text: string) {
   return elements;
 }
 
+function localized<T extends Record<string, any>>(
+  article: T,
+  frField: string,
+  enField: string,
+  lang: string
+): string {
+  if (lang === "en") {
+    const enValue = article[enField];
+    if (enValue && String(enValue).trim().length > 0) return enValue;
+  }
+  return article[frField] || "";
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (i: number = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.45, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] as any },
+  }),
+};
+
 export default function ConseilDetail() {
+  const { t, i18n } = useTranslation();
   const params = useParams<{ slug: string }>();
   const [, setLocation] = useLocation();
   const slug = params.slug;
+  const lang = i18n.language;
+  const reduced = useReducedMotion();
+  const animate = (i: number = 0) => (reduced ? {} : { initial: "hidden", animate: "visible", variants: fadeUp, custom: i });
 
   const { data: article, isLoading, error } = trpc.conseils.getBySlug.useQuery(
     { slug: slug || "" },
@@ -117,27 +157,30 @@ export default function ConseilDetail() {
   const currentUrl = typeof window !== "undefined" ? window.location.href : "";
 
   const shareWhatsApp = () => {
-    const text = encodeURIComponent(`${article?.titre} - Cameroon Travail\n${currentUrl}`);
+    const text = encodeURIComponent(`${article ? localized(article, "titre", "titreEn", lang) : ""} - Cameroon Travail\n${currentUrl}`);
     window.open(`https://wa.me/?text=${text}`, "_blank");
   };
-
   const shareTwitter = () => {
-    const text = encodeURIComponent(article?.titre || "");
+    const text = encodeURIComponent(article ? localized(article, "titre", "titreEn", lang) : "");
     const url = encodeURIComponent(currentUrl);
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank");
   };
-
   const shareFacebook = () => {
     const url = encodeURIComponent(currentUrl);
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, "_blank");
   };
 
+  const dateLocale = lang === "en" ? "en-GB" : "fr-FR";
+
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4" />
-          <p className="text-gray-600">Chargement de l'article...</p>
+      <div className="min-h-screen bg-white">
+        <SiteHeader activePage="conseils" />
+        <div className="flex items-center justify-center py-32">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: C.green }} />
+            <p style={{ color: C.textMuted }}>{t("conseilsPage.loading")}</p>
+          </div>
         </div>
       </div>
     );
@@ -145,206 +188,236 @@ export default function ConseilDetail() {
 
   if (error || !article) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Article introuvable</h2>
-          <p className="text-gray-600 mb-6">Cet article n'existe pas ou a été supprimé.</p>
-          <Button onClick={() => setLocation("/conseils")}>
+      <div className="min-h-screen bg-white">
+        <SiteHeader activePage="conseils" />
+        <div className="max-w-2xl mx-auto px-4 py-20 text-center">
+          <div
+            className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
+            style={{ backgroundColor: C.greenSoft }}
+          >
+            <BookOpen className="h-6 w-6" style={{ color: C.green }} />
+          </div>
+          <h2 className="text-2xl font-bold mb-3" style={{ color: C.textMain }}>
+            {t("conseilsPage.detail.notFound")}
+          </h2>
+          <Button
+            onClick={() => setLocation("/conseils")}
+            className="rounded-xl text-white"
+            style={{ backgroundColor: C.deepGreen }}
+          >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Retour aux conseils
+            {t("conseilsPage.detail.backHome")}
           </Button>
         </div>
       </div>
     );
   }
 
-  const categorieColor = CATEGORIE_COLORS[article.categorie] || "bg-gray-100 text-gray-700";
+  const titre = localized(article, "titre", "titreEn", lang);
+  const description = localized(article, "description", "descriptionEn", lang);
+  const contenu = localized(article, "contenu", "contenuEn", lang);
+  const heroImg = getArticleImage(article);
+  const catCol = CAT_COLORS[article.categorie] || { bg: "#F1F5F9", fg: "#334155", border: "#CBD5E1" };
+
+  const formattedDate = new Date(article.datePublication).toLocaleDateString(dateLocale, {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* ─── Header (composant partagé) ─────────────────────────────────────── */}
+    <div className="min-h-screen bg-white" style={{ fontFamily: "'Manrope', 'Inter', sans-serif" }}>
       <SiteHeader activePage="conseils" />
 
-      {/* ─── Breadcrumb ─────────────────────────────────────────────────────── */}
-      <div className="bg-gray-50 border-b">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <button onClick={() => setLocation("/")} className="hover:text-green-700">Accueil</button>
-            <span>/</span>
-            <button onClick={() => setLocation("/conseils")} className="hover:text-green-700">Conseils</button>
-            <span>/</span>
-            <span className="text-gray-900 font-medium truncate max-w-xs">{article.titre}</span>
-          </div>
+      {/* ─── Breadcrumb + back ─────────────────────────────────── */}
+      <div className="border-b" style={{ backgroundColor: C.bg, borderColor: C.border }}>
+        <div className="max-w-[1200px] mx-auto px-4 lg:px-6 py-3">
+          <button
+            onClick={() => setLocation("/conseils")}
+            className="flex items-center gap-1.5 text-sm font-medium transition-opacity hover:opacity-70"
+            style={{ color: C.deepGreen }}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            {t("conseilsPage.detail.back")}
+          </button>
         </div>
       </div>
 
-      {/* ─── Hero image (avec override centralisé pour cohérence card↔détail) */}
-      {(() => {
-        const heroImg = getArticleImage(article);
-        if (!heroImg) return null;
-        return (
-          <div className="w-full h-72 md:h-96 overflow-hidden">
-            <img
-              src={heroImg}
-              alt={article.titre}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        );
-      })()}
+      {/* ─── Hero image ────────────────────────────────────────── */}
+      {heroImg && (
+        <div className="w-full aspect-[16/6] max-h-[420px] overflow-hidden bg-gray-100">
+          <img
+            src={heroImg}
+            alt={article.imageAlt || titre}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
 
-      {/* ─── Contenu principal ──────────────────────────────────────────────── */}
-      <div className="container mx-auto px-4 py-10">
-        <div className="max-w-3xl mx-auto">
-          {/* Catégorie + meta */}
-          <div className="flex flex-wrap items-center gap-3 mb-4">
-            <Badge className={`${categorieColor} border-0 font-medium`}>
-              {article.categorie}
-            </Badge>
-            {article.featured && (
-              <Badge className="bg-amber-100 text-amber-700 border-0 font-medium">
-                Article à la une
-              </Badge>
-            )}
-          </div>
-
-          {/* Titre */}
-          <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-6 leading-tight">
-            {article.titre}
-          </h1>
-
-          {/* Meta auteur / date / temps de lecture */}
-          <div className="flex flex-wrap items-center gap-5 text-sm text-gray-500 mb-6 pb-6 border-b">
-            <span className="flex items-center gap-1.5">
-              <User className="h-4 w-4" />
-              {article.auteur}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Calendar className="h-4 w-4" />
-              {new Date(article.datePublication).toLocaleDateString("fr-FR", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Clock className="h-4 w-4" />
-              {article.tempsLecture} de lecture
-            </span>
-          </div>
-
-          {/* Description */}
-          <p className="text-lg text-gray-600 italic mb-8 leading-relaxed">
-            {article.description}
-          </p>
-
-          {/* Contenu Markdown */}
-          <div className="prose-article">
-            {renderMarkdown(article.contenu)}
-          </div>
-
-          {/* ─── Partage social ─────────────────────────────────────────────── */}
-          <div className="mt-10 pt-8 border-t">
-            <div className="flex items-center gap-4 flex-wrap">
-              <span className="flex items-center gap-2 text-gray-600 font-medium">
-                <Share2 className="h-5 w-5" />
-                Partager cet article :
-              </span>
-              <button
-                onClick={shareWhatsApp}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white text-sm font-medium transition-colors"
-              >
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                </svg>
-                WhatsApp
-              </button>
-              <button
-                onClick={shareTwitter}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-black hover:bg-gray-800 text-white text-sm font-medium transition-colors"
-              >
-                <Twitter className="h-4 w-4" />
-                X (Twitter)
-              </button>
-              <button
-                onClick={shareFacebook}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors"
-              >
-                <Facebook className="h-4 w-4" />
-                Facebook
-              </button>
-            </div>
-          </div>
-
-          {/* ─── Bouton retour ──────────────────────────────────────────────── */}
-          <div className="mt-8">
-            <Button
-              variant="outline"
-              onClick={() => setLocation("/conseils")}
-              className="gap-2"
+      {/* ─── Contenu principal ─────────────────────────────────── */}
+      <motion.article {...animate(0)} className="max-w-[860px] mx-auto px-4 lg:px-6 py-10 lg:py-14">
+        {/* Badges */}
+        <div className="flex flex-wrap items-center gap-2 mb-5">
+          <span
+            className="inline-flex items-center text-[11px] font-bold uppercase tracking-wide rounded-md px-2.5 py-1 border"
+            style={{ backgroundColor: catCol.bg, color: catCol.fg, borderColor: catCol.border }}
+          >
+            {t(`conseilsPage.categories.${article.categorie}`)}
+          </span>
+          {article.featured && (
+            <span
+              className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide rounded-md px-2.5 py-1 border"
+              style={{ backgroundColor: C.goldSoft, color: C.deepGreen, borderColor: C.gold }}
             >
-              <ArrowLeft className="h-4 w-4" />
-              Retour aux conseils
-            </Button>
+              {t("conseilsPage.featured.badge")}
+            </span>
+          )}
+        </div>
+
+        {/* Titre */}
+        <h1
+          className="font-extrabold tracking-tight leading-tight mb-5"
+          style={{ fontSize: "clamp(28px, 3.6vw, 44px)", color: C.textMain }}
+        >
+          {titre}
+        </h1>
+
+        {/* Meta */}
+        <div
+          className="flex flex-wrap items-center gap-5 text-sm mb-6 pb-6 border-b"
+          style={{ color: C.textMuted, borderColor: C.border }}
+        >
+          <span className="flex items-center gap-1.5">
+            <User className="h-4 w-4" style={{ color: C.green }} />
+            {article.auteur}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Calendar className="h-4 w-4" style={{ color: C.green }} />
+            {formattedDate}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Clock className="h-4 w-4" style={{ color: C.green }} />
+            {t("conseilsPage.detail.readingTime", { time: article.tempsLecture })}
+          </span>
+        </div>
+
+        {/* Description (accroche) */}
+        <p
+          className="text-[17px] italic leading-relaxed mb-10 pl-4 border-l-4"
+          style={{ color: C.textMain, borderColor: C.gold }}
+        >
+          {description}
+        </p>
+
+        {/* Contenu Markdown rendu */}
+        <div className="prose-article">{renderMarkdown(contenu)}</div>
+
+        {/* Partage */}
+        <div className="mt-12 pt-8 border-t" style={{ borderColor: C.border }}>
+          <p className="flex items-center gap-2 font-semibold mb-3" style={{ color: C.textMain }}>
+            <Share2 className="h-5 w-5" style={{ color: C.green }} />
+            {t("conseilsPage.detail.share")}
+          </p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={shareWhatsApp}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-semibold transition-colors"
+              style={{ backgroundColor: "#25D366" }}
+            >
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.966-.273-.099-.471-.148-.67.149-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.172-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+              </svg>
+              WhatsApp
+            </button>
+            <button
+              onClick={shareTwitter}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-semibold transition-colors"
+              style={{ backgroundColor: "#0F172A" }}
+            >
+              <Twitter className="h-4 w-4" />
+              X
+            </button>
+            <button
+              onClick={shareFacebook}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-semibold transition-colors"
+              style={{ backgroundColor: "#1877F2" }}
+            >
+              <Facebook className="h-4 w-4" />
+              Facebook
+            </button>
           </div>
         </div>
-      </div>
+      </motion.article>
 
-      {/* ─── Articles similaires ────────────────────────────────────────────── */}
+      {/* ─── Articles similaires ──────────────────────────────── */}
       {similaires && similaires.length > 0 && (
-        <section className="bg-gray-50 py-12">
-          <div className="container mx-auto px-4">
-            <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">
-              Articles similaires
+        <section className="py-12 lg:py-16 border-t" style={{ backgroundColor: C.bg, borderColor: C.border }}>
+          <div className="max-w-[1200px] mx-auto px-4 lg:px-6">
+            <h2 className="font-bold text-center mb-8" style={{ fontSize: "clamp(22px, 2.4vw, 30px)", color: C.textMain }}>
+              {t("conseilsPage.detail.similar")}
             </h2>
-            <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
               {similaires.map((sim) => {
-                const color = CATEGORIE_COLORS[sim.categorie] || "bg-gray-100 text-gray-700";
+                const simTitre = localized(sim, "titre", "titreEn", lang);
+                const simImg = getArticleImage(sim);
+                const simCat = CAT_COLORS[sim.categorie] || { bg: "#F1F5F9", fg: "#334155", border: "#CBD5E1" };
+                const simSlug = lang === "en" && sim.slugEn ? sim.slugEn : sim.slug;
                 return (
-                  <Card
+                  <article
                     key={sim.id}
-                    className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer flex flex-col"
-                    onClick={() => setLocation(`/conseils/${sim.slug}`)}
+                    className="bg-white rounded-2xl border overflow-hidden cursor-pointer flex flex-col group transition-all hover:-translate-y-1"
+                    style={{ borderColor: C.border, boxShadow: "0 1px 3px rgba(15, 23, 42, 0.04)" }}
+                    onClick={() => setLocation(`/conseils/${simSlug}`)}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 30px -12px rgba(6, 63, 36, 0.22)";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLElement).style.boxShadow = "0 1px 3px rgba(15, 23, 42, 0.04)";
+                    }}
                   >
-                    {(() => {
-                      const simImg = getArticleImage(sim);
-                      if (!simImg) return null;
-                      return (
-                        <div className="h-40 overflow-hidden">
-                          <img
-                            src={simImg}
-                            alt={sim.titre}
-                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                          />
-                        </div>
-                      );
-                    })()}
-                    <CardContent className="p-4 flex flex-col flex-1">
-                      <Badge className={`${color} border-0 text-xs mb-2 w-fit`}>
-                        {sim.categorie}
-                      </Badge>
-                      <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 flex-1">
-                        {sim.titre}
+                    {simImg && (
+                      <div className="aspect-video overflow-hidden bg-gray-100">
+                        <img
+                          src={simImg}
+                          alt={sim.imageAlt || simTitre}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          loading="lazy"
+                        />
+                      </div>
+                    )}
+                    <div className="p-5 flex flex-col flex-1">
+                      <span
+                        className="inline-block text-[11px] font-bold uppercase tracking-wide rounded-md px-2 py-0.5 border w-fit mb-2"
+                        style={{ backgroundColor: simCat.bg, color: simCat.fg, borderColor: simCat.border }}
+                      >
+                        {t(`conseilsPage.categories.${sim.categorie}`)}
+                      </span>
+                      <h3 className="font-bold text-[15.5px] leading-snug line-clamp-2 mb-2" style={{ color: C.textMain }}>
+                        {simTitre}
                       </h3>
-                      <div className="flex items-center gap-3 text-xs text-gray-500 mt-auto">
+                      <div className="flex items-center gap-3 text-xs mt-auto pt-2" style={{ color: C.textMuted }}>
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {sim.tempsLecture}
                         </span>
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          {new Date(sim.datePublication).toLocaleDateString("fr-FR", {
+                          {new Date(sim.datePublication).toLocaleDateString(dateLocale, {
                             day: "numeric",
                             month: "short",
                             year: "numeric",
                           })}
                         </span>
                       </div>
-                      <button className="mt-3 text-green-700 text-sm font-medium hover:underline text-left">
-                        Lire la suite →
+                      <button
+                        className="mt-3 text-sm font-semibold hover:underline text-left flex items-center gap-1"
+                        style={{ color: C.deepGreen }}
+                      >
+                        {t("conseilsPage.card.readMore")}
+                        <ArrowRight className="h-3.5 w-3.5" />
                       </button>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </article>
                 );
               })}
             </div>

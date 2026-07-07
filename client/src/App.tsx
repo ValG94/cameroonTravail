@@ -36,6 +36,7 @@ import OffreDetail from "./pages/OffreDetail";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import AdminDashboard from "./pages/admin/Dashboard";
+import AdminArticles from "./pages/admin/Articles";
 import AdminSouscriptions from "./pages/admin/Souscriptions";
 import Conseils from "./pages/Conseils";
 import ConseilDetail from "./pages/ConseilDetail";
@@ -86,6 +87,7 @@ function Router() {
       <Route path="/employeur/mes-souscriptions" component={MesSouscriptions} />
       <Route path="/employeur/offres/:id/modifier" component={ModifierOffre} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
+      <Route path="/admin/articles" component={AdminArticles} />
       <Route path="/admin/souscriptions" component={AdminSouscriptions} />
       <Route path="/deposer-cv" component={DeposerCV} />
       <Route path="/cv/classique" component={CVClassique} />

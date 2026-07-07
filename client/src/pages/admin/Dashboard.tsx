@@ -35,6 +35,7 @@ import {
 import AdminFormules from "./AdminFormules";
 import { useState as useStateLocal } from "react";
 import MDEditor from "@uiw/react-md-editor";
+import { AdminLayout } from "@/components/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -495,85 +496,55 @@ export default function AdminDashboard() {
     : [];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-100 rounded-lg">
-                <Shield className="h-5 w-5 text-amber-600" />
-              </div>
-              <div>
-                <h1 className="text-lg font-bold text-gray-900">{t("bo.adminDashboard.title")}</h1>
-                <p className="text-xs text-gray-500">Cameroon Travail</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => refetch()}
-                className="gap-2"
-              >
-                <RefreshCw className="h-4 w-4" />
-                Actualiser
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setLocation("/")}
-              >
-                ← Retour au site
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Navigation onglets */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-0 overflow-x-auto">
-            {[
-              { key: "overview", label: t("bo.adminDashboard.tabs.overview"), icon: BarChart3 },
-              { key: "users", label: t("bo.adminDashboard.tabs.users"), icon: Users },
-              { key: "offres", label: t("bo.adminDashboard.tabs.jobs"), icon: Briefcase },
-              { key: "articles", label: t("bo.adminDashboard.tabs.articles"), icon: BookOpen },
-              { key: "formules", label: t("bo.adminDashboard.tabs.formules"), icon: CreditCard },
-            ].map(({ key, label, icon: Icon }) => (
-              <button
-                key={key}
-                onClick={() => setActiveTab(key as typeof activeTab)}
-                className={`flex items-center gap-2 px-5 py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                  activeTab === key
-                    ? "border-green-600 text-green-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                {label}
-              </button>
-            ))}
-            {/* Onglet Souscriptions — page dédiée avec badge si demandes
-                en attente (refresh auto toutes les 30s). */}
+    <AdminLayout
+      title={t("bo.adminDashboard.title")}
+      subtitle={t("bo.adminDashboard.subtitle")}
+      activeKey="dashboard"
+      onRefresh={() => refetch()}
+    >
+      {/* Sub-tab bar — navigation entre les vues internes du dashboard
+          (Vue d'ensemble / Utilisateurs / Offres / Formules). L'onglet
+          "Articles" a été retiré et déplacé sur la page dédiée
+          /admin/articles pour permettre le CRUD bilingue et l'upload
+          d'images. */}
+      <div className="bg-white rounded-2xl border mb-6 overflow-x-auto" style={{ borderColor: "#E2E8F0" }}>
+        <div className="flex gap-0 min-w-max">
+          {[
+            { key: "overview", label: t("bo.adminDashboard.tabs.overview"), icon: BarChart3 },
+            { key: "users", label: t("bo.adminDashboard.tabs.users"), icon: Users },
+            { key: "offres", label: t("bo.adminDashboard.tabs.jobs"), icon: Briefcase },
+            { key: "formules", label: t("bo.adminDashboard.tabs.formules"), icon: CreditCard },
+          ].map(({ key, label, icon: Icon }) => (
             <button
-              onClick={() => setLocation("/admin/souscriptions")}
-              className="flex items-center gap-2 px-5 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 transition-colors whitespace-nowrap relative"
+              key={key}
+              onClick={() => setActiveTab(key as typeof activeTab)}
+              className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                activeTab === key
+                  ? "border-[#063F24] text-[#063F24]"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
             >
-              <Wallet className="h-4 w-4" />
-              {t("bo.adminDashboard.tabs.subscriptions")}
-              {nbDemandesAttente > 0 && (
-                <span className="ml-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-amber-500 text-white text-xs font-bold">
-                  {nbDemandesAttente}
-                </span>
-              )}
+              <Icon className="h-4 w-4" />
+              {label}
             </button>
-          </div>
+          ))}
+          {/* Souscriptions — page dédiée avec badge */}
+          <button
+            onClick={() => setLocation("/admin/souscriptions")}
+            className="flex items-center gap-2 px-5 py-3.5 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 transition-colors whitespace-nowrap relative"
+          >
+            <Wallet className="h-4 w-4" />
+            {t("bo.adminDashboard.tabs.subscriptions")}
+            {nbDemandesAttente > 0 && (
+              <span className="ml-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-amber-500 text-white text-xs font-bold">
+                {nbDemandesAttente}
+              </span>
+            )}
+          </button>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div>
 
         {/* ── Vue d'ensemble ── */}
         {activeTab === "overview" && (
@@ -837,13 +808,14 @@ export default function AdminDashboard() {
         {/* ── Onglet Offres ── */}
         {activeTab === "offres" && <OffresTable />}
 
-        {/* ── Onglet Articles ── */}
+        {/* ── Onglet Articles ── (dead code : la nav sidebar redirige
+            désormais vers /admin/articles pour le CRUD bilingue). */}
         {activeTab === "articles" && <ArticlesTable />}
 
         {/* ── Onglet Formules tarifaires ── */}
         {activeTab === "formules" && <AdminFormules />}
       </div>
-    </div>
+    </AdminLayout>
   );
 }
 

@@ -5,6 +5,9 @@ export const ENV = {
   supabaseUrl: process.env.SUPABASE_URL ?? "",
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
   corsOrigin: process.env.CORS_ORIGIN ?? "",
+  // OpenAI — utilisé pour la traduction assistée des articles FR↔EN
+  // (admin.translateArticle). Peut aussi être utilisé pour d'autres
+  // tâches LLM dans le futur (résumé, extraction, etc.).
   openaiApiKey: process.env.OPENAI_API_KEY ?? "",
   resendApiKey: process.env.RESEND_API_KEY ?? "",
   // Adresse expéditrice utilisée par Resend. DOIT correspondre à un domaine
