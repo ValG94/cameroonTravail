@@ -243,13 +243,18 @@ export default function ConseilDetail() {
         </div>
       </div>
 
-      {/* ─── Hero image ────────────────────────────────────────── */}
+      {/* ─── Hero image ────────────────────────────────────────
+          Aspect 16/9 (au lieu de 16/6) + max-h relevée à 540px
+          pour montrer davantage de la photo et ne pas la cropper
+          agressivement sur les images plus proches d'un format
+          carré/portrait. object-center + object-cover garde le
+          sujet centré. */}
       {heroImg && (
-        <div className="w-full aspect-[16/6] max-h-[420px] overflow-hidden bg-gray-100">
+        <div className="w-full aspect-video max-h-[540px] overflow-hidden bg-gray-100">
           <img
             src={heroImg}
             alt={article.imageAlt || titre}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover object-center"
           />
         </div>
       )}

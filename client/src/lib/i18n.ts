@@ -378,12 +378,17 @@ const fr = {
       search: {
         placeholder: "Rechercher un article, un sujet…",
       },
+      // Clés en 2 variantes (avec / sans accents) car la DB peut
+      // stocker Marché/Négociation (varchar libre) alors que le
+      // pgEnum déclarait Marche/Negociation. On accepte les deux.
       categories: {
         all: "Tous",
         Entretien: "Entretien",
         CV: "CV",
         Marche: "Marché",
+        "Marché": "Marché",
         Negociation: "Négociation",
+        "Négociation": "Négociation",
         Reconversion: "Reconversion",
         Freelance: "Freelance",
       },
@@ -2321,12 +2326,15 @@ const en = {
       search: {
         placeholder: "Search an article, a topic…",
       },
+      // Keys in 2 variants (with/without accents) — see FR note above
       categories: {
         all: "All",
         Entretien: "Interview",
         CV: "Résumé",
         Marche: "Market",
+        "Marché": "Market",
         Negociation: "Negotiation",
+        "Négociation": "Negotiation",
         Reconversion: "Career change",
         Freelance: "Freelance",
       },
