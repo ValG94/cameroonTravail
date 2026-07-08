@@ -1665,17 +1665,28 @@ export const appRouter = router({
           .select({
             id: offresEmploi.id,
             employeurId: offresEmploi.employeurId,
+            // FR (source)
             titre: offresEmploi.titre,
-            typeOffre: offresEmploi.typeOffre,
             description: offresEmploi.description,
             missions: offresEmploi.missions,
             competencesRequises: offresEmploi.competencesRequises,
             experienceRequise: offresEmploi.experienceRequise,
             niveauEtude: offresEmploi.niveauEtude,
+            avantages: offresEmploi.avantages,
+            // EN (migration 0017 — sans ces champs le front public ne
+            // peut pas afficher la version anglaise et fallback FR)
+            titreEn: offresEmploi.titreEn,
+            descriptionEn: offresEmploi.descriptionEn,
+            missionsEn: offresEmploi.missionsEn,
+            competencesRequisesEn: offresEmploi.competencesRequisesEn,
+            experienceRequiseEn: offresEmploi.experienceRequiseEn,
+            niveauEtudeEn: offresEmploi.niveauEtudeEn,
+            avantagesEn: offresEmploi.avantagesEn,
+            // Métadonnées
+            typeOffre: offresEmploi.typeOffre,
             typeContrat: offresEmploi.typeContrat,
             dureeContrat: offresEmploi.dureeContrat,
             salaire: offresEmploi.salaire,
-            avantages: offresEmploi.avantages,
             ville: offresEmploi.ville,
             region: offresEmploi.region,
             pays: offresEmploi.pays,
