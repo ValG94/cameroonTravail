@@ -135,6 +135,18 @@ export default function Connexion() {
       // ne monte et déclenche 9 queries protégées en batch.
       await new Promise((resolve) => setTimeout(resolve, 500));
 
+      // Redirection prioritaire : si l'URL contient ?redirect=/path,
+      // aller à cette destination (ex : "Créer mon CV" depuis le
+      // header en anonyme → /connexion?redirect=/candidat/cv → après
+      // login, on va directement sur /candidat/cv au lieu du dashboard).
+      // On ne suit que les chemins relatifs (sécurité open-redirect).
+      const sp = new URLSearchParams(searchString || "");
+      const redirectTarget = sp.get("redirect");
+      if (redirectTarget && redirectTarget.startsWith("/") && !redirectTarget.startsWith("//")) {
+        setLocation(redirectTarget);
+        return;
+      }
+
       if (data.user.profileType === "candidat") {
         setLocation("/candidat/dashboard");
       } else if (data.user.profileType === "employeur") {

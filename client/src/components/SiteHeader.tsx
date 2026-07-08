@@ -49,11 +49,24 @@ export function SiteHeader({ activePage }: SiteHeaderProps) {
     onError: () => setLocation("/"),
   });
 
+  /**
+   * "Créer mon CV" — comportement selon l'état auth :
+   *  - non connecté → /connexion?redirect=/candidat/cv (l'utilisateur
+   *    revient sur la page CV après login au lieu de voir un flash
+   *    de la page candidat suivi d'une redirection intempestive)
+   *  - candidat connecté → /candidat/cv (page normale)
+   *  - autre rôle connecté (employeur, admin) → /candidat/cv aussi,
+   *    la page gérera le cas
+   */
+  const createCvHref = !authLoading && !user
+    ? "/connexion?redirect=/candidat/cv"
+    : "/candidat/cv";
+
   const navLinks = [
     { label: t("nav.home"), path: "/", key: "accueil" },
     { label: t("nav.jobs"), path: "/offres", key: "emplois" },
     { label: t("nav.advice"), path: "/conseils", key: "conseils" },
-    { label: t("nav.createCv"), path: "/candidat/cv", key: "creer-cv" },
+    { label: t("nav.createCv"), path: createCvHref, key: "creer-cv" },
   ];
 
   const isActive = (link: typeof navLinks[0]) =>
