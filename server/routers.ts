@@ -3238,9 +3238,17 @@ export const appRouter = router({
 
         const offset = (input.page - 1) * input.limit;
 
-        // Conditions de base : CV actif et visible dans la CVthèque
+        // Conditions de base : uniquement CV rendus visibles dans la
+        // CVthèque par le candidat via le toggle sur /candidat/cv.
+        //
+        // Note : on ne filtre PLUS sur cvDocuments.actif (bug résolu).
+        // La logique "un CV actif à la fois" empêchait un candidat
+        // avec plusieurs CV (upload + premium par exemple) de tous
+        // les rendre visibles ; seul son dernier créé apparaissait.
+        // Maintenant chaque CV visibleCVtheque=true remonte dans la
+        // recherche recruteur, ce qui est le comportement attendu
+        // d'une CVthèque : le recruteur voit tous les CV disponibles.
         const baseConditions: any[] = [
-          eq(cvDocuments.actif, true),
           eq(cvDocuments.visibleCVtheque, true),
         ];
 
