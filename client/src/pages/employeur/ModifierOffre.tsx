@@ -20,6 +20,7 @@ import { useLocation, useParams } from "wouter";
 import { regions, getVillesForRegion } from "@/../../shared/regions-villes";
 import RichTextEditor from "@/components/RichTextEditor";
 import { SECTEURS as secteurs } from "@/lib/secteurs";
+import { JobLangBar, type Lang } from "@/components/JobLangBar";
 
 const typesContrat = [
   "CDI",
@@ -38,18 +39,33 @@ export default function ModifierOffre() {
   const [villesSuggestions, setVillesSuggestions] = useState<string[]>([]);
   const [initialized, setInitialized] = useState(false);
 
+  // Langue active du formulaire (FR par défaut). 7 champs éditoriaux
+  // bilingues (voir bilingualKeys ci-dessous). Version EN gérée en
+  // parallèle et remplissable via traduction assistée OpenAI.
+  const [activeLang, setActiveLang] = useState<Lang>("fr");
+
   const [formData, setFormData] = useState({
+    // FR (source)
     titre: "",
     description: "",
     missions: "",
     competencesRequises: "",
     experienceRequise: "",
     niveauEtude: "",
+    avantages: "",
+    // EN (optionnel — traduction assistée ou saisie manuelle)
+    titreEn: "",
+    descriptionEn: "",
+    missionsEn: "",
+    competencesRequisesEn: "",
+    experienceRequiseEn: "",
+    niveauEtudeEn: "",
+    avantagesEn: "",
+    // Métadonnées
     typeOffre: "prive" as "public" | "prive",
     typeContrat: "",
     dureeContrat: "",
     salaire: "",
-    avantages: "",
     ville: "",
     region: "",
     secteur: "",
@@ -58,6 +74,17 @@ export default function ModifierOffre() {
     dateDebut: "",
     nombrePostes: 1,
   });
+
+  const bilingualKeys = ["titre", "description", "missions", "competencesRequises", "experienceRequise", "niveauEtude", "avantages"] as const;
+  type BilingualKey = typeof bilingualKeys[number];
+  const getBilingual = (key: BilingualKey) => {
+    const suffix = activeLang === "en" ? "En" : "";
+    return (formData as any)[`${key}${suffix}`] || "";
+  };
+  const setBilingual = (key: BilingualKey, value: string) => {
+    const targetKey = activeLang === "en" ? `${key}En` : key;
+    setFormData((prev) => ({ ...prev, [targetKey]: value }));
+  };
 
   // Charger les données de l'offre existante
   const { data: offre, isLoading } = trpc.jobs.getById.useQuery(
@@ -75,17 +102,27 @@ export default function ModifierOffre() {
       };
 
       setFormData({
+        // FR
         titre: offre.titre || "",
         description: offre.description || "",
         missions: offre.missions || "",
         competencesRequises: offre.competencesRequises || "",
         experienceRequise: offre.experienceRequise || "",
         niveauEtude: offre.niveauEtude || "",
+        avantages: offre.avantages || "",
+        // EN (récupéré depuis DB via getById — migration 0017)
+        titreEn: (offre as any).titreEn || "",
+        descriptionEn: (offre as any).descriptionEn || "",
+        missionsEn: (offre as any).missionsEn || "",
+        competencesRequisesEn: (offre as any).competencesRequisesEn || "",
+        experienceRequiseEn: (offre as any).experienceRequiseEn || "",
+        niveauEtudeEn: (offre as any).niveauEtudeEn || "",
+        avantagesEn: (offre as any).avantagesEn || "",
+        // Métadonnées
         typeOffre: offre.typeOffre || "prive",
         typeContrat: offre.typeContrat || "",
         dureeContrat: offre.dureeContrat || "",
         salaire: offre.salaire || "",
-        avantages: offre.avantages || "",
         ville: offre.ville || "",
         region: offre.region || "",
         secteur: offre.secteur || "",
@@ -212,6 +249,45 @@ export default function ModifierOffre() {
         </div>
 
         <form onSubmit={handleSubmit}>
+          {/* Barre de langue FR/EN avec bouton de traduction assistée. */}
+          <JobLangBar
+            activeLang={activeLang}
+            setActiveLang={setActiveLang}
+            values={{
+              fr: {
+                titre: formData.titre,
+                description: formData.description,
+                missions: formData.missions,
+                competencesRequises: formData.competencesRequises,
+                experienceRequise: formData.experienceRequise,
+                niveauEtude: formData.niveauEtude,
+                avantages: formData.avantages,
+              },
+              en: {
+                titre: formData.titreEn,
+                description: formData.descriptionEn,
+                missions: formData.missionsEn,
+                competencesRequises: formData.competencesRequisesEn,
+                experienceRequise: formData.experienceRequiseEn,
+                niveauEtude: formData.niveauEtudeEn,
+                avantages: formData.avantagesEn,
+              },
+            }}
+            onTranslated={(target, translated) => {
+              const suffix = target === "en" ? "En" : "";
+              setFormData((prev) => ({
+                ...prev,
+                [`titre${suffix}`]: translated.titre,
+                [`description${suffix}`]: translated.description,
+                [`missions${suffix}`]: translated.missions || "",
+                [`competencesRequises${suffix}`]: translated.competencesRequises || "",
+                [`experienceRequise${suffix}`]: translated.experienceRequise || "",
+                [`niveauEtude${suffix}`]: translated.niveauEtude || "",
+                [`avantages${suffix}`]: translated.avantages || "",
+              }));
+            }}
+          />
+
           <div className="space-y-6">
             {/* Informations générales */}
             <Card>
@@ -226,10 +302,10 @@ export default function ModifierOffre() {
                   <Label htmlFor="titre">Titre du poste *</Label>
                   <Input
                     id="titre"
-                    value={formData.titre}
-                    onChange={(e) => handleChange("titre", e.target.value)}
+                    value={getBilingual("titre")}
+                    onChange={(e) => setBilingual("titre", e.target.value)}
                     placeholder="Ex: Développeur Full Stack"
-                    required
+                    required={activeLang === "fr"}
                   />
                 </div>
 
@@ -283,10 +359,10 @@ export default function ModifierOffre() {
                 <div className="space-y-2">
                   <Label htmlFor="description">Description du poste *</Label>
                   <RichTextEditor
-                    key={`description-${offreId}`}
-                    value={formData.description}
-                    initialValue={formData.description}
-                    onChange={(value) => handleChange("description", value)}
+                    key={`description-${offreId}-${activeLang}`}
+                    value={getBilingual("description")}
+                    initialValue={getBilingual("description")}
+                    onChange={(value) => setBilingual("description", value)}
                     placeholder="Décrivez le poste, le contexte, les responsabilités..."
                     minHeight="180px"
                   />
@@ -298,10 +374,10 @@ export default function ModifierOffre() {
                 <div className="space-y-2">
                   <Label htmlFor="missions">Missions principales</Label>
                   <RichTextEditor
-                    key={`missions-${offreId}`}
-                    value={formData.missions}
-                    initialValue={formData.missions}
-                    onChange={(value) => handleChange("missions", value)}
+                    key={`missions-${offreId}-${activeLang}`}
+                    value={getBilingual("missions")}
+                    initialValue={getBilingual("missions")}
+                    onChange={(value) => setBilingual("missions", value)}
                     placeholder="Listez les principales missions du poste..."
                     minHeight="150px"
                   />
@@ -321,10 +397,10 @@ export default function ModifierOffre() {
                 <div className="space-y-2">
                   <Label htmlFor="competencesRequises">Compétences requises</Label>
                   <RichTextEditor
-                    key={`competences-${offreId}`}
-                    value={formData.competencesRequises}
-                    initialValue={formData.competencesRequises}
-                    onChange={(value) => handleChange("competencesRequises", value)}
+                    key={`competences-${offreId}-${activeLang}`}
+                    value={getBilingual("competencesRequises")}
+                    initialValue={getBilingual("competencesRequises")}
+                    onChange={(value) => setBilingual("competencesRequises", value)}
                     placeholder="Listez les compétences techniques et comportementales attendues..."
                     minHeight="150px"
                   />
@@ -335,8 +411,8 @@ export default function ModifierOffre() {
                     <Label htmlFor="experienceRequise">Expérience requise</Label>
                     <Input
                       id="experienceRequise"
-                      value={formData.experienceRequise}
-                      onChange={(e) => handleChange("experienceRequise", e.target.value)}
+                      value={getBilingual("experienceRequise")}
+                      onChange={(e) => setBilingual("experienceRequise", e.target.value)}
                       placeholder="Ex: 3 ans minimum"
                     />
                   </div>
@@ -345,8 +421,8 @@ export default function ModifierOffre() {
                     <Label htmlFor="niveauEtude">Niveau d'études</Label>
                     <Input
                       id="niveauEtude"
-                      value={formData.niveauEtude}
-                      onChange={(e) => handleChange("niveauEtude", e.target.value)}
+                      value={getBilingual("niveauEtude")}
+                      onChange={(e) => setBilingual("niveauEtude", e.target.value)}
                       placeholder="Ex: Bac+5"
                     />
                   </div>
@@ -423,8 +499,8 @@ export default function ModifierOffre() {
                   <Label htmlFor="avantages">Avantages</Label>
                   <Textarea
                     id="avantages"
-                    value={formData.avantages}
-                    onChange={(e) => handleChange("avantages", e.target.value)}
+                    value={getBilingual("avantages")}
+                    onChange={(e) => setBilingual("avantages", e.target.value)}
                     placeholder="Listez les avantages offerts (primes, assurance, formation...)"
                     rows={3}
                     className="resize-none"

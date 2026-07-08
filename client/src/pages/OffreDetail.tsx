@@ -215,13 +215,33 @@ export default function OffreDetail() {
   const publishedDate = formatDate(offre.datePublication);
   const expiresDate = formatDate(offre.dateLimite);
 
+  // ─── Bilinguisme : sélection FR/EN selon i18n.language ────────
+  // Fallback vers la version FR (source obligatoire) si l'employeur
+  // n'a pas fourni de traduction EN pour un champ donné. Un candidat
+  // anglophone verra la traduction si dispo, sinon la version FR.
+  const pickLang = (fr: string | null | undefined, en: string | null | undefined): string => {
+    if (i18n.language === "en") {
+      const enTrimmed = (en || "").trim();
+      if (enTrimmed.length > 0) return enTrimmed;
+    }
+    return fr || "";
+  };
+
+  const localizedTitre = pickLang(offre.titre, (offre as any).titreEn);
+  const localizedDescription = pickLang(offre.description, (offre as any).descriptionEn);
+  const localizedMissions = pickLang(offre.missions, (offre as any).missionsEn);
+  const localizedCompetences = pickLang(offre.competencesRequises, (offre as any).competencesRequisesEn);
+  const localizedAvantages = pickLang(offre.avantages, (offre as any).avantagesEn);
+  const localizedExperience = pickLang(offre.experienceRequise, (offre as any).experienceRequiseEn);
+  const localizedNiveauEtude = pickLang(offre.niveauEtude, (offre as any).niveauEtudeEn);
+
   // ─── HTML → blocks texte ──────────────────────────────────────
-  const descriptionBlocks = htmlToBlocks(offre.description);
-  const missionsBlocks = htmlToBlocks(offre.missions);
-  const skillTags = htmlToBlocks(offre.competencesRequises).flatMap((b) =>
+  const descriptionBlocks = htmlToBlocks(localizedDescription);
+  const missionsBlocks = htmlToBlocks(localizedMissions);
+  const skillTags = htmlToBlocks(localizedCompetences).flatMap((b) =>
     b.split(/[,;]/).map((s) => s.trim()).filter((s) => s.length > 0 && s.length <= 40)
   );
-  const benefitTags = htmlToBlocks(offre.avantages).flatMap((b) =>
+  const benefitTags = htmlToBlocks(localizedAvantages).flatMap((b) =>
     b.split(/[,;]/).map((s) => s.trim()).filter((s) => s.length > 0 && s.length <= 60)
   );
 
@@ -231,7 +251,7 @@ export default function OffreDetail() {
 
   // ─── Boutons partage ──────────────────────────────────────────
   const currentUrl = typeof window !== "undefined" ? window.location.href : "";
-  const shareText = `${offre.titre} — ${entreprise}`;
+  const shareText = `${localizedTitre} — ${entreprise}`;
   const shareTargets = [
     {
       key: "linkedin",
@@ -436,7 +456,7 @@ export default function OffreDetail() {
                     className="font-extrabold tracking-tight leading-tight mb-4"
                     style={{ fontSize: "clamp(24px, 2.6vw, 32px)", color: C.textMain }}
                   >
-                    {offre.titre}
+                    {localizedTitre}
                   </h1>
 
                   {/* Meta ligne — 4 items */}
@@ -744,11 +764,11 @@ export default function OffreDetail() {
                   {offre.typeContrat && (
                     <MetaLine icon={FileText} label={t("jobs.detail.company.contract")} value={offre.typeContrat} />
                   )}
-                  {offre.niveauEtude && (
-                    <MetaLine icon={GraduationCap} label={t("jobs.detail.company.education")} value={offre.niveauEtude} />
+                  {localizedNiveauEtude && (
+                    <MetaLine icon={GraduationCap} label={t("jobs.detail.company.education")} value={localizedNiveauEtude} />
                   )}
-                  {offre.experienceRequise && (
-                    <MetaLine icon={Sparkles} label={t("jobs.detail.company.experience")} value={offre.experienceRequise} />
+                  {localizedExperience && (
+                    <MetaLine icon={Sparkles} label={t("jobs.detail.company.experience")} value={localizedExperience} />
                   )}
                   {offre.salaire && (
                     <div className="flex items-start gap-2.5">

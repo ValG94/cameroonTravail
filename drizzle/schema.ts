@@ -164,9 +164,13 @@ export const employeurs = pgTable("employeurs", {
 });
 
 // ─── Offres d'emploi ──────────────────────────────────────────────────────────
+// Depuis la migration 0017, les champs éditoriaux sont bilingues
+// FR (source obligatoire) + EN (optionnel, traduction assistée via
+// jobs.translateJob qui appelle OpenAI GPT-4o mini côté serveur).
 export const offresEmploi = pgTable("offresEmploi", {
   id: serial("id").primaryKey(),
   employeurId: serial("employeurId").notNull().references(() => employeurs.id, { onDelete: "cascade" }),
+  // FR (source obligatoire — sauf champs marqués optional)
   titre: varchar("titre", { length: 200 }).notNull(),
   typeOffre: typeOffreEnum("typeOffre").notNull(),
   description: text("description").notNull(),
@@ -174,10 +178,19 @@ export const offresEmploi = pgTable("offresEmploi", {
   competencesRequises: text("competencesRequises"),
   experienceRequise: text("experienceRequise"),
   niveauEtude: varchar("niveauEtude", { length: 100 }),
+  avantages: text("avantages"),
+  // EN (optionnel — traduction assistée)
+  titreEn: varchar("titreEn", { length: 200 }),
+  descriptionEn: text("descriptionEn"),
+  missionsEn: text("missionsEn"),
+  competencesRequisesEn: text("competencesRequisesEn"),
+  experienceRequiseEn: text("experienceRequiseEn"),
+  niveauEtudeEn: varchar("niveauEtudeEn", { length: 100 }),
+  avantagesEn: text("avantagesEn"),
+  // Métadonnées structurées (non bilingues)
   typeContrat: varchar("typeContrat", { length: 50 }).notNull(),
   dureeContrat: varchar("dureeContrat", { length: 100 }),
   salaire: varchar("salaire", { length: 100 }),
-  avantages: text("avantages"),
   ville: varchar("ville", { length: 100 }).notNull(),
   region: varchar("region", { length: 100 }),
   pays: varchar("pays", { length: 100 }).default("Cameroun"),

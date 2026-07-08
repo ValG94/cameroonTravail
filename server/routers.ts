@@ -1707,17 +1707,27 @@ export const appRouter = router({
     // Créer une offre d'emploi (employeur)
     create: protectedProcedure
       .input(z.object({
+        // FR (source)
         titre: z.string().min(5),
         description: z.string().min(50),
         missions: z.string().optional(),
         competencesRequises: z.string().optional(),
         experienceRequise: z.string().optional(),
         niveauEtude: z.string().optional(),
+        avantages: z.string().optional(),
+        // EN (optionnel — traduction assistée)
+        titreEn: z.string().optional(),
+        descriptionEn: z.string().optional(),
+        missionsEn: z.string().optional(),
+        competencesRequisesEn: z.string().optional(),
+        experienceRequiseEn: z.string().optional(),
+        niveauEtudeEn: z.string().optional(),
+        avantagesEn: z.string().optional(),
+        // Métadonnées
         typeOffre: z.enum(["public", "prive"]),
         typeContrat: z.string(),
         dureeContrat: z.string().optional(),
         salaire: z.string().optional(),
-        avantages: z.string().optional(),
         ville: z.string(),
         region: z.string(),
         secteur: z.string(),
@@ -1788,7 +1798,36 @@ export const appRouter = router({
           fields.push('dateDebut');
           values.push(new Date(input.dateDebut));
         }
-        
+        // Champs bilingues EN (optionnels — migration 0017)
+        if (input.titreEn) {
+          fields.push('"titreEn"');
+          values.push(input.titreEn);
+        }
+        if (input.descriptionEn) {
+          fields.push('"descriptionEn"');
+          values.push(input.descriptionEn);
+        }
+        if (input.missionsEn) {
+          fields.push('"missionsEn"');
+          values.push(input.missionsEn);
+        }
+        if (input.competencesRequisesEn) {
+          fields.push('"competencesRequisesEn"');
+          values.push(input.competencesRequisesEn);
+        }
+        if (input.experienceRequiseEn) {
+          fields.push('"experienceRequiseEn"');
+          values.push(input.experienceRequiseEn);
+        }
+        if (input.niveauEtudeEn) {
+          fields.push('"niveauEtudeEn"');
+          values.push(input.niveauEtudeEn);
+        }
+        if (input.avantagesEn) {
+          fields.push('"avantagesEn"');
+          values.push(input.avantagesEn);
+        }
+
         const placeholders = fields.map(() => '?').join(', ');
         const query = `INSERT INTO offresEmploi (${fields.join(', ')}) VALUES (${placeholders})`;
         
@@ -1852,17 +1891,27 @@ export const appRouter = router({
     update: protectedProcedure
       .input(z.object({
         id: z.number(),
+        // FR (source)
         titre: z.string().min(5),
         description: z.string().min(50),
         missions: z.string().optional(),
         competencesRequises: z.string().optional(),
         experienceRequise: z.string().optional(),
         niveauEtude: z.string().optional(),
+        avantages: z.string().optional(),
+        // EN (optionnel — nullable pour permettre effacement explicite)
+        titreEn: z.string().nullable().optional(),
+        descriptionEn: z.string().nullable().optional(),
+        missionsEn: z.string().nullable().optional(),
+        competencesRequisesEn: z.string().nullable().optional(),
+        experienceRequiseEn: z.string().nullable().optional(),
+        niveauEtudeEn: z.string().nullable().optional(),
+        avantagesEn: z.string().nullable().optional(),
+        // Métadonnées
         typeOffre: z.enum(["public", "prive"]),
         typeContrat: z.string(),
         dureeContrat: z.string().optional(),
         salaire: z.string().optional(),
-        avantages: z.string().optional(),
         ville: z.string(),
         region: z.string(),
         secteur: z.string(),
@@ -1901,17 +1950,27 @@ export const appRouter = router({
         await dbInstance
           .update(offresEmploi)
           .set({
+            // FR
             titre: input.titre,
             description: input.description,
             missions: input.missions || null,
             competencesRequises: input.competencesRequises || null,
             experienceRequise: input.experienceRequise || null,
             niveauEtude: input.niveauEtude || null,
+            avantages: input.avantages || null,
+            // EN (traduction assistée — nullable)
+            titreEn: input.titreEn ?? null,
+            descriptionEn: input.descriptionEn ?? null,
+            missionsEn: input.missionsEn ?? null,
+            competencesRequisesEn: input.competencesRequisesEn ?? null,
+            experienceRequiseEn: input.experienceRequiseEn ?? null,
+            niveauEtudeEn: input.niveauEtudeEn ?? null,
+            avantagesEn: input.avantagesEn ?? null,
+            // Métadonnées
             typeOffre: input.typeOffre,
             typeContrat: input.typeContrat,
             dureeContrat: input.dureeContrat || null,
             salaire: input.salaire || null,
-            avantages: input.avantages || null,
             ville: input.ville,
             region: input.region,
             secteur: input.secteur,
@@ -1919,12 +1978,111 @@ export const appRouter = router({
             dateLimite: input.dateLimite ? new Date(input.dateLimite) : null,
             dateDebut: input.dateDebut ? new Date(input.dateDebut) : null,
             nombrePostes: input.nombrePostes || 1,
+            updatedAt: new Date(),
           })
           .where(eq(offresEmploi.id, input.id));
         
         return { success: true };
       }),
     
+    /**
+     * Traduction assistée FR ↔ EN d'une offre d'emploi.
+     * Utilise OpenAI GPT-4o mini (temperature 0.2, JSON strict) —
+     * clé OPENAI_API_KEY strictement serveur.
+     *
+     * L'endpoint ne persiste RIEN : c'est un proxy stateless. La
+     * persistance se fait via jobs.update APRÈS relecture par
+     * l'employeur (spec : traduction assistée, pas aveugle).
+     *
+     * Accessible aux employeurs et aux admins uniquement.
+     */
+    translateJob: protectedProcedure
+      .input(z.object({
+        sourceLanguage: z.enum(['fr', 'en']),
+        targetLanguage: z.enum(['fr', 'en']),
+        titre: z.string(),
+        description: z.string(),
+        missions: z.string().optional(),
+        competencesRequises: z.string().optional(),
+        experienceRequise: z.string().optional(),
+        niveauEtude: z.string().optional(),
+        avantages: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.profileType !== 'employeur' && ctx.user.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Réservé aux employeurs.' });
+        }
+        if (input.sourceLanguage === input.targetLanguage) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Langues source et cible identiques.' });
+        }
+        if (!ENV.openaiApiKey) {
+          throw new TRPCError({
+            code: 'PRECONDITION_FAILED',
+            message: "La traduction automatique n'est pas configurée (OPENAI_API_KEY manquante).",
+          });
+        }
+
+        const OpenAI = (await import('openai')).default;
+        const openai = new OpenAI({ apiKey: ENV.openaiApiKey });
+
+        const systemPrompt = input.targetLanguage === 'en'
+          ? 'Translate this job offer from French to English for a professional job platform in Cameroon. Preserve the meaning, structure, headings, bullet points, HTML/Markdown formatting if present, and a professional recruiter tone. Do not add or omit information. Do not translate proper nouns (company names, city names). Return ONLY a JSON object with keys "titre", "description", "missions", "competencesRequises", "experienceRequise", "niveauEtude", "avantages". If a source field is empty or missing, return an empty string for that key.'
+          : "Traduis cette offre d'emploi de l'anglais vers le français pour une plateforme emploi professionnelle au Cameroun. Préserve le sens, la structure, les titres, les listes, le format HTML/Markdown si présent, et un ton professionnel de recruteur. N'ajoute et n'omets aucune information. Ne traduis pas les noms propres (entreprises, villes). Retourne UNIQUEMENT un objet JSON avec les clés \"titre\", \"description\", \"missions\", \"competencesRequises\", \"experienceRequise\", \"niveauEtude\", \"avantages\". Si un champ source est vide ou manquant, retourne une chaîne vide pour cette clé.";
+
+        const userPayload = JSON.stringify({
+          titre: input.titre,
+          description: input.description,
+          missions: input.missions || '',
+          competencesRequises: input.competencesRequises || '',
+          experienceRequise: input.experienceRequise || '',
+          niveauEtude: input.niveauEtude || '',
+          avantages: input.avantages || '',
+        });
+
+        try {
+          const completion = await openai.chat.completions.create({
+            model: 'gpt-4o-mini',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPayload },
+            ],
+            response_format: { type: 'json_object' },
+            temperature: 0.2,
+          });
+
+          const raw = completion.choices?.[0]?.message?.content ?? '';
+          const parsed = JSON.parse(raw) as {
+            titre?: string;
+            description?: string;
+            missions?: string;
+            competencesRequises?: string;
+            experienceRequise?: string;
+            niveauEtude?: string;
+            avantages?: string;
+          };
+          return {
+            titre: parsed.titre || '',
+            description: parsed.description || '',
+            missions: parsed.missions || '',
+            competencesRequises: parsed.competencesRequises || '',
+            experienceRequise: parsed.experienceRequise || '',
+            niveauEtude: parsed.niveauEtude || '',
+            avantages: parsed.avantages || '',
+          };
+        } catch (err: any) {
+          if (err instanceof SyntaxError) {
+            throw new TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: 'La traduction a échoué (réponse invalide).',
+            });
+          }
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: err?.message || 'La traduction a échoué.',
+          });
+        }
+      }),
+
     // Supprimer une offre (suppression définitive, admin seulement)
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))

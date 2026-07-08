@@ -823,10 +823,25 @@ interface OffreCardProps {
 }
 
 function OffreCard({ offre, isNew, publishedLabel, onView, t }: OffreCardProps) {
+  const { i18n } = useTranslation();
   const [bookmarked, setBookmarked] = useState(false);
 
+  // Sélection langue active FR/EN pour titre, description, tags
+  // avec fallback FR si EN absent (voir migration 0017 + endpoint
+  // jobs.translateJob pour la production des versions EN).
+  const pickLang = (fr: string | null | undefined, en: string | null | undefined): string => {
+    if (i18n.language === "en") {
+      const enTrimmed = (en || "").trim();
+      if (enTrimmed.length > 0) return enTrimmed;
+    }
+    return fr || "";
+  };
+  const localizedTitre = pickLang(offre.titre, offre.titreEn);
+  const localizedDescription = pickLang(offre.description, offre.descriptionEn);
+  const localizedCompetences = pickLang(offre.competencesRequises, offre.competencesRequisesEn);
+
   const entreprise = (offre as any).entreprise || t("jobs.card.unspecifiedCompany");
-  const description = stripHtml(offre.description, 220);
+  const description = stripHtml(localizedDescription, 220);
   const location = offre.ville || offre.region || t("jobs.card.unspecifiedLocation");
   const contractLabel = offre.typeContrat || t("jobs.card.unspecifiedContract");
   const logoUrl = (offre as any).logoUrl as string | undefined;
@@ -835,8 +850,8 @@ function OffreCard({ offre, isNew, publishedLabel, onView, t }: OffreCardProps) 
   // (paragraphes concaténés). On strip d'abord les balises, puis on
   // split sur virgule ET retour ligne, puis on filtre les fragments
   // trop longs (> 40 chars = phrase, pas un tag).
-  const tags = offre.competencesRequises
-    ? stripHtml(offre.competencesRequises, 500)
+  const tags = localizedCompetences
+    ? stripHtml(localizedCompetences, 500)
         .split(/[,\n]/)
         .map((s: string) => s.trim())
         .filter((s: string) => s.length > 0 && s.length <= 40)
@@ -903,7 +918,7 @@ function OffreCard({ offre, isNew, publishedLabel, onView, t }: OffreCardProps) 
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="font-bold text-[17px] leading-tight" style={{ color: C.textMain }}>
-                  {offre.titre}
+                  {localizedTitre}
                 </h3>
                 {isNew && (
                   <span
