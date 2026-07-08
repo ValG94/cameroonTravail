@@ -40,9 +40,6 @@ import AdminArticles from "./pages/admin/Articles";
 import AdminSouscriptions from "./pages/admin/Souscriptions";
 import Conseils from "./pages/Conseils";
 import ConseilDetail from "./pages/ConseilDetail";
-import DeposerCV from "./pages/DeposerCV";
-import CVClassique from "./pages/CVClassique";
-import CVModerne from "./pages/CVModerne";
 import ProfilPublicCandidat from "./pages/ProfilPublicCandidat";
 import CVtheque from "./pages/CVtheque";
 import EspaceRecruteur from "./pages/EspaceRecruteur";
@@ -89,9 +86,6 @@ function Router() {
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/articles" component={AdminArticles} />
       <Route path="/admin/souscriptions" component={AdminSouscriptions} />
-      <Route path="/deposer-cv" component={DeposerCV} />
-      <Route path="/cv/classique" component={CVClassique} />
-      <Route path="/cv/moderne" component={CVModerne} />
       <Route path="/profil-candidat/:id" component={ProfilPublicCandidat} />
       <Route path="/cvtheque" component={CVtheque} />
       <Route path="/espace-recruteur" component={EspaceRecruteur} />

@@ -388,7 +388,7 @@ export default function Home() {
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                   {[
                     { icon: FileText, label: t("landing.hero.quickActions.createCv"), subtitle: t("landing.hero.quickActions.createCvSub"), path: user ? "/candidat/cv" : "/inscription?type=candidat" },
-                    { icon: Upload, label: t("landing.hero.quickActions.uploadCv"), subtitle: "", path: user ? "/deposer-cv" : "/inscription?type=candidat" },
+                    { icon: Upload, label: t("landing.hero.quickActions.uploadCv"), subtitle: "", path: user ? "/candidat/cv" : "/inscription?type=candidat" },
                     { icon: Bell, label: t("landing.hero.quickActions.jobAlerts"), subtitle: "", path: user ? "/candidat/alertes" : "/inscription?type=candidat", iconColor: COLORS.emerald },
                     { icon: GraduationCap, label: t("landing.hero.quickActions.careerAdvice"), subtitle: "", path: "/conseils" },
                   ].map(({ icon: Icon, label, subtitle, path, iconColor }, i) => (

@@ -368,6 +368,104 @@ const fr = {
         loading: "Chargement…",
       },
     },
+    // ─── Page /candidat/cv (Créer mon CV) ─────────────────────────
+    createCvPage: {
+      hero: {
+        title: "Créer mon",
+        titleHighlight: "CV",
+        subtitle: "Créez, personnalisez et téléchargez votre CV professionnel en quelques étapes simples.",
+        imageAlt: "Créer mon CV Cameroon Travail",
+      },
+      premiumBanner: {
+        title: "Passez à Premium pour débloquer tous les modèles",
+        subtitle: "Accédez à 20+ modèles professionnels et des fonctionnalités avancées.",
+        cta: "Découvrir Premium",
+      },
+      list: {
+        title: "Mes CV créés",
+        empty: "Vous n'avez pas encore créé de CV.",
+        emptyCta: "Créer votre premier CV",
+        updated: "Mis à jour le {{date}}",
+        defaultLabel: "Par défaut",
+        activeLabel: "Actif",
+        preview: "Aperçu",
+        edit: "Modifier",
+        download: "Télécharger PDF",
+        duplicate: "Dupliquer",
+        toggleCvtheque: "Visibilité CVthèque",
+        delete: "Supprimer",
+        deleteConfirm: "Supprimer le CV « {{name}} » ?",
+        newCv: "Créer un nouveau CV",
+        securityNote: "Vos CV sont sécurisés et privés. Ils ne sont jamais partagés sans votre consentement.",
+      },
+      quickActions: {
+        title: "Actions rapides",
+        newCv: {
+          title: "Créer un nouveau CV",
+          subtitle: "Commencez un CV depuis zéro",
+        },
+        chooseTemplate: {
+          title: "Choisir un modèle",
+          subtitle: "Utilisez un modèle professionnel",
+        },
+      },
+      tips: {
+        title: "Astuces pour un CV efficace",
+        items: {
+          tailor: {
+            title: "Adaptez votre CV au poste visé",
+            subtitle: "Personnalisez votre CV pour chaque candidature.",
+          },
+          highlight: {
+            title: "Mettez en avant vos réalisations",
+            subtitle: "Utilisez des chiffres et des résultats concrets.",
+          },
+          concise: {
+            title: "Restez concis et clair",
+            subtitle: "Un CV idéal fait 1 à 2 pages maximum.",
+          },
+          spelling: {
+            title: "Vérifiez l'orthographe",
+            subtitle: "Relisez attentivement votre CV avant téléchargement.",
+          },
+        },
+      },
+      help: {
+        title: "Besoin d'aide ?",
+        subtitle: "Consultez nos conseils pour rédiger un CV qui fait la différence.",
+        cta: "Voir nos conseils",
+      },
+      toastCvDeleted: "CV supprimé.",
+      toastVisibleOn: "CV visible dans la CVthèque",
+      toastVisibleOff: "CV masqué de la CVthèque",
+      modal: {
+        title: "Créer un nouveau CV",
+        subtitle: "Choisissez comment créer votre CV professionnel.",
+        upload: {
+          title: "Uploader un CV existant",
+          subtitle: "Importez votre CV, notre IA extrait automatiquement vos informations.",
+          badge: "Rapide",
+          dropzoneTitle: "Glissez-déposez votre CV",
+          dropzoneSubtitle: "ou cliquez pour parcourir",
+          dropzoneFormats: "PDF ou Word (.docx) — Max 10MB",
+          selectedFile: "Fichier sélectionné :",
+          uploadBtn: "Analyser mon CV",
+          uploading: "Analyse en cours…",
+          errorFormat: "Format non supporté. Utilisez PDF ou Word (.docx).",
+          errorSize: "Fichier trop volumineux (max 10MB).",
+          success: "CV analysé ! Vos informations ont été extraites.",
+        },
+        template: {
+          title: "Choisir un modèle Premium",
+          subtitle: "Sélectionnez un modèle professionnel et personnalisez-le en quelques clics.",
+          badge: "Premium",
+          cta: "Voir les modèles",
+        },
+        or: "OU",
+        cancel: "Annuler",
+      },
+    },
+
     // ─── Page publique /conseils (Conseils Emploi) ────────────────
     conseilsPage: {
       hero: {
@@ -2332,6 +2430,104 @@ const en = {
         loading: "Loading…",
       },
     },
+    // ─── /candidat/cv (Create my CV) ──────────────────────────────
+    createCvPage: {
+      hero: {
+        title: "Create my",
+        titleHighlight: "CV",
+        subtitle: "Create, customize and download your professional CV in a few simple steps.",
+        imageAlt: "Create my CV Cameroon Travail",
+      },
+      premiumBanner: {
+        title: "Go Premium to unlock all templates",
+        subtitle: "Access 20+ professional templates and advanced features.",
+        cta: "Discover Premium",
+      },
+      list: {
+        title: "My created CVs",
+        empty: "You haven't created any CV yet.",
+        emptyCta: "Create your first CV",
+        updated: "Updated on {{date}}",
+        defaultLabel: "Default",
+        activeLabel: "Active",
+        preview: "Preview",
+        edit: "Edit",
+        download: "Download PDF",
+        duplicate: "Duplicate",
+        toggleCvtheque: "CV database visibility",
+        delete: "Delete",
+        deleteConfirm: "Delete the CV \"{{name}}\"?",
+        newCv: "Create a new CV",
+        securityNote: "Your CVs are secure and private. They are never shared without your consent.",
+      },
+      quickActions: {
+        title: "Quick actions",
+        newCv: {
+          title: "Create a new CV",
+          subtitle: "Start a CV from scratch",
+        },
+        chooseTemplate: {
+          title: "Choose a template",
+          subtitle: "Use a professional template",
+        },
+      },
+      tips: {
+        title: "Tips for an effective CV",
+        items: {
+          tailor: {
+            title: "Tailor your CV to the target position",
+            subtitle: "Personalize your CV for each application.",
+          },
+          highlight: {
+            title: "Highlight your achievements",
+            subtitle: "Use figures and concrete results.",
+          },
+          concise: {
+            title: "Stay concise and clear",
+            subtitle: "An ideal CV is 1 to 2 pages maximum.",
+          },
+          spelling: {
+            title: "Check spelling",
+            subtitle: "Carefully proofread your CV before downloading.",
+          },
+        },
+      },
+      help: {
+        title: "Need help?",
+        subtitle: "Check our advice to write a CV that makes the difference.",
+        cta: "See our advice",
+      },
+      toastCvDeleted: "CV deleted.",
+      toastVisibleOn: "CV visible in the CV database",
+      toastVisibleOff: "CV hidden from the CV database",
+      modal: {
+        title: "Create a new CV",
+        subtitle: "Choose how to create your professional CV.",
+        upload: {
+          title: "Upload an existing CV",
+          subtitle: "Import your CV, our AI automatically extracts your information.",
+          badge: "Fast",
+          dropzoneTitle: "Drag and drop your CV",
+          dropzoneSubtitle: "or click to browse",
+          dropzoneFormats: "PDF or Word (.docx) — Max 10MB",
+          selectedFile: "Selected file:",
+          uploadBtn: "Analyze my CV",
+          uploading: "Analyzing…",
+          errorFormat: "Unsupported format. Use PDF or Word (.docx).",
+          errorSize: "File too large (max 10MB).",
+          success: "CV analyzed! Your information has been extracted.",
+        },
+        template: {
+          title: "Choose a Premium template",
+          subtitle: "Select a professional template and customize it in a few clicks.",
+          badge: "Premium",
+          cta: "View templates",
+        },
+        or: "OR",
+        cancel: "Cancel",
+      },
+    },
+
     // ─── /conseils (Career advice) ────────────────────────────────
     conseilsPage: {
       hero: {

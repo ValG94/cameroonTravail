@@ -87,7 +87,7 @@ export function CandidatNav() {
     { href: "/candidat/dashboard", label: t("dashboard.nav.dashboard"), icon: LayoutDashboard },
     { href: "/offres", label: t("dashboard.nav.jobs"), icon: Briefcase },
     { href: "/candidat/candidatures", label: t("dashboard.nav.applications"), icon: FileText },
-    { href: "/deposer-cv", label: t("dashboard.nav.uploadCv"), icon: Upload },
+    { href: "/candidat/cv", label: t("dashboard.nav.uploadCv"), icon: Upload },
     { href: "/candidat/templates", label: t("dashboard.nav.premiumTemplates"), icon: Crown },
     { href: "/candidat/alertes", label: t("dashboard.nav.alerts"), icon: Bell },
   ];
