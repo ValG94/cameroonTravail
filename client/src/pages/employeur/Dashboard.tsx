@@ -234,16 +234,6 @@ export default function EmployeurDashboard() {
     <EmployeurLayout
       title={t("bo.employerLayout.nav.dashboard")}
       activeKey="dashboard"
-      actions={
-        <Button
-          onClick={() => setLocation("/employeur/publier")}
-          className="h-10 rounded-lg font-semibold text-white shadow-sm hidden sm:inline-flex"
-          style={{ backgroundColor: C.deepGreen }}
-        >
-          <Plus className="h-4 w-4 mr-1.5" />
-          {t("bo.recruiterDashboard.hero.publishOffer")}
-        </Button>
-      }
     >
       <div className="space-y-6">
         {/* ═══ 1. HERO ═════════════════════════════════════════ */}
