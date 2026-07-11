@@ -48,39 +48,31 @@ const RECHERCHES_POPULAIRES = ["Développeur", "Commercial", "Comptabilité", "M
 
 const REGIONS = ["Douala", "Yaoundé", "Bafoussam", "Garoua", "Maroua", "Bamenda", "Limbé", "Diaspora"];
 
-// Partenaires : logos texte stylisés (PAS d'images officielles). Chaque
-// logo est rendu en CSS pur avec une typographie/couleur qui évoque la
-// marque. Si on obtient les vrais logos plus tard, on peut switcher pour
-// des <img src="/images/partners/xxx.svg" />.
+/**
+ * Partenaires réels : chaque entrée référence un fichier image dans
+ * `client/public/images/partners/`. Les cards sont entourées d'un
+ * contour lumineux animé (or → vert profond, charte CameroonTravail).
+ * L'ordre commence par Fotchine International (partenaire prioritaire).
+ */
 interface PartnerSpec {
   name: string;
-  /** Texte affiché (peut différer du name). */
-  label: string;
-  /** Sous-texte optionnel (ex: 'OF AFRICA' pour BOA). */
-  sub?: string;
-  /** Couleur d'accent (text-color). */
-  color: string;
-  /** Style typographique. */
-  weight: 700 | 800 | 900;
-  /** Famille de police (par défaut Manrope). */
-  font?: string;
-  /** Italique ? */
-  italic?: boolean;
-  /** Tracking. */
-  letterSpacing?: string;
-  /** Taille du label (par défaut 1.25rem). */
-  fontSize?: string;
+  /** Nom de fichier dans /images/partners/ (avec extension). */
+  file: string;
 }
 
 const PARTNERS: PartnerSpec[] = [
-  { name: "MTN", label: "MTN", color: "#FFCC00", weight: 900, fontSize: "1.5rem", letterSpacing: "-0.02em" },
-  { name: "TotalEnergies", label: "TotalEnergies", color: "#ED0000", weight: 800, fontSize: "1.05rem", letterSpacing: "-0.03em" },
-  { name: "Orange", label: "orange", color: "#FF7900", weight: 900, fontSize: "1.4rem", letterSpacing: "-0.04em" },
-  { name: "Afriland", label: "Afriland", sub: "First Bank", color: "#C8102E", weight: 800, fontSize: "1rem" },
-  { name: "SABC", label: "SABC", color: "#6B7280", weight: 800, fontSize: "1.35rem", letterSpacing: "0.05em" },
-  { name: "BOA", label: "BOA", sub: "OF AFRICA", color: "#0B5E3C", weight: 900, fontSize: "1.35rem" },
-  { name: "Eneo", label: "eneo", color: "#0F8A4C", weight: 800, fontSize: "1.5rem", italic: true, letterSpacing: "-0.03em" },
-  { name: "Camair-Co", label: "Camair-Co", color: "#063F24", weight: 800, fontSize: "1.05rem", letterSpacing: "-0.02em" },
+  { name: "Fotchine International", file: "fotchine-international.png" },
+  { name: "Cameron Services", file: "cameron-services.png" },
+  { name: "Centrachat International", file: "centrachat-international.png" },
+  { name: "Gypse", file: "gypse.png" },
+  { name: "Hole Corrector", file: "hole-corrector.png" },
+  { name: "Mathériauthèque", file: "materiautheque.png" },
+  { name: "NomaVision", file: "nomavision.png" },
+  { name: "Nomadecor", file: "nomadecor.jpeg" },
+  { name: "Nomadeo Africa", file: "nomadeo-africa.png" },
+  { name: "Nomadeo Paris", file: "nomadeo-paris.png" },
+  { name: "Nomafloor", file: "nomafloor.jpeg" },
+  { name: "Nomalight", file: "nomalight.jpeg" },
 ];
 
 // Override d'images d'articles : centralisé dans lib/articleImages pour
@@ -885,27 +877,84 @@ export default function Home() {
       </section>
 
       {/* ╭──────────────────────────────────────────────────────────────╮ */}
-      {/* │ PARTENAIRES — logos texte stylisés                            │ */}
+      {/* │ PARTENAIRES — cards image avec contour lumineux animé (or)    │ */}
       {/* ╰──────────────────────────────────────────────────────────────╯ */}
-      <section className="py-14" style={{ backgroundColor: COLORS.ivory }}>
+      <section className="py-16" style={{ backgroundColor: COLORS.ivory }}>
+        {/* Keyframes pour l'animation de contour lumineux. Deux points :
+            un doré vif + un vert profond diamétralement opposés, qui tournent
+            en boucle autour de la card. */}
+        <style>{`
+          @keyframes partnerHalo {
+            to { transform: rotate(360deg); }
+          }
+          .partner-card {
+            position: relative;
+            border-radius: 16px;
+            padding: 1.5px;
+            background: transparent;
+            overflow: hidden;
+            isolation: isolate;
+            aspect-ratio: 1 / 1;
+          }
+          .partner-card::before {
+            content: '';
+            position: absolute;
+            inset: -50%;
+            aspect-ratio: 1;
+            background: conic-gradient(
+              from 0deg,
+              transparent 0deg,
+              transparent 60deg,
+              #F6C343 90deg,
+              transparent 120deg,
+              transparent 360deg
+            );
+            animation: partnerHalo 5s linear infinite;
+            animation-delay: var(--halo-delay, 0s);
+            z-index: 0;
+            pointer-events: none;
+          }
+          .partner-card::after {
+            content: '';
+            position: absolute;
+            inset: 1.5px;
+            border-radius: calc(16px - 1.5px);
+            background: #ffffff;
+            z-index: 1;
+          }
+          .partner-card > * {
+            position: relative;
+            z-index: 2;
+          }
+          .partner-card:hover::before {
+            animation-duration: 2.5s;
+          }
+          .partner-card:hover::after {
+            background: #FEFCF6;
+          }
+        `}</style>
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Reveal className="grid lg:grid-cols-[1fr_2.2fr] gap-8 lg:gap-12 items-center">
-            <div>
+          <Reveal>
+            <div className="text-center mb-10">
               <h3
-                className="text-xl sm:text-2xl font-extrabold mb-2 tracking-tight leading-snug"
+                className="text-2xl sm:text-3xl font-extrabold mb-3 tracking-tight leading-snug"
                 style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}
               >
                 {t("landing.partners.title")}
-                <br />
+                {" "}
                 {t("landing.partners.titleLine2")}
               </h3>
-              <p className="text-sm text-gray-500 leading-relaxed">
+              <p className="text-sm sm:text-base text-gray-500 leading-relaxed max-w-2xl mx-auto">
                 {t("landing.partners.subtitle")}
               </p>
             </div>
-            <div className="flex flex-wrap items-center justify-center lg:justify-end gap-x-8 gap-y-5">
-              {PARTNERS.map((p) => (
-                <PartnerLogo key={p.name} {...p} />
+          </Reveal>
+
+          <Reveal delay={0.1}>
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 sm:gap-4">
+              {PARTNERS.map((p, i) => (
+                <PartnerCard key={p.name} {...p} delayIndex={i} />
               ))}
             </div>
           </Reveal>
@@ -987,39 +1036,30 @@ function formatDate(input?: string | Date | null): string {
   return d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 }
 
-/** Logo partenaire en texte stylisé. Pas d'image officielle utilisée :
- *  juste de la typographie + couleur de marque pour évoquer le branding.
- *  À remplacer par <img src="/images/partners/xxx.svg" /> si on obtient
- *  les vrais logos avec accord des partenaires. */
-function PartnerLogo({ label, sub, color, weight, font, italic, letterSpacing, fontSize }: PartnerSpec) {
+/** Card partenaire avec contour lumineux animé (or → vert profond).
+ *  Le halo est un pseudo-élément conic-gradient qui tourne autour de
+ *  la card via CSS keyframes (voir <style> dans la section). Chaque
+ *  card démarre à un angle de rotation différent (delay négatif)
+ *  pour désynchroniser subtilement les 12 partenaires. */
+function PartnerCard({ name, file, delayIndex = 0 }: PartnerSpec & { delayIndex?: number }) {
+  // Décale la rotation initiale de chaque card pour un effet non-uniforme.
+  const rotationOffset = -(delayIndex * 0.4);
   return (
-    <div className="flex flex-col items-center select-none" aria-label={label}>
-      <span
-        style={{
-          color,
-          fontWeight: weight,
-          fontFamily: font || "'Manrope', 'Inter', sans-serif",
-          fontStyle: italic ? "italic" : "normal",
-          letterSpacing: letterSpacing || "normal",
-          fontSize: fontSize || "1.25rem",
-          lineHeight: 1,
-        }}
-      >
-        {label}
-      </span>
-      {sub && (
-        <span
-          className="mt-0.5"
-          style={{
-            color,
-            fontSize: "0.55rem",
-            fontWeight: 700,
-            letterSpacing: "0.08em",
-          }}
-        >
-          {sub}
-        </span>
-      )}
+    <div
+      className="partner-card group"
+      title={name}
+      aria-label={name}
+      style={{ ["--halo-delay" as any]: `${rotationOffset}s` }}
+    >
+      <div className="flex items-center justify-center w-full h-full p-3 sm:p-4 transition-transform duration-300 group-hover:scale-[1.03]">
+        <img
+          src={`/images/partners/${file}`}
+          alt={name}
+          loading="lazy"
+          className="max-h-full max-w-full object-contain grayscale-[15%] group-hover:grayscale-0 transition-all duration-300"
+          style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.05))" }}
+        />
+      </div>
     </div>
   );
 }

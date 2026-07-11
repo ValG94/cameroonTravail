@@ -586,7 +586,7 @@ const fr = {
       hero: {
         badge: "Plateforme nationale de l'emploi au Cameroun",
         titleStart: "Le marché de l'emploi camerounais,",
-        titleAccent: "enfin connecté aux bons talents.",
+        titleAccent: "enfin connecté aux meilleurs talents.",
         subtitle: "Trouvez un emploi, créez un CV professionnel, postulez plus vite. Recruteurs : publiez vos offres et identifiez les meilleurs profils.",
         searchPlaceholderJob: "Métier, compétence, entreprise…",
         searchPlaceholderCity: "Ville, région…",
@@ -2900,7 +2900,7 @@ const en = {
       hero: {
         badge: "Cameroon's national employment platform",
         titleStart: "Cameroon's job market,",
-        titleAccent: "finally connected to the right talents.",
+        titleAccent: "finally connected to the best talents.",
         subtitle: "Find a job, create a professional CV, apply faster. Recruiters: post your offers and identify the best profiles.",
         searchPlaceholderJob: "Job, skill, company…",
         searchPlaceholderCity: "City, region…",
