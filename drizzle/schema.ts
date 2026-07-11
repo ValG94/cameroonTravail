@@ -513,3 +513,33 @@ export const demandesSouscription = pgTable("demandes_souscription", {
 
 export type DemandeSouscription = typeof demandesSouscription.$inferSelect;
 export type InsertDemandeSouscription = typeof demandesSouscription.$inferInsert;
+
+// ─── Spotlights sponsorisés (encart annonceur homepage) ───────────────────────
+// Emplacement premium loué à un recruteur pour mise en avant sur la home,
+// au-dessus des offres récentes. Voir migration 0018 pour le workflow.
+// Un seul spotlight actif est affiché à la fois (le plus récent créé).
+export const packSpotlightEnum = pgEnum("packSpotlight", ["pme", "grande", "continu"]);
+
+export const sponsoredSpotlights = pgTable("sponsored_spotlights", {
+  id: serial("id").primaryKey(),
+  employeurId: integer("employeurId")
+    .notNull()
+    .references(() => employeurs.id, { onDelete: "cascade" }),
+  pack: packSpotlightEnum("pack").notNull(),
+  baseline: varchar("baseline", { length: 180 }).notNull(),
+  baselineEn: varchar("baselineEn", { length: 180 }),
+  ctaLabel: varchar("ctaLabel", { length: 60 }),
+  ctaLabelEn: varchar("ctaLabelEn", { length: 60 }),
+  ctaHref: varchar("ctaHref", { length: 500 }),
+  // Si fourni, override le logo de l'employeur (ex. version optimisée
+  // pour le format spotlight). Sinon on prend employeurs.logoUrl.
+  logoOverride: text("logoOverride"),
+  startAt: timestamp("startAt").notNull(),
+  endAt: timestamp("endAt").notNull(),
+  actif: boolean("actif").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
+export type SponsoredSpotlight = typeof sponsoredSpotlights.$inferSelect;
+export type InsertSponsoredSpotlight = typeof sponsoredSpotlights.$inferInsert;

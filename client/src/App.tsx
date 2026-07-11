@@ -38,6 +38,7 @@ import ResetPassword from "./pages/ResetPassword";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminArticles from "./pages/admin/Articles";
 import AdminSouscriptions from "./pages/admin/Souscriptions";
+import AdminSpotlights from "./pages/admin/Spotlights";
 import Conseils from "./pages/Conseils";
 import ConseilDetail from "./pages/ConseilDetail";
 import ProfilPublicCandidat from "./pages/ProfilPublicCandidat";
@@ -86,6 +87,7 @@ function Router() {
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/articles" component={AdminArticles} />
       <Route path="/admin/souscriptions" component={AdminSouscriptions} />
+      <Route path="/admin/spotlights" component={AdminSpotlights} />
       <Route path="/profil-candidat/:id" component={ProfilPublicCandidat} />
       <Route path="/cvtheque" component={CVtheque} />
       <Route path="/espace-recruteur" component={EspaceRecruteur} />

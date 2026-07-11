@@ -3834,6 +3834,199 @@ export const appRouter = router({
         };
       }),
   }),
+
+  // ─── Router Spotlights (encart annonceur homepage) ───────────────────────────
+  // Un spotlight = emplacement premium loué à un recruteur pour une
+  // durée définie (packs pme/grande/continu). Cf. migration 0018.
+  //
+  // Endpoints :
+  //   - getActive() public : renvoie le spotlight courant à afficher
+  //     sur la home (le plus récent créé actif + dans sa fenêtre
+  //     startAt ≤ now ≤ endAt). Null si aucun.
+  //   - list() admin : renvoie tous les spotlights triés desc.
+  //   - create() admin : crée un spotlight lié à un recruteur.
+  //   - update() admin : modifie un spotlight existant.
+  //   - toggle() admin : active/désactive un spotlight sans le supprimer.
+  //   - remove() admin : supprime définitivement.
+  spotlights: router({
+    getActive: publicProcedure.query(async () => {
+      const dbInstance = await db.getDb();
+      if (!dbInstance) return null;
+      const { sponsoredSpotlights, employeurs } = await import("../drizzle/schema");
+      const { and, eq, lte, gte, desc } = await import("drizzle-orm");
+      const now = new Date();
+      const rows = await dbInstance
+        .select({
+          id: sponsoredSpotlights.id,
+          pack: sponsoredSpotlights.pack,
+          baseline: sponsoredSpotlights.baseline,
+          baselineEn: sponsoredSpotlights.baselineEn,
+          ctaLabel: sponsoredSpotlights.ctaLabel,
+          ctaLabelEn: sponsoredSpotlights.ctaLabelEn,
+          ctaHref: sponsoredSpotlights.ctaHref,
+          logoOverride: sponsoredSpotlights.logoOverride,
+          startAt: sponsoredSpotlights.startAt,
+          endAt: sponsoredSpotlights.endAt,
+          employeurId: sponsoredSpotlights.employeurId,
+          nomEntreprise: employeurs.nomEntreprise,
+          logoUrl: employeurs.logoUrl,
+          siteWeb: employeurs.siteWeb,
+        })
+        .from(sponsoredSpotlights)
+        .innerJoin(employeurs, eq(sponsoredSpotlights.employeurId, employeurs.id))
+        .where(
+          and(
+            eq(sponsoredSpotlights.actif, true),
+            lte(sponsoredSpotlights.startAt, now),
+            gte(sponsoredSpotlights.endAt, now),
+          ),
+        )
+        .orderBy(desc(sponsoredSpotlights.createdAt))
+        .limit(1);
+      return rows[0] ?? null;
+    }),
+
+    list: adminProcedure.query(async () => {
+      const dbInstance = await db.getDb();
+      if (!dbInstance) return [];
+      const { sponsoredSpotlights, employeurs } = await import("../drizzle/schema");
+      const { desc, eq } = await import("drizzle-orm");
+      const rows = await dbInstance
+        .select({
+          id: sponsoredSpotlights.id,
+          employeurId: sponsoredSpotlights.employeurId,
+          nomEntreprise: employeurs.nomEntreprise,
+          logoUrl: employeurs.logoUrl,
+          pack: sponsoredSpotlights.pack,
+          baseline: sponsoredSpotlights.baseline,
+          baselineEn: sponsoredSpotlights.baselineEn,
+          ctaLabel: sponsoredSpotlights.ctaLabel,
+          ctaLabelEn: sponsoredSpotlights.ctaLabelEn,
+          ctaHref: sponsoredSpotlights.ctaHref,
+          logoOverride: sponsoredSpotlights.logoOverride,
+          startAt: sponsoredSpotlights.startAt,
+          endAt: sponsoredSpotlights.endAt,
+          actif: sponsoredSpotlights.actif,
+          createdAt: sponsoredSpotlights.createdAt,
+        })
+        .from(sponsoredSpotlights)
+        .innerJoin(employeurs, eq(sponsoredSpotlights.employeurId, employeurs.id))
+        .orderBy(desc(sponsoredSpotlights.createdAt));
+      return rows;
+    }),
+
+    // Lookup employeurs pour l'autocomplete du BO.
+    searchEmployeurs: adminProcedure
+      .input(z.object({ q: z.string().trim().min(0).max(120).default("") }))
+      .query(async ({ input }) => {
+        const dbInstance = await db.getDb();
+        if (!dbInstance) return [];
+        const { employeurs } = await import("../drizzle/schema");
+        const { ilike, desc } = await import("drizzle-orm");
+        const query = dbInstance
+          .select({
+            id: employeurs.id,
+            nomEntreprise: employeurs.nomEntreprise,
+            logoUrl: employeurs.logoUrl,
+            secteurActivite: employeurs.secteurActivite,
+          })
+          .from(employeurs)
+          .orderBy(desc(employeurs.createdAt))
+          .limit(30);
+        if (input.q) {
+          return query.where(ilike(employeurs.nomEntreprise, `%${input.q}%`));
+        }
+        return query;
+      }),
+
+    create: adminProcedure
+      .input(
+        z.object({
+          employeurId: z.number().int().positive(),
+          pack: z.enum(["pme", "grande", "continu"]),
+          baseline: z.string().trim().min(3).max(180),
+          baselineEn: z.string().trim().max(180).optional().nullable(),
+          ctaLabel: z.string().trim().max(60).optional().nullable(),
+          ctaLabelEn: z.string().trim().max(60).optional().nullable(),
+          ctaHref: z.string().trim().max(500).optional().nullable(),
+          logoOverride: z.string().url().optional().nullable(),
+          startAt: z.date(),
+          endAt: z.date(),
+          actif: z.boolean().default(true),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        const dbInstance = await db.getDb();
+        if (!dbInstance) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+        if (input.endAt <= input.startAt) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "endAt doit être postérieur à startAt" });
+        }
+        const { sponsoredSpotlights } = await import("../drizzle/schema");
+        const [row] = await dbInstance.insert(sponsoredSpotlights).values(input).returning();
+        return row;
+      }),
+
+    update: adminProcedure
+      .input(
+        z.object({
+          id: z.number().int().positive(),
+          pack: z.enum(["pme", "grande", "continu"]).optional(),
+          baseline: z.string().trim().min(3).max(180).optional(),
+          baselineEn: z.string().trim().max(180).optional().nullable(),
+          ctaLabel: z.string().trim().max(60).optional().nullable(),
+          ctaLabelEn: z.string().trim().max(60).optional().nullable(),
+          ctaHref: z.string().trim().max(500).optional().nullable(),
+          logoOverride: z.string().url().optional().nullable(),
+          startAt: z.date().optional(),
+          endAt: z.date().optional(),
+          actif: z.boolean().optional(),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        const dbInstance = await db.getDb();
+        if (!dbInstance) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+        const { sponsoredSpotlights } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const { id, ...rest } = input;
+        if (rest.startAt && rest.endAt && rest.endAt <= rest.startAt) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "endAt doit être postérieur à startAt" });
+        }
+        const [row] = await dbInstance
+          .update(sponsoredSpotlights)
+          .set({ ...rest, updatedAt: new Date() })
+          .where(eq(sponsoredSpotlights.id, id))
+          .returning();
+        if (!row) throw new TRPCError({ code: "NOT_FOUND", message: "Spotlight introuvable" });
+        return row;
+      }),
+
+    toggle: adminProcedure
+      .input(z.object({ id: z.number().int().positive(), actif: z.boolean() }))
+      .mutation(async ({ input }) => {
+        const dbInstance = await db.getDb();
+        if (!dbInstance) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+        const { sponsoredSpotlights } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const [row] = await dbInstance
+          .update(sponsoredSpotlights)
+          .set({ actif: input.actif, updatedAt: new Date() })
+          .where(eq(sponsoredSpotlights.id, input.id))
+          .returning();
+        if (!row) throw new TRPCError({ code: "NOT_FOUND", message: "Spotlight introuvable" });
+        return row;
+      }),
+
+    remove: adminProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        const dbInstance = await db.getDb();
+        if (!dbInstance) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+        const { sponsoredSpotlights } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        await dbInstance.delete(sponsoredSpotlights).where(eq(sponsoredSpotlights.id, input.id));
+        return { ok: true };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

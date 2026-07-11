@@ -593,6 +593,11 @@ export default function Home() {
       </section>
 
       {/* ╭──────────────────────────────────────────────────────────────╮ */}
+      {/* │ SPOTLIGHT — encart annonceur premium (halo or animé)         │ */}
+      {/* ╰──────────────────────────────────────────────────────────────╯ */}
+      <SpotlightSection setLocation={setLocation} />
+
+      {/* ╭──────────────────────────────────────────────────────────────╮ */}
       {/* │ DERNIÈRES OFFRES — 4 cards en ligne                           │ */}
       {/* ╰──────────────────────────────────────────────────────────────╯ */}
       <section className="py-16 bg-white">
@@ -1061,5 +1066,195 @@ function PartnerCard({ name, file, delayIndex = 0 }: PartnerSpec & { delayIndex?
         />
       </div>
     </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════
+// SPOTLIGHT — encart annonceur premium en homepage
+// ═════════════════════════════════════════════════════════════════════
+// Une carte pleine largeur avec logo entreprise + baseline + CTA,
+// entourée d'un halo or animé (même vocabulaire visuel que les partenaires
+// mais halo plus épais et plus lent, adapté à la grande taille).
+//
+// - Si un spotlight est actif : rendu de la carte partenaire réelle
+// - Sinon : slot "Devenir partenaire" (auto-marketing pour le pack)
+
+interface SpotlightSectionProps {
+  setLocation: (href: string) => void;
+}
+
+function SpotlightSection({ setLocation }: SpotlightSectionProps) {
+  const { t, i18n } = useTranslation();
+  const { data: spotlight, isLoading } = trpc.spotlights.getActive.useQuery(undefined, {
+    // Rafraîchi au montage — pas de refetch en boucle, le spotlight
+    // change au maximum quelques fois par semaine.
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Pendant le chargement initial : rien pour éviter un flash de fallback.
+  if (isLoading) return null;
+
+  const isEn = i18n.language?.startsWith("en");
+
+  return (
+    <section className="py-14" style={{ backgroundColor: "#FFFFFF" }}>
+      <style>{`
+        @keyframes spotlightHalo { to { transform: rotate(360deg); } }
+        .spotlight-card {
+          position: relative;
+          border-radius: 24px;
+          padding: 2px;
+          background: transparent;
+          overflow: hidden;
+          isolation: isolate;
+        }
+        .spotlight-card::before {
+          content: '';
+          position: absolute;
+          inset: -50%;
+          aspect-ratio: 1;
+          background: conic-gradient(
+            from 0deg,
+            transparent 0deg,
+            transparent 65deg,
+            #F6C343 90deg,
+            transparent 115deg,
+            transparent 360deg
+          );
+          animation: spotlightHalo 6s linear infinite;
+          z-index: 0;
+          pointer-events: none;
+        }
+        .spotlight-card::after {
+          content: '';
+          position: absolute;
+          inset: 2px;
+          border-radius: 22px;
+          background: #FFFFFF;
+          z-index: 1;
+        }
+        .spotlight-card > * {
+          position: relative;
+          z-index: 2;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .spotlight-card::before { animation: none; }
+        }
+      `}</style>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <Reveal>
+          <div className="spotlight-card">
+            {spotlight ? (
+              /* ─── SPOTLIGHT ACTIF ────────────────────────────────── */
+              <div className="flex flex-col md:flex-row items-center gap-6 p-6 md:p-8">
+                {/* Badge or "Partenaire mis en avant" */}
+                <div className="w-full md:w-auto flex md:hidden items-center justify-center">
+                  <span
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-widest"
+                    style={{ backgroundColor: "rgba(246, 195, 67, 0.15)", color: "#B45309" }}
+                  >
+                    <Sparkles className="h-3 w-3" />
+                    {t("landing.spotlight.badge")}
+                  </span>
+                </div>
+
+                {/* Logo entreprise */}
+                <div className="shrink-0 w-32 h-32 md:w-36 md:h-36 rounded-2xl flex items-center justify-center p-4 border" style={{ borderColor: "#F3EDDE", backgroundColor: "#FEFCF6" }}>
+                  {(spotlight.logoOverride || spotlight.logoUrl) ? (
+                    <img
+                      src={spotlight.logoOverride || spotlight.logoUrl || ""}
+                      alt={spotlight.nomEntreprise}
+                      className="max-w-full max-h-full object-contain"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div
+                      className="w-full h-full rounded-xl flex items-center justify-center font-extrabold text-4xl text-white"
+                      style={{ backgroundColor: COLORS.deepGreen }}
+                    >
+                      {spotlight.nomEntreprise.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+
+                {/* Contenu texte */}
+                <div className="flex-1 min-w-0 text-center md:text-left">
+                  <div className="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-widest mb-2" style={{ backgroundColor: "rgba(246, 195, 67, 0.15)", color: "#B45309" }}>
+                    <Sparkles className="h-3 w-3" />
+                    {t("landing.spotlight.badge")}
+                  </div>
+                  <h3
+                    className="text-2xl sm:text-[26px] font-extrabold tracking-tight leading-tight"
+                    style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}
+                  >
+                    {spotlight.nomEntreprise}
+                  </h3>
+                  <p className="text-[14.5px] mt-2 leading-relaxed text-gray-600 max-w-2xl">
+                    {(isEn && spotlight.baselineEn) || spotlight.baseline}
+                  </p>
+                </div>
+
+                {/* CTA */}
+                <div className="shrink-0 w-full md:w-auto">
+                  <Button
+                    onClick={() => {
+                      const href = spotlight.ctaHref || `/entreprise/${spotlight.employeurId}`;
+                      if (href.startsWith("http")) {
+                        window.open(href, "_blank", "noopener,noreferrer");
+                      } else {
+                        setLocation(href);
+                      }
+                    }}
+                    className="h-11 px-5 rounded-xl font-semibold text-white shadow-sm hover:opacity-90 gap-2 w-full md:w-auto"
+                    style={{ backgroundColor: COLORS.deepGreen }}
+                  >
+                    {(isEn && spotlight.ctaLabelEn) ||
+                      spotlight.ctaLabel ||
+                      t("landing.spotlight.defaultCta", { name: spotlight.nomEntreprise })}
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              /* ─── FALLBACK : slot "Devenir partenaire" ──────────── */
+              <div className="flex flex-col md:flex-row items-center gap-6 p-6 md:p-8 text-center md:text-left">
+                <div
+                  className="shrink-0 w-24 h-24 md:w-28 md:h-28 rounded-2xl flex items-center justify-center"
+                  style={{ backgroundColor: "rgba(246, 195, 67, 0.15)" }}
+                >
+                  <Sparkles className="h-10 w-10 md:h-12 md:w-12" style={{ color: "#B45309" }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-widest mb-2" style={{ backgroundColor: "rgba(246, 195, 67, 0.15)", color: "#B45309" }}>
+                    <Sparkles className="h-3 w-3" />
+                    {t("landing.spotlight.emptyBadge")}
+                  </div>
+                  <h3
+                    className="text-2xl sm:text-[26px] font-extrabold tracking-tight leading-tight"
+                    style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}
+                  >
+                    {t("landing.spotlight.emptyTitle")}
+                  </h3>
+                  <p className="text-[14.5px] mt-2 leading-relaxed text-gray-600 max-w-2xl">
+                    {t("landing.spotlight.emptySubtitle")}
+                  </p>
+                </div>
+                <div className="shrink-0 w-full md:w-auto">
+                  <Button
+                    onClick={() => setLocation("/espace-recruteur")}
+                    className="h-11 px-5 rounded-xl font-semibold shadow-sm hover:opacity-90 gap-2 w-full md:w-auto"
+                    style={{ backgroundColor: COLORS.gold, color: COLORS.deepGreen }}
+                  >
+                    {t("landing.spotlight.emptyCta")}
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </Reveal>
+      </div>
+    </section>
   );
 }

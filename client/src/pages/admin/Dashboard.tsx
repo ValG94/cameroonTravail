@@ -31,6 +31,7 @@ import {
   X,
   CreditCard,
   Wallet,
+  Sparkles,
 } from "lucide-react";
 import AdminFormules from "./AdminFormules";
 import { useState as useStateLocal } from "react";
@@ -540,6 +541,14 @@ export default function AdminDashboard() {
                 {nbDemandesAttente}
               </span>
             )}
+          </button>
+          {/* Spotlights — page dédiée (encart annonceur homepage) */}
+          <button
+            onClick={() => setLocation("/admin/spotlights")}
+            className="flex items-center gap-2 px-5 py-3.5 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 transition-colors whitespace-nowrap"
+          >
+            <Sparkles className="h-4 w-4" style={{ color: "#F6C343" }} />
+            {t("bo.adminDashboard.tabs.spotlights")}
           </button>
         </div>
       </div>
