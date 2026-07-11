@@ -41,8 +41,14 @@ WHERE u."email" = 'demo-nomadeo@cameroon-travail.test'
 -- ─── Section 2 : spotlight actif Nomadéo ─────────────────────────────
 -- Crée un spotlight actif pour 30 jours, pack "continu".
 -- Idempotent : ne fait rien si un spotlight actif existe déjà pour Nomadéo.
+--
+-- Note : les colonnes ctaSecondary* proviennent de la migration 0019.
+-- Assure-toi d'avoir appliqué 0018 ET 0019 avant de jouer ce seed.
 INSERT INTO "sponsored_spotlights"
-  ("employeurId", "pack", "baseline", "baselineEn", "ctaLabel", "ctaLabelEn", "ctaHref", "startAt", "endAt", "actif")
+  ("employeurId", "pack", "baseline", "baselineEn",
+   "ctaLabel", "ctaLabelEn", "ctaHref",
+   "ctaSecondaryLabel", "ctaSecondaryLabelEn", "ctaSecondaryHref",
+   "startAt", "endAt", "actif")
 SELECT
   e."id",
   'continu',
@@ -51,6 +57,9 @@ SELECT
   'Voir les offres de Nomadéo',
   'See Nomadéo''s jobs',
   NULL,
+  'Découvrir l''entreprise',
+  'Discover the company',
+  'https://nomadeo.africa/',
   NOW(),
   NOW() + INTERVAL '30 days',
   true

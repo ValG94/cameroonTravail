@@ -531,6 +531,11 @@ export const sponsoredSpotlights = pgTable("sponsored_spotlights", {
   ctaLabel: varchar("ctaLabel", { length: 60 }),
   ctaLabelEn: varchar("ctaLabelEn", { length: 60 }),
   ctaHref: varchar("ctaHref", { length: 500 }),
+  // CTA secondaire optionnel (migration 0019). Si absent, seul le
+  // CTA principal est rendu.
+  ctaSecondaryLabel: varchar("ctaSecondaryLabel", { length: 60 }),
+  ctaSecondaryLabelEn: varchar("ctaSecondaryLabelEn", { length: 60 }),
+  ctaSecondaryHref: varchar("ctaSecondaryHref", { length: 500 }),
   // Si fourni, override le logo de l'employeur (ex. version optimisée
   // pour le format spotlight). Sinon on prend employeurs.logoUrl.
   logoOverride: text("logoOverride"),

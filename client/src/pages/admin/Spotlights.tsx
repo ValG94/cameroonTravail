@@ -71,6 +71,9 @@ interface FormState {
   ctaLabel: string;
   ctaLabelEn: string;
   ctaHref: string;
+  ctaSecondaryLabel: string;
+  ctaSecondaryLabelEn: string;
+  ctaSecondaryHref: string;
   startAt: string; // ISO date "YYYY-MM-DD"
   endAt: string;
   actif: boolean;
@@ -84,6 +87,9 @@ const emptyForm: FormState = {
   ctaLabel: "",
   ctaLabelEn: "",
   ctaHref: "",
+  ctaSecondaryLabel: "",
+  ctaSecondaryLabelEn: "",
+  ctaSecondaryHref: "",
   startAt: "",
   endAt: "",
   actif: true,
@@ -178,6 +184,9 @@ export default function AdminSpotlights() {
       ctaLabel: s.ctaLabel ?? "",
       ctaLabelEn: s.ctaLabelEn ?? "",
       ctaHref: s.ctaHref ?? "",
+      ctaSecondaryLabel: s.ctaSecondaryLabel ?? "",
+      ctaSecondaryLabelEn: s.ctaSecondaryLabelEn ?? "",
+      ctaSecondaryHref: s.ctaSecondaryHref ?? "",
       startAt: toInputDate(s.startAt),
       endAt: toInputDate(s.endAt),
       actif: s.actif,
@@ -210,6 +219,9 @@ export default function AdminSpotlights() {
       ctaLabel: form.ctaLabel.trim() || null,
       ctaLabelEn: form.ctaLabelEn.trim() || null,
       ctaHref: form.ctaHref.trim() || null,
+      ctaSecondaryLabel: form.ctaSecondaryLabel.trim() || null,
+      ctaSecondaryLabelEn: form.ctaSecondaryLabelEn.trim() || null,
+      ctaSecondaryHref: form.ctaSecondaryHref.trim() || null,
       startAt: new Date(form.startAt),
       endAt: new Date(`${form.endAt}T23:59:59`),
       actif: form.actif,
@@ -551,6 +563,48 @@ export default function AdminSpotlights() {
               <p className="text-[11px] text-slate-500">
                 {t("bo.adminSpotlights.formCtaHrefHelp")}
               </p>
+            </div>
+
+            {/* Bloc CTA secondaire (optionnel) */}
+            <div className="pt-4 border-t" style={{ borderColor: "#E2E8F0" }}>
+              <p className="text-[13px] font-bold text-slate-700 mb-1">
+                {t("bo.adminSpotlights.formSecondaryTitle")}
+              </p>
+              <p className="text-[11.5px] text-slate-500 mb-3">
+                {t("bo.adminSpotlights.formSecondaryHelp")}
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>{t("bo.adminSpotlights.formCtaSecondaryLabel")}</Label>
+                  <Input
+                    value={form.ctaSecondaryLabel}
+                    onChange={(e) => setForm({ ...form, ctaSecondaryLabel: e.target.value })}
+                    placeholder={t("bo.adminSpotlights.formCtaSecondaryLabelPh")}
+                    maxLength={60}
+                    className="h-10"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>{t("bo.adminSpotlights.formCtaSecondaryLabelEn")}</Label>
+                  <Input
+                    value={form.ctaSecondaryLabelEn}
+                    onChange={(e) => setForm({ ...form, ctaSecondaryLabelEn: e.target.value })}
+                    placeholder={t("bo.adminSpotlights.formCtaSecondaryLabelEnPh")}
+                    maxLength={60}
+                    className="h-10"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5 mt-3">
+                <Label>{t("bo.adminSpotlights.formCtaSecondaryHref")}</Label>
+                <Input
+                  value={form.ctaSecondaryHref}
+                  onChange={(e) => setForm({ ...form, ctaSecondaryHref: e.target.value })}
+                  placeholder={t("bo.adminSpotlights.formCtaSecondaryHrefPh")}
+                  maxLength={500}
+                  className="h-10"
+                />
+              </div>
             </div>
 
             <div className="flex items-center gap-2">

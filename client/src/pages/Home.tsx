@@ -487,6 +487,11 @@ export default function Home() {
       </section>
 
       {/* ╭──────────────────────────────────────────────────────────────╮ */}
+      {/* │ SPOTLIGHT — encart annonceur premium (image bg + 2 CTA)      │ */}
+      {/* ╰──────────────────────────────────────────────────────────────╯ */}
+      <SpotlightSection setLocation={setLocation} />
+
+      {/* ╭──────────────────────────────────────────────────────────────╮ */}
       {/* │ DEUX PARCOURS — vraies photos candidate / recruteur           │ */}
       {/* ╰──────────────────────────────────────────────────────────────╯ */}
       <section className="py-20 bg-white">
@@ -591,11 +596,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* ╭──────────────────────────────────────────────────────────────╮ */}
-      {/* │ SPOTLIGHT — encart annonceur premium (halo or animé)         │ */}
-      {/* ╰──────────────────────────────────────────────────────────────╯ */}
-      <SpotlightSection setLocation={setLocation} />
 
       {/* ╭──────────────────────────────────────────────────────────────╮ */}
       {/* │ DERNIÈRES OFFRES — 4 cards en ligne                           │ */}
@@ -1072,43 +1072,44 @@ function PartnerCard({ name, file, delayIndex = 0 }: PartnerSpec & { delayIndex?
 // ═════════════════════════════════════════════════════════════════════
 // SPOTLIGHT — encart annonceur premium en homepage
 // ═════════════════════════════════════════════════════════════════════
-// Une carte pleine largeur avec logo entreprise + baseline + CTA,
-// entourée d'un halo or animé (même vocabulaire visuel que les partenaires
-// mais halo plus épais et plus lent, adapté à la grande taille).
+// Une bannière pleine largeur avec :
+//  - image de fond (photo de recruteurs + dégradé vert intégré)
+//  - logo entreprise dans un contenant blanc à halo doré animé
+//  - eyebrow doré "Entreprise à la une"
+//  - titre blanc + baseline blanche
+//  - CTA principal or (Voir les offres) + CTA secondaire outline optionnel
 //
-// - Si un spotlight est actif : rendu de la carte partenaire réelle
-// - Sinon : slot "Devenir partenaire" (auto-marketing pour le pack)
+// Fallback si aucun spotlight actif : slot "Devenir partenaire"
+// (auto-marketing pour le pack).
 
 interface SpotlightSectionProps {
   setLocation: (href: string) => void;
 }
 
+const SPOTLIGHT_BG = "/images/recruteur/background-encarsPublicitaire.png";
+
 function SpotlightSection({ setLocation }: SpotlightSectionProps) {
   const { t, i18n } = useTranslation();
   const { data: spotlight, isLoading } = trpc.spotlights.getActive.useQuery(undefined, {
-    // Rafraîchi au montage — pas de refetch en boucle, le spotlight
-    // change au maximum quelques fois par semaine.
     staleTime: 5 * 60 * 1000,
   });
 
-  // Pendant le chargement initial : rien pour éviter un flash de fallback.
   if (isLoading) return null;
 
   const isEn = i18n.language?.startsWith("en");
 
   return (
-    <section className="py-14" style={{ backgroundColor: "#FFFFFF" }}>
+    <section className="py-14 md:py-16 bg-white">
       <style>{`
         @keyframes spotlightHalo { to { transform: rotate(360deg); } }
-        .spotlight-card {
+        .spotlight-logo {
           position: relative;
-          border-radius: 24px;
+          border-radius: 18px;
           padding: 2px;
-          background: transparent;
           overflow: hidden;
           isolation: isolate;
         }
-        .spotlight-card::before {
+        .spotlight-logo::before {
           content: '';
           position: absolute;
           inset: -50%;
@@ -1116,143 +1117,198 @@ function SpotlightSection({ setLocation }: SpotlightSectionProps) {
           background: conic-gradient(
             from 0deg,
             transparent 0deg,
-            transparent 65deg,
+            transparent 60deg,
             #F6C343 90deg,
-            transparent 115deg,
+            transparent 120deg,
             transparent 360deg
           );
-          animation: spotlightHalo 6s linear infinite;
+          animation: spotlightHalo 5s linear infinite;
           z-index: 0;
           pointer-events: none;
         }
-        .spotlight-card::after {
+        .spotlight-logo::after {
           content: '';
           position: absolute;
           inset: 2px;
-          border-radius: 22px;
+          border-radius: 16px;
           background: #FFFFFF;
           z-index: 1;
         }
-        .spotlight-card > * {
+        .spotlight-logo > * {
           position: relative;
           z-index: 2;
         }
         @media (prefers-reduced-motion: reduce) {
-          .spotlight-card::before { animation: none; }
+          .spotlight-logo::before { animation: none; }
         }
       `}</style>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Reveal>
-          <div className="spotlight-card">
-            {spotlight ? (
-              /* ─── SPOTLIGHT ACTIF ────────────────────────────────── */
-              <div className="flex flex-col md:flex-row items-center gap-6 p-6 md:p-8">
-                {/* Badge or "Partenaire mis en avant" */}
-                <div className="w-full md:w-auto flex md:hidden items-center justify-center">
-                  <span
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-widest"
-                    style={{ backgroundColor: "rgba(246, 195, 67, 0.15)", color: "#B45309" }}
+          {spotlight ? (
+            /* ─── SPOTLIGHT ACTIF ────────────────────────────────── */
+            <div
+              className="relative rounded-3xl overflow-hidden shadow-xl"
+              style={{
+                backgroundImage: `url(${SPOTLIGHT_BG})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center right",
+                backgroundColor: COLORS.deepGreen,
+                boxShadow: "0 20px 40px -20px rgba(3, 31, 22, 0.5)",
+              }}
+            >
+              {/* Overlay dégradé pour renforcer la lisibilité côté gauche */}
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background: `linear-gradient(90deg, rgba(3, 31, 22, 0.85) 0%, rgba(6, 63, 36, 0.7) 35%, transparent 60%)`,
+                }}
+              />
+
+              <div className="relative flex flex-col md:flex-row items-center md:items-stretch gap-6 md:gap-8 p-6 md:p-8 lg:p-10 min-h-[280px] md:min-h-[260px]">
+                {/* Logo entreprise avec halo doré */}
+                <div className="shrink-0 spotlight-logo w-32 h-32 md:w-40 md:h-40 self-center">
+                  <div className="w-full h-full flex items-center justify-center p-4">
+                    {(spotlight.logoOverride || spotlight.logoUrl) ? (
+                      <img
+                        src={spotlight.logoOverride || spotlight.logoUrl || ""}
+                        alt={spotlight.nomEntreprise}
+                        className="max-w-full max-h-full object-contain"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div
+                        className="w-full h-full rounded-lg flex items-center justify-center font-extrabold text-4xl text-white"
+                        style={{ backgroundColor: COLORS.deepGreen }}
+                      >
+                        {spotlight.nomEntreprise.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Contenu texte + CTAs */}
+                <div className="flex-1 min-w-0 flex flex-col justify-center text-center md:text-left max-w-2xl">
+                  {/* Eyebrow doré */}
+                  <div
+                    className="text-[12px] font-bold uppercase tracking-[0.18em] mb-2"
+                    style={{ color: COLORS.gold }}
                   >
-                    <Sparkles className="h-3 w-3" />
-                    {t("landing.spotlight.badge")}
-                  </span>
-                </div>
-
-                {/* Logo entreprise */}
-                <div className="shrink-0 w-32 h-32 md:w-36 md:h-36 rounded-2xl flex items-center justify-center p-4 border" style={{ borderColor: "#F3EDDE", backgroundColor: "#FEFCF6" }}>
-                  {(spotlight.logoOverride || spotlight.logoUrl) ? (
-                    <img
-                      src={spotlight.logoOverride || spotlight.logoUrl || ""}
-                      alt={spotlight.nomEntreprise}
-                      className="max-w-full max-h-full object-contain"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div
-                      className="w-full h-full rounded-xl flex items-center justify-center font-extrabold text-4xl text-white"
-                      style={{ backgroundColor: COLORS.deepGreen }}
-                    >
-                      {spotlight.nomEntreprise.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                </div>
-
-                {/* Contenu texte */}
-                <div className="flex-1 min-w-0 text-center md:text-left">
-                  <div className="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-widest mb-2" style={{ backgroundColor: "rgba(246, 195, 67, 0.15)", color: "#B45309" }}>
-                    <Sparkles className="h-3 w-3" />
                     {t("landing.spotlight.badge")}
                   </div>
+
+                  {/* Titre */}
                   <h3
-                    className="text-2xl sm:text-[26px] font-extrabold tracking-tight leading-tight"
-                    style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}
+                    className="text-white font-extrabold tracking-tight leading-tight"
+                    style={{
+                      fontSize: "clamp(24px, 3.2vw, 36px)",
+                      fontFamily: "'Manrope', 'Inter', sans-serif",
+                      textShadow: "0 2px 8px rgba(0,0,0,0.25)",
+                    }}
                   >
                     {spotlight.nomEntreprise}
                   </h3>
-                  <p className="text-[14.5px] mt-2 leading-relaxed text-gray-600 max-w-2xl">
+
+                  {/* Baseline */}
+                  <p
+                    className="text-[14.5px] md:text-[15.5px] mt-3 leading-relaxed max-w-xl mx-auto md:mx-0"
+                    style={{ color: "rgba(255, 255, 255, 0.88)" }}
+                  >
                     {(isEn && spotlight.baselineEn) || spotlight.baseline}
                   </p>
-                </div>
 
-                {/* CTA */}
-                <div className="shrink-0 w-full md:w-auto">
-                  <Button
-                    onClick={() => {
-                      const href = spotlight.ctaHref || `/entreprise/${spotlight.employeurId}`;
-                      if (href.startsWith("http")) {
-                        window.open(href, "_blank", "noopener,noreferrer");
-                      } else {
-                        setLocation(href);
-                      }
-                    }}
-                    className="h-11 px-5 rounded-xl font-semibold text-white shadow-sm hover:opacity-90 gap-2 w-full md:w-auto"
-                    style={{ backgroundColor: COLORS.deepGreen }}
-                  >
-                    {(isEn && spotlight.ctaLabelEn) ||
-                      spotlight.ctaLabel ||
-                      t("landing.spotlight.defaultCta", { name: spotlight.nomEntreprise })}
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
+                  {/* CTAs */}
+                  <div className="flex flex-col sm:flex-row items-center md:items-start justify-center md:justify-start gap-3 mt-5">
+                    <Button
+                      onClick={() => {
+                        const href = spotlight.ctaHref || `/entreprise/${spotlight.employeurId}`;
+                        if (href.startsWith("http")) {
+                          window.open(href, "_blank", "noopener,noreferrer");
+                        } else {
+                          setLocation(href);
+                        }
+                      }}
+                      className="h-11 px-6 rounded-xl font-semibold shadow-md hover:opacity-90 gap-2 w-full sm:w-auto"
+                      style={{ backgroundColor: COLORS.gold, color: COLORS.charcoal }}
+                    >
+                      {(isEn && spotlight.ctaLabelEn) ||
+                        spotlight.ctaLabel ||
+                        t("landing.spotlight.defaultCta", { name: spotlight.nomEntreprise })}
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+
+                    {spotlight.ctaSecondaryHref && (spotlight.ctaSecondaryLabel || spotlight.ctaSecondaryLabelEn) && (
+                      <Button
+                        onClick={() => {
+                          const href = spotlight.ctaSecondaryHref!;
+                          if (href.startsWith("http")) {
+                            window.open(href, "_blank", "noopener,noreferrer");
+                          } else {
+                            setLocation(href);
+                          }
+                        }}
+                        variant="outline"
+                        className="h-11 px-5 rounded-xl font-semibold gap-2 w-full sm:w-auto border-white/30 bg-white/5 text-white hover:bg-white/15 backdrop-blur-md"
+                      >
+                        {(isEn && spotlight.ctaSecondaryLabelEn) || spotlight.ctaSecondaryLabel}
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
-            ) : (
-              /* ─── FALLBACK : slot "Devenir partenaire" ──────────── */
-              <div className="flex flex-col md:flex-row items-center gap-6 p-6 md:p-8 text-center md:text-left">
-                <div
-                  className="shrink-0 w-24 h-24 md:w-28 md:h-28 rounded-2xl flex items-center justify-center"
-                  style={{ backgroundColor: "rgba(246, 195, 67, 0.15)" }}
-                >
-                  <Sparkles className="h-10 w-10 md:h-12 md:w-12" style={{ color: "#B45309" }} />
+            </div>
+          ) : (
+            /* ─── FALLBACK : slot "Devenir partenaire" ──────────── */
+            <div
+              className="relative rounded-3xl overflow-hidden shadow-xl"
+              style={{
+                backgroundImage: `url(${SPOTLIGHT_BG})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center right",
+                backgroundColor: COLORS.deepGreen,
+              }}
+            >
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background: `linear-gradient(90deg, rgba(3, 31, 22, 0.9) 0%, rgba(6, 63, 36, 0.75) 40%, transparent 65%)`,
+                }}
+              />
+              <div className="relative flex flex-col md:flex-row items-center md:items-stretch gap-6 md:gap-8 p-6 md:p-8 lg:p-10 min-h-[260px]">
+                <div className="shrink-0 spotlight-logo w-28 h-28 md:w-36 md:h-36 self-center">
+                  <div className="w-full h-full flex items-center justify-center p-4">
+                    <Sparkles className="h-12 w-12 md:h-14 md:w-14" style={{ color: COLORS.gold }} />
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-widest mb-2" style={{ backgroundColor: "rgba(246, 195, 67, 0.15)", color: "#B45309" }}>
-                    <Sparkles className="h-3 w-3" />
+                <div className="flex-1 min-w-0 flex flex-col justify-center text-center md:text-left max-w-2xl">
+                  <div className="text-[12px] font-bold uppercase tracking-[0.18em] mb-2" style={{ color: COLORS.gold }}>
                     {t("landing.spotlight.emptyBadge")}
                   </div>
                   <h3
-                    className="text-2xl sm:text-[26px] font-extrabold tracking-tight leading-tight"
-                    style={{ color: COLORS.deepGreen, fontFamily: "'Manrope', 'Inter', sans-serif" }}
+                    className="text-white font-extrabold tracking-tight leading-tight"
+                    style={{ fontSize: "clamp(22px, 2.8vw, 32px)", fontFamily: "'Manrope', 'Inter', sans-serif" }}
                   >
                     {t("landing.spotlight.emptyTitle")}
                   </h3>
-                  <p className="text-[14.5px] mt-2 leading-relaxed text-gray-600 max-w-2xl">
+                  <p className="text-[14.5px] mt-3 leading-relaxed max-w-xl mx-auto md:mx-0" style={{ color: "rgba(255, 255, 255, 0.88)" }}>
                     {t("landing.spotlight.emptySubtitle")}
                   </p>
-                </div>
-                <div className="shrink-0 w-full md:w-auto">
-                  <Button
-                    onClick={() => setLocation("/espace-recruteur")}
-                    className="h-11 px-5 rounded-xl font-semibold shadow-sm hover:opacity-90 gap-2 w-full md:w-auto"
-                    style={{ backgroundColor: COLORS.gold, color: COLORS.deepGreen }}
-                  >
-                    {t("landing.spotlight.emptyCta")}
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
+                  <div className="mt-5">
+                    <Button
+                      onClick={() => setLocation("/espace-recruteur")}
+                      className="h-11 px-6 rounded-xl font-semibold shadow-md hover:opacity-90 gap-2"
+                      style={{ backgroundColor: COLORS.gold, color: COLORS.charcoal }}
+                    >
+                      {t("landing.spotlight.emptyCta")}
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </Reveal>
       </div>
     </section>
