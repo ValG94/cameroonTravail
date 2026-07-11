@@ -1218,43 +1218,73 @@ function SpotlightSection({ setLocation }: SpotlightSectionProps) {
                     {(isEn && spotlight.baselineEn) || spotlight.baseline}
                   </p>
 
-                  {/* CTAs */}
-                  <div className="flex flex-col sm:flex-row items-center md:items-start justify-center md:justify-start gap-3 mt-5">
-                    <Button
-                      onClick={() => {
-                        const href = spotlight.ctaHref || `/entreprise/${spotlight.employeurId}`;
-                        if (href.startsWith("http")) {
-                          window.open(href, "_blank", "noopener,noreferrer");
-                        } else {
-                          setLocation(href);
-                        }
-                      }}
-                      className="h-11 px-6 rounded-xl font-semibold shadow-md hover:opacity-90 gap-2 w-full sm:w-auto"
-                      style={{ backgroundColor: COLORS.gold, color: COLORS.charcoal }}
-                    >
-                      {(isEn && spotlight.ctaLabelEn) ||
-                        spotlight.ctaLabel ||
-                        t("landing.spotlight.defaultCta", { name: spotlight.nomEntreprise })}
-                      <ArrowRight className="w-4 h-4" />
-                    </Button>
+                  {/* CTAs — le CTA principal "Voir les offres" n'est
+                      affiché que si le recruteur a au moins 1 offre
+                      publiée (évite d'envoyer sur une page vide).
+                      Le CTA secondaire s'affiche dès qu'il est défini
+                      en admin, indépendamment des offres. */}
+                  {(() => {
+                    const hasPublishedJobs = (spotlight.publishedJobsCount ?? 0) > 0;
+                    const hasSecondary =
+                      !!spotlight.ctaSecondaryHref &&
+                      !!(spotlight.ctaSecondaryLabel || spotlight.ctaSecondaryLabelEn);
+                    if (!hasPublishedJobs && !hasSecondary) return null;
+                    // Style CTA principal doré. Si c'est le seul bouton visible,
+                    // on le rend "primary". Sinon idem, le secondaire est outline.
+                    return (
+                      <div className="flex flex-col sm:flex-row items-center md:items-start justify-center md:justify-start gap-3 mt-5">
+                        {hasPublishedJobs && (
+                          <Button
+                            onClick={() => {
+                              const href = spotlight.ctaHref || `/entreprise/${spotlight.employeurId}`;
+                              if (href.startsWith("http")) {
+                                window.open(href, "_blank", "noopener,noreferrer");
+                              } else {
+                                setLocation(href);
+                              }
+                            }}
+                            className="h-11 px-6 rounded-xl font-semibold shadow-md hover:opacity-90 gap-2 w-full sm:w-auto"
+                            style={{ backgroundColor: COLORS.gold, color: COLORS.charcoal }}
+                          >
+                            {(isEn && spotlight.ctaLabelEn) ||
+                              spotlight.ctaLabel ||
+                              t("landing.spotlight.defaultCta", { name: spotlight.nomEntreprise })}
+                            <ArrowRight className="w-4 h-4" />
+                          </Button>
+                        )}
 
-                    {spotlight.ctaSecondaryHref && (spotlight.ctaSecondaryLabel || spotlight.ctaSecondaryLabelEn) && (
-                      <Button
-                        onClick={() => {
-                          const href = spotlight.ctaSecondaryHref!;
-                          if (href.startsWith("http")) {
-                            window.open(href, "_blank", "noopener,noreferrer");
-                          } else {
-                            setLocation(href);
-                          }
-                        }}
-                        variant="outline"
-                        className="h-11 px-5 rounded-xl font-semibold gap-2 w-full sm:w-auto border-white/30 bg-white/5 text-white hover:bg-white/15 backdrop-blur-md"
-                      >
-                        {(isEn && spotlight.ctaSecondaryLabelEn) || spotlight.ctaSecondaryLabel}
-                      </Button>
-                    )}
-                  </div>
+                        {hasSecondary && (
+                          <Button
+                            onClick={() => {
+                              const href = spotlight.ctaSecondaryHref!;
+                              if (href.startsWith("http")) {
+                                window.open(href, "_blank", "noopener,noreferrer");
+                              } else {
+                                setLocation(href);
+                              }
+                            }}
+                            /* Si le secondaire est seul, on lui donne le look
+                               "primary" (fond or) pour ne pas laisser une
+                               bannière sans CTA visible. Sinon outline blanc. */
+                            variant={hasPublishedJobs ? "outline" : undefined}
+                            className={
+                              hasPublishedJobs
+                                ? "h-11 px-5 rounded-xl font-semibold gap-2 w-full sm:w-auto border-white/30 bg-white/5 text-white hover:bg-white/15 backdrop-blur-md"
+                                : "h-11 px-6 rounded-xl font-semibold shadow-md hover:opacity-90 gap-2 w-full sm:w-auto"
+                            }
+                            style={
+                              hasPublishedJobs
+                                ? undefined
+                                : { backgroundColor: COLORS.gold, color: COLORS.charcoal }
+                            }
+                          >
+                            {(isEn && spotlight.ctaSecondaryLabelEn) || spotlight.ctaSecondaryLabel}
+                            {!hasPublishedJobs && <ArrowRight className="w-4 h-4" />}
+                          </Button>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

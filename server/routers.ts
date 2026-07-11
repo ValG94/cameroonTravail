@@ -3852,8 +3852,8 @@ export const appRouter = router({
     getActive: publicProcedure.query(async () => {
       const dbInstance = await db.getDb();
       if (!dbInstance) return null;
-      const { sponsoredSpotlights, employeurs } = await import("../drizzle/schema");
-      const { and, eq, lte, gte, desc } = await import("drizzle-orm");
+      const { sponsoredSpotlights, employeurs, offresEmploi } = await import("../drizzle/schema");
+      const { and, eq, lte, gte, desc, count } = await import("drizzle-orm");
       const now = new Date();
       const rows = await dbInstance
         .select({
@@ -3886,7 +3886,21 @@ export const appRouter = router({
         )
         .orderBy(desc(sponsoredSpotlights.createdAt))
         .limit(1);
-      return rows[0] ?? null;
+      const row = rows[0];
+      if (!row) return null;
+      // Compte le nb d'offres publiées pour cet employeur — permet au
+      // front de masquer le CTA "Voir les offres" quand il n'y a rien
+      // à voir (évite d'envoyer sur une page vide).
+      const [published] = await dbInstance
+        .select({ n: count() })
+        .from(offresEmploi)
+        .where(
+          and(
+            eq(offresEmploi.employeurId, row.employeurId),
+            eq(offresEmploi.statut, "publiee"),
+          ),
+        );
+      return { ...row, publishedJobsCount: Number(published?.n ?? 0) };
     }),
 
     list: adminProcedure.query(async () => {
