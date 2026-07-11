@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import { SiteHeader } from "@/components/SiteHeader";
+import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -106,30 +106,23 @@ export default function AdminSouscriptions() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <SiteHeader />
+      <AdminLayout title={t("bo.adminSubscriptions.title")} activeKey="subscriptions">
         <div className="flex items-center justify-center py-20">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600" />
         </div>
-      </div>
+      </AdminLayout>
     );
   }
 
   const demandes = listQuery.data ?? [];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <SiteHeader />
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">
-            {t("bo.adminSubscriptions.title")}
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            {t("bo.adminSubscriptions.subtitle")}
-          </p>
-        </div>
-
+    <AdminLayout
+      title={t("bo.adminSubscriptions.title")}
+      subtitle={t("bo.adminSubscriptions.subtitle")}
+      activeKey="subscriptions"
+    >
+      <div className="max-w-[1400px] mx-auto">
         {/* Filtres */}
         <div className="flex flex-wrap gap-2 mb-6">
           {STATUTS.map((s) => (
@@ -303,7 +296,7 @@ export default function AdminSouscriptions() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </AdminLayout>
   );
 }
 

@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import { SiteHeader } from "@/components/SiteHeader";
+import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -242,31 +242,34 @@ export default function AdminSpotlights() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <SiteHeader />
+      <AdminLayout title={t("bo.adminSpotlights.title")} activeKey="spotlights">
         <div className="flex items-center justify-center py-20">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600" />
         </div>
-      </div>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <SiteHeader />
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 flex items-center gap-3">
-              <Sparkles className="h-7 w-7" style={{ color: "#F6C343" }} />
-              {t("bo.adminSpotlights.title")}
-            </h1>
-            <p className="text-sm text-slate-500 mt-1 max-w-2xl">
-              {t("bo.adminSpotlights.subtitle")}
-            </p>
-          </div>
-          <Button onClick={openCreate} className="h-10 gap-2 shadow-sm" style={{ backgroundColor: "#063F24" }}>
+    <AdminLayout
+      title={t("bo.adminSpotlights.title")}
+      subtitle={t("bo.adminSpotlights.subtitle")}
+      activeKey="spotlights"
+      actions={
+        <Button
+          onClick={openCreate}
+          className="h-10 gap-2 shadow-sm hidden sm:inline-flex"
+          style={{ backgroundColor: "#063F24" }}
+        >
+          <Plus className="h-4 w-4" />
+          {t("bo.adminSpotlights.newBtn")}
+        </Button>
+      }
+    >
+      <div className="max-w-[1400px] mx-auto">
+        {/* CTA mobile (l'action topbar est masquée en dessous de sm) */}
+        <div className="sm:hidden mb-4">
+          <Button onClick={openCreate} className="w-full h-10 gap-2 shadow-sm" style={{ backgroundColor: "#063F24" }}>
             <Plus className="h-4 w-4" />
             {t("bo.adminSpotlights.newBtn")}
           </Button>
@@ -657,6 +660,6 @@ export default function AdminSpotlights() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </AdminLayout>
   );
 }
