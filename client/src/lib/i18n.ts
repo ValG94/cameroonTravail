@@ -2120,6 +2120,7 @@ const fr = {
           searchPlaceholder: "Rechercher un candidat, une offre…",
           notifications: "Notifications",
           recruiter: "Recruteur",
+          backHome: "Retour accueil",
         },
       },
       // ─── Dashboard employeur — refonte premium ────────────────
@@ -4484,6 +4485,7 @@ const en = {
           searchPlaceholder: "Search a candidate, a job…",
           notifications: "Notifications",
           recruiter: "Recruiter",
+          backHome: "Back to home",
         },
       },
       // ─── Recruiter dashboard (premium refonte) ────────────────

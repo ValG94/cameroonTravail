@@ -10,6 +10,7 @@ import {
   FileText,
   Gauge,
   Headphones,
+  Home,
   LayoutList,
   LogOut,
   Menu,
@@ -158,25 +159,36 @@ export function EmployeurLayout({
           style={{ backgroundColor: C.gold }}
         />
 
-        {/* Logo top */}
+        {/* Logo top — cliquable : renvoie sur l'accueil du site public */}
         <div className="relative px-5 py-6 flex items-center gap-3">
-          <img
-            src="/logo-cameroon-travail.webp"
-            alt="Cameroon Travail"
-            className="h-11 w-auto object-contain shrink-0"
-            onError={(e) => {
-              (e.currentTarget as HTMLImageElement).style.display = "none";
-            }}
-          />
-          <div className="min-w-0">
-            <div className="text-white font-extrabold text-[15px] leading-tight">CAMEROON</div>
-            <div className="text-white font-extrabold text-[15px] leading-tight">TRAVAIL</div>
-            <div className="text-[10px] mt-0.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.6)" }}>
-              {t("bo.employerLayout.logoSubtitle")}
-            </div>
-          </div>
           <button
-            className="lg:hidden ml-auto p-1.5 rounded-lg hover:bg-white/10 text-white"
+            type="button"
+            onClick={() => {
+              setLocation("/");
+              setMobileOpen(false);
+            }}
+            className="flex items-center gap-3 min-w-0 flex-1 text-left rounded-lg -mx-1 px-1 py-1 hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(246,195,67,0.5)]"
+            title={t("bo.employerLayout.topBar.backHome")}
+            aria-label={t("bo.employerLayout.topBar.backHome")}
+          >
+            <img
+              src="/logo-cameroon-travail.webp"
+              alt="Cameroon Travail"
+              className="h-11 w-auto object-contain shrink-0"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+              }}
+            />
+            <div className="min-w-0">
+              <div className="text-white font-extrabold text-[15px] leading-tight">CAMEROON</div>
+              <div className="text-white font-extrabold text-[15px] leading-tight">TRAVAIL</div>
+              <div className="text-[10px] mt-0.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.6)" }}>
+                {t("bo.employerLayout.logoSubtitle")}
+              </div>
+            </div>
+          </button>
+          <button
+            className="lg:hidden ml-auto p-1.5 rounded-lg hover:bg-white/10 text-white shrink-0"
             onClick={() => setMobileOpen(false)}
             aria-label="Close menu"
           >
@@ -357,6 +369,18 @@ export function EmployeurLayout({
 
               {/* Custom actions */}
               {actions}
+
+              {/* Retour accueil — renvoie sur la home publique du site */}
+              <Button
+                variant="outline"
+                onClick={() => setLocation("/")}
+                className="h-10 rounded-lg font-semibold gap-1.5 hidden sm:inline-flex"
+                style={{ borderColor: C.border, color: C.textMain }}
+                title={t("bo.employerLayout.topBar.backHome")}
+              >
+                <Home className="h-4 w-4" />
+                <span className="hidden lg:inline">{t("bo.employerLayout.topBar.backHome")}</span>
+              </Button>
 
               {/* Language */}
               <div className="hidden md:block">
